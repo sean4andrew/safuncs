@@ -127,3 +127,81 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
             strip.text = element_text(face="bold")
     ))
 }
+
+Predict_SR = function(New_DB = DB_896,
+                      Ref_DB = DB_Ref,
+                      SR_Days = 5:18,
+                      Method = 2,
+                      PH_Mod = "GLMM") {
+
+  library(bshazard)
+  library(coxme)
+  library(DescTools)
+  library(survival)
+  library(dplyr)
+  library(SimDesign)
+
+  New_DB = New_DB[New_DB$Std_Time > 0, ]
+
+  Ref_ID = levels(as.factor(Ref_DB$Trt.ID))
+  Ref_bshaz = quiet(bshazard(data = Ref_DB, Surv(Std_Time, Status) ~ Tank.ID,
+                             verbose = FALSE, nbin = max(Ref_DB$Std_Time)))
+
+  Comb_DB = rbind(Ref_DB, New_DB)
+  Comb_DB$Trt.ID = relevel(as.factor(Comb_DB$Trt.ID), ref = Ref_ID)
+
+  pred_SR_DB = data.frame()
+
+  for(Comp_HR in levels(as.factor(New_DB$Trt.ID))) {
+
+    for(SR_Day in SR_Days) {
+      Comb_DB2 = survSplit(Comb_DB, cut = SR_Day, end = "Std_Time", event = "Status", episode = "Obs")
+      Comb_DB2 = Comb_DB2[Comb_DB2$Obs == 1, ]
+
+      #Get HR
+      if(PH_Mod == "GLMM"){
+        cox_comp = coxme(Surv(Std_Time, Status) ~ Trt.ID + (1|Tank.ID),
+                         data = droplevels(Comb_DB2[Comb_DB2$Trt.ID %in% c(Ref_ID, Comp_HR),]))
+      }
+      if(PH_Mod == "GEE"){
+        cox_comp = coxph(Surv(Std_Time, Status) ~ Trt.ID, cluster = Tank.ID,
+                         data = droplevels(Comb_DB2[Comb_DB2$Trt.ID %in% c(Ref_ID, Comp_HR),]))
+      }
+      pred_HR = exp(coef(cox_comp))
+
+      #Get SR
+      if(Method == 1) {
+        Cumhaz1 = -(AUC(x = Ref_bshaz$time[Ref_bshaz$time < max(SR_Days)],
+                        y = Ref_bshaz$hazard[Ref_bshaz$time < max(SR_Days)] * pred_HR) +
+                      last(Ref_bshaz$hazard[Ref_bshaz$time < max(SR_Days)]) * 0.5 * pred_HR +
+                      first(Ref_bshaz$hazard[Ref_bshaz$time < max(SR_Days)]) * 0.5 * pred_HR)
+        pred_SR = exp(Cumhaz1)
+      }
+
+      if(Method == 2) {
+        New_DB2 = survSplit(New_DB, cut = SR_Day, end = "Std_Time", event = "Status", episode = "Obs")
+        New_DB2 = New_DB2[New_DB2$Obs == 1, ]
+        Comp_bshaz = quiet(bshazard(data = droplevels(New_DB2[New_DB2$Trt.ID == Comp_HR,]),
+                                    Surv(Std_Time, Status) ~ Tank.ID, verbose = FALSE, nbin = SR_Day))
+
+        Cumhaz1 = -(AUC(x = Comp_bshaz$time,
+                        y = Comp_bshaz$hazard) +
+                      last(Comp_bshaz$hazard) * 0.5 +
+                      first(Comp_bshaz$hazard) * 0.5)
+
+        Cumhaz2 = ifelse(SR_Day < max(SR_Days) - 1,
+                         -(AUC(x = Ref_bshaz$time[Ref_bshaz$time < max(SR_Days) & Ref_bshaz$time > SR_Day],
+                               y = Ref_bshaz$hazard[Ref_bshaz$time < max(SR_Days) & Ref_bshaz$time > SR_Day] * pred_HR) +
+                             last(Ref_bshaz$hazard[Ref_bshaz$time < max(SR_Days) & Ref_bshaz$time > SR_Day]) * 0.5 * pred_HR +
+                             first(Ref_bshaz$hazard[Ref_bshaz$time < max(SR_Days) & Ref_bshaz$time > SR_Day]) * 0.5 * pred_HR),
+                         -(last(Ref_bshaz$hazard[Ref_bshaz$time < max(SR_Days) & Ref_bshaz$time > SR_Day]) * 0.5 * pred_HR +
+                             first(Ref_bshaz$hazard[Ref_bshaz$time < max(SR_Days) & Ref_bshaz$time > SR_Day]) * 0.5 * pred_HR))
+        ifelse(is.na(Cumhaz2), Cumhaz2 <- 0, NA)
+        pred_SR = exp(Cumhaz1 + Cumhaz2)
+      }
+      pred_SR_DB = rbind(pred_SR_DB, data.frame(Trt.ID = Comp_HR, Observable_SR_Day = SR_Day, pred_SR, pred_HR))
+    }
+  }
+  row.names(pred_SR_DB) = NULL
+  return(pred_SR_DB)
+}
