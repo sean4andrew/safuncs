@@ -128,9 +128,9 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
     ))
 }
 
-Predict_SR = function(New_DB = DB_896, #The database of the ongoing study, with SR to be predicted
+Predict_SR = function(New_DB = DB_896, #The database of the ongoing study, with SR to be predicted. Needs specific column names namely Trt.ID, Tank.ID, Std_Time, Status
                       Ref_DB = DB_Ref, #The reference database containing old survival data used to create the reference hazard function
-                      End_Day = 5:18,  #The end date at which SR is to be predicted
+                      End_Day = 18,  #The end date at which SR is to be predicted
                       Method = 2,      #SR prediction method, minor differences between Method 1-2 (choose any should be OK)
                       PH_Mod = "GLMM") #Model used to estimate HR. Can be either "GLMM" or "GEE". GLMM recommended.
   {
