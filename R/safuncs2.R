@@ -128,11 +128,12 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
     ))
 }
 
-Predict_SR = function(New_DB = DB_896,
-                      Ref_DB = DB_Ref,
-                      SR_Days = 5:18,
-                      Method = 2,
-                      PH_Mod = "GLMM") {
+Predict_SR = function(New_DB = DB_896, #The database of the ongoing study, with SR to be predicted
+                      Ref_DB = DB_Ref, #The reference database containing old survival data used to create the reference hazard function
+                      End_Day = 5:18,  #The end date at which SR is to be predicted
+                      Method = 2,      #SR prediction method, minor differences between Method 1-2 (choose any should be OK)
+                      PH_Mod = "GLMM") #Model used to estimate HR. Can be either "GLMM" or "GEE". GLMM recommended.
+  {
 
   library(bshazard)
   library(coxme)
@@ -141,6 +142,7 @@ Predict_SR = function(New_DB = DB_896,
   library(dplyr)
   library(SimDesign)
 
+  SR_Days = 5:End_Day
   New_DB = New_DB[New_DB$Std_Time > 0, ]
 
   Ref_ID = levels(as.factor(Ref_DB$Trt.ID))
