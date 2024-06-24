@@ -1,3 +1,16 @@
+# This is a package containing useful functions for my work.
+
+# Available functions:
+# 1. Simul_Con_MULT() -- simulates contingency tables based on the multinomial distribution
+# 2. Simul_Con_MULT.FISH.ORD() -- simulate ordinal-distributed data across treatments and lesions with inter-fish variation in the PO.
+# 3. Simul_Surv() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
+# 4. theme_Publication() -- ggplot theme for generating publication-ready plots
+# 5. Predict_SR() -- predict future survival rate(s) for ongoing experiment based on a reference hazard function from older data.
+# 6. Surv_Gen0() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
+
+###################################################################################################################################
+################################################## Function 1 - Simul_Con_MULT() ##################################################
+
 Simul_Con_MULT = function(total_count = 750,
                           n_lesion = 3,
                           n_Trt. = 5) { #default conditions
@@ -12,6 +25,9 @@ Simul_Con_MULT = function(total_count = 750,
 
   return(Con_Tab1)
 }
+
+###################################################################################################################################
+############################################# Function 2 - Simul_Con_MULT.FISH.ORD() ##############################################
 
 Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
                                    n_Trt. = 5,
@@ -58,6 +74,9 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 
 #' @export
 
+###################################################################################################################################
+################################################### Function 3 - Simul_SURV() #####################################################
+
 Simul_SURV = function(Cumuhaz_DB = Cumuhaz_Base_DB, #object from bshazard()
                       fish_num_per_tank = 100,
                       tank_num_per_trt = 4,
@@ -96,11 +115,12 @@ Simul_SURV = function(Cumuhaz_DB = Cumuhaz_Base_DB, #object from bshazard()
   return(Surv_simul_DB)
 }
 
-
+###################################################################################################################################
+############################################### Function 4 - theme_Publication() ##################################################
 
 theme_Publication = function(base_size = 14, base_family = "helvetica") {
-  library(grid)
-  library(ggthemes)
+  require(grid)
+  require(ggthemes)
   (theme_foundation(base_size=base_size, base_family=base_family)
     + theme(plot.title = element_text(face = "bold",
                                       size = rel(1.2), hjust = 0.5),
@@ -128,6 +148,9 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
     ))
 }
 
+###################################################################################################################################
+################################################## Function 5 - Predict_SR() ######################################################
+
 Predict_SR = function(New_DB = DB_896, #The database of the ongoing study, with SR to be predicted. Needs specific column names namely Trt.ID, Tank.ID, Std_Time, Status
                       Ref_DB = DB_Ref, #The reference database containing old survival data used to create the reference hazard function
                       End_Day = 18,  #The end date at which SR is to be predicted
@@ -135,12 +158,12 @@ Predict_SR = function(New_DB = DB_896, #The database of the ongoing study, with 
                       PH_Mod = "GLMM") #Model used to estimate HR. Can be either "GLMM" or "GEE". GLMM recommended.
   {
 
-  library(bshazard)
-  library(coxme)
-  library(DescTools)
-  library(survival)
-  library(dplyr)
-  library(SimDesign)
+  require(bshazard)
+  require(coxme)
+  require(DescTools)
+  require(survival)
+  require(dplyr)
+  require(SimDesign)
 
   SR_Days = 5:End_Day
   New_DB = New_DB[New_DB$Std_Time > 0, ]
@@ -206,4 +229,26 @@ Predict_SR = function(New_DB = DB_896, #The database of the ongoing study, with 
   }
   row.names(pred_SR_DB) = NULL
   return(pred_SR_DB)
+}
+
+###################################################################################################################################
+################################################## Function 6 - Surv_Gen0() #######################################################
+
+Surv_Gen0 = function(data = DB_Mort,  #A 1/0 Mort/Sampled fish database with column names "Trt.ID", "Tank.ID", "TTE", "Status", etc.
+                     Starting_Number_of_Fish_per_Tank = 70) {
+
+  require(dplyr)
+  require(plyr)
+
+  DB_Mort_Gensum = data.frame(data %>%
+                                dplyr::group_by(Trt.ID, Tank.ID) %>%
+                                dplyr::summarise(Num_dead = n()))
+
+  DB_Mort_Gensum$Num_alive = Starting_Number_of_Fish - DB_Mort_Gensum$Num_dead
+  DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
+  DB_Mort_Genalive$Status = 0
+  DB_Mort_Genalive$TTE = max(DB_Mort_Gen$TTE)
+  DB_Mort_Gencomb = rbind.fill(DB_Mort_Gen, DB_Mort_Genalive[,-c(3:4)])
+
+  return(DB_Mort_Gencomb)
 }
