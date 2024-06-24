@@ -11,3 +11,5 @@ Encoding: UTF-8
 LazyData: true
 URL: https://github.com/sean4andrew/safuncs2
 BugReports: https://github.com/sean4andrew/safuncs2/issues
+Depends: 
+    R (>= 2.10)

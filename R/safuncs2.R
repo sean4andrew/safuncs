@@ -1,4 +1,4 @@
-# This is a package containing useful functions for my work.
+# This is an R package containing useful functions for my work.
 
 # Available functions:
 # 1. Simul_Con_MULT() -- simulates contingency tables based on the multinomial distribution
@@ -7,6 +7,8 @@
 # 4. theme_Publication() -- ggplot theme for generating publication-ready plots
 # 5. Predict_SR() -- predict future survival rate(s) for ongoing experiment based on a reference hazard function from older data.
 # 6. Surv_Gen0() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
+
+# Some functions require datasets as inputs. To show how these datasets are structured, sample datasets can be loaded by executing "data(function.name_argument.name)" in the R console. For example, for function #6, type "data(Surv_Gen0_DB_Mort)" where "DB_Mort" is the argument for the input dataset. Once the sample dataset is loaded, the function can run on "nothing" to produce an example output. For example, I can type "Surv_Gen0()" in the R console and obtain the example output.
 
 ###################################################################################################################################
 ################################################## Function 1 - Simul_Con_MULT() ##################################################
@@ -77,12 +79,13 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 ###################################################################################################################################
 ################################################### Function 3 - Simul_SURV() #####################################################
 
-Simul_SURV = function(Cumuhaz_DB = Cumuhaz_Base_DB, #object from bshazard()
+Simul_SURV = function(Haz_DB = Simul_SURV_Haz_DB, #object from bshazard() as reference hazard function. See data(Simul_SURV_Haz_DB)
                       fish_num_per_tank = 100,
                       tank_num_per_trt = 4,
                       Treatments_HR = c(1, 1, 1, 1), #HR for treatment groups, starting from control (1)
                       logHR_sd_intertank = 0.35, #inter-tank variation (sd) in HR in the log-scale
                       round_digits_days = 0) { #Time is rounded to Days (i.e. fish cannot die at Day 1.4 or any other decimal)
+  require(devtools)
   CDF_Yval = c()
 
   for(Treatment_Term in Treatments_HR) {
@@ -99,16 +102,16 @@ Simul_SURV = function(Cumuhaz_DB = Cumuhaz_Base_DB, #object from bshazard()
   }
 
   #Get Time to Event
-  TTE = approx(x = cumsum(Cumuhaz_DB$hazard), y = Cumuhaz_DB$time, xout = CDF_Yval, method = "linear")$y
+  TTE = approx(x = cumsum(Haz_DB$hazard), y = Haz_DB$time, xout = CDF_Yval, method = "linear")$y
   TTE = round(TTE, digits = round_digits_days)
 
   #Turn NA (from out of bound CDF_Yval) to the last follow up time
-  TTE = ifelse(is.na(TTE), max(Cumuhaz_DB$time), TTE)
+  TTE = ifelse(is.na(TTE), max(Haz_DB$time), TTE)
 
   #Label Status (1 - dead, or 0 - survived) given TTE
   Surv_simul_DB = data.frame(TimetoEvent = TTE,
                              CDF_Yval = CDF_Yval,
-                             Status = ifelse(TTE == max(Cumuhaz_DB$time), 0, 1),
+                             Status = ifelse(TTE == max(Haz_DB$time), 0, 1),
                              Treatment_G = as.factor(rep(LETTERS[1:length(Treatments_HR)], each = fish_num_per_tank * tank_num_per_trt)),
                              Tank_num = as.factor(rep(1:(length(Treatments_HR) * tank_num_per_trt), each = fish_num_per_tank)))
 
@@ -151,8 +154,8 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 ###################################################################################################################################
 ################################################## Function 5 - Predict_SR() ######################################################
 
-Predict_SR = function(New_DB = DB_896, #The database of the ongoing study, with SR to be predicted. Needs specific column names namely Trt.ID, Tank.ID, Std_Time, Status
-                      Ref_DB = DB_Ref, #The reference database containing old survival data used to create the reference hazard function
+Predict_SR = function(New_DB = Predict_SR_New_DB, #Data from ongoing study, with SR to be predicted. Need specific column names, see data(Predict_SR_New_DB)
+                      Ref_DB = Predict_SR_Ref_DB, #Reference survival data to create the reference hazard function. See data(Predict_SR_Ref_DB)
                       End_Day = 18,  #The end date at which SR is to be predicted
                       Method = 2,      #SR prediction method, minor differences between Method 1-2 (choose any should be OK)
                       PH_Mod = "GLMM") #Model used to estimate HR. Can be either "GLMM" or "GEE". GLMM recommended.
@@ -164,6 +167,7 @@ Predict_SR = function(New_DB = DB_896, #The database of the ongoing study, with 
   require(survival)
   require(dplyr)
   require(SimDesign)
+  require(devtools)
 
   SR_Days = 5:End_Day
   New_DB = New_DB[New_DB$Std_Time > 0, ]
@@ -234,13 +238,13 @@ Predict_SR = function(New_DB = DB_896, #The database of the ongoing study, with 
 ###################################################################################################################################
 ################################################## Function 6 - Surv_Gen0() #######################################################
 
-Surv_Gen0 = function(data = DB_Mort,  #A 1/0 Mort/Sampled fish database with column names "Trt.ID", "Tank.ID", "TTE", "Status", etc.
+Surv_Gen0 = function(DB_Mort = Surv_Gen0_DB_Mort,  #Mort data with specific column names. See data(Surv_Gen0_DB_Mort).
                      Starting_Number_of_Fish_per_Tank = 70) {
 
   require(dplyr)
   require(plyr)
 
-  DB_Mort_Gensum = data.frame(data %>%
+  DB_Mort_Gensum = data.frame(DB_Mort %>%
                                 dplyr::group_by(Trt.ID, Tank.ID) %>%
                                 dplyr::summarise(Num_dead = n()))
 
