@@ -10,7 +10,8 @@
 
 # Some functions require datasets as inputs. To show how these datasets are structured, sample datasets can be loaded by executing
 # "data(function.name_argument.name)" in the R console. For example, for function #6, type "data(Surv_Gen0_DB_Mort)" where "DB_Mort"
-# is the argument for the input dataset. Once the sample dataset is loaded, the function can run on "nothing" to produce an example output. # For example, I can type "Surv_Gen0()" in the R console and obtain the example output.
+# is the argument for the input dataset. Once the sample dataset is loaded, the function can run on "nothing" to produce an example output.
+# For example, I can type "Surv_Gen0()" in the R console and obtain the example output.
 
 ###################################################################################################################################
 ################################################## Function 1 - Simul_Con_MULT() ##################################################
