@@ -1,14 +1,16 @@
 # This is an R package containing useful functions for my work.
 
 # Available functions:
-# 1. Simul_Con_MULT() -- simulates contingency tables based on the multinomial distribution
-# 2. Simul_Con_MULT.FISH.ORD() -- simulate ordinal-distributed data across treatments and lesions with inter-fish variation in the PO.
+# 1. Simul_Con_MULT() -- simulates contingency tables based on the multinomial distribution.
+# 2. Simul_Con_MULT.FISH.ORD() -- simulates ordinal-distributed data across treatments and lesions with inter-fish variation in the PO.
 # 3. Simul_Surv() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
-# 4. theme_Publication() -- ggplot theme for generating publication-ready plots
+# 4. theme_Publication() -- ggplot theme for generating publication-ready plots.
 # 5. Predict_SR() -- predict future survival rate(s) for ongoing experiment based on a reference hazard function from older data.
 # 6. Surv_Gen0() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
 
-# Some functions require datasets as inputs. To show how these datasets are structured, sample datasets can be loaded by executing "data(function.name_argument.name)" in the R console. For example, for function #6, type "data(Surv_Gen0_DB_Mort)" where "DB_Mort" is the argument for the input dataset. Once the sample dataset is loaded, the function can run on "nothing" to produce an example output. For example, I can type "Surv_Gen0()" in the R console and obtain the example output.
+# Some functions require datasets as inputs. To show how these datasets are structured, sample datasets can be loaded by executing
+# "data(function.name_argument.name)" in the R console. For example, for function #6, type "data(Surv_Gen0_DB_Mort)" where "DB_Mort"
+# is the argument for the input dataset. Once the sample dataset is loaded, the function can run on "nothing" to produce an example output. # For example, I can type "Surv_Gen0()" in the R console and obtain the example output.
 
 ###################################################################################################################################
 ################################################## Function 1 - Simul_Con_MULT() ##################################################
