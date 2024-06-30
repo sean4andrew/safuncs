@@ -2,7 +2,7 @@
 % Please edit documentation in R/safuncs2.R
 \name{Simul_Mult}
 \alias{Simul_Mult}
-\title{Simulate Contingeny Table}
+\title{Simulates a Contingeny Table}
 \usage{
 Simul_Mult(
   total_count = 750,

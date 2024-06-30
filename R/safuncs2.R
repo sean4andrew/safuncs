@@ -16,7 +16,7 @@
 ###################################################################################################################################
 ################################################## Function 1 - Simul_Mult() ##################################################
 
-#' Simulate Contingeny Table
+#' Simulates a Contingeny Table
 #'
 #' Simulates a contingency table consisting of counts of fish in n lesion categories/scores across n treatment groups. Intended for use in assessing power and/or false positive rates under different experimental conditions.
 #'
