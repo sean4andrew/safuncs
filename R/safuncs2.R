@@ -1,7 +1,7 @@
 # This is an R package containing useful functions for my work.
 
 # Available functions:
-# 1. Simul_Mult() -- simulates contingency tables based on the multinomial distribution. Existing Help page/documentation.
+# 1. simul_mult() -- simulates contingency tables based on the multinomial distribution. Existing Help page/documentation.
 # 2. Simul_Con_MULT.FISH.ORD() -- simulates ordinal-distributed data across treatments and lesions with inter-fish variation in the PO.
 # 3. Simul_Surv() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
 # 4. theme_Publication() -- ggplot theme for generating publication-ready plots.
@@ -30,8 +30,8 @@
 #' @export
 #'
 #' @examples
-#' Con_Tab = Simul_Mult(total_count = 750, n_lesion = 3, n_Trt. = 5)
-Simul_Mult = function(total_count = 750,
+#' Con_Tab = simul_mult(total_count = 750, n_lesion = 3, n_Trt. = 5)
+simul_mult = function(total_count = 750,
                       n_lesion = 3,
                       n_Trt. = 5,
                       margin_fixed_Trt. = FALSE,
