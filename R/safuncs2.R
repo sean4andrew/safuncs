@@ -19,9 +19,9 @@
 
 #' @title Simulate a Contingency Table
 #'
-#' @description Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion category and \emph{n} treatment group. Probability values can be assigned for each combination using \emph{probs} argument. Function intended for use in assessing power and/or false positive rates under different experimental conditions.
+#' @description Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion category and \emph{n} treatment group. Probability values can be assigned for each factor combination using \emph{probs} argument. Function intended for use in power and/or false positive rates assessment under different experimental conditions.
 #'
-#' @details Counts are simulated based on random sampling from a multinomial distribution (\code{rmultinom()}). Simulation process may assume no fixed marginals or one fixed marginal (for treatment groups) in the contingency table.
+#' @details Counts are simulated based on random sampling from a multinomial distribution using \code{rmultinom()}. Simulation process may assume no fixed marginals or one fixed marginal (for treatment groups) in the contingency table.
 #'
 #' For explanations and discussion on types of marginals for contingency tables see: \url{https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf} and comments on function arguments.
 #'
@@ -29,7 +29,7 @@
 #' @param n_lesion Number of categories for lesions. Default = 3.
 #' @param n_Trt. Number of treatment groups. Default = 5.
 #' @param margin_fixed_Trt. Whether margins are to be fixed per treatment group (i.e. fixed number of fish per treatment). Default = FALSE. See \bold{Details} for further information on marginals.
-#' @param probs Matrix of probability values created using \code{matrix()}. One row per treatment group and one column per lesion category. All probability values must sum to one if margins_fixed = FALSE (Default). Probability values must sum to one for every treatment group (each row) if margins_fixed = TRUE. Default = equal probability across cells (i.e. for each combination of treatment and lesion category).
+#' @param probs Matrix of probability values created using \code{matrix()}. One row per treatment group and 1 column per lesion category. All probability values must sum to 1 if margins_fixed = FALSE (Default). Probability values must sum to one for every treatment group (each row) if margins_fixed = TRUE. Default = equal probability across cells (i.e. for each combination of treatment and lesion category).
 #'
 #' @return A contingency table with counts for different treatment groups (as rows) and lesion categories (as columns).
 #' @export
