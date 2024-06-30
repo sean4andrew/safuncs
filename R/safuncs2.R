@@ -8,6 +8,7 @@
 # 5. Predict_SR() -- predict future survival rate(s) for ongoing experiment based on a reference hazard function from older data.
 # 6. Surv_Gen0() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
 
+# IGNORE THE PARAGRAPH BELOW. CURRENTLY UNTRUE.
 # Some functions require datasets as inputs. To show how these datasets are structured, sample datasets can be loaded by executing
 # "data(function.name_argument.name)" in the R console. For example, for function #6, type "data(Surv_Gen0_DB_Mort)" where "DB_Mort"
 # is the argument for the input dataset. Once the sample dataset is loaded, the function can run on "nothing" to produce an example output.
