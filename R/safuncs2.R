@@ -1,7 +1,7 @@
 # This is an R package containing useful functions for my work.
 
 # Available functions:
-# 1. Simul_Con_MULT() -- simulates contingency tables based on the multinomial distribution.
+# 1. Simul_Mult() -- simulates contingency tables based on the multinomial distribution. Existing Help page/documentation.
 # 2. Simul_Con_MULT.FISH.ORD() -- simulates ordinal-distributed data across treatments and lesions with inter-fish variation in the PO.
 # 3. Simul_Surv() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
 # 4. theme_Publication() -- ggplot theme for generating publication-ready plots.
@@ -14,21 +14,44 @@
 # For example, I can type "Surv_Gen0()" in the R console and obtain the example output.
 
 ###################################################################################################################################
-################################################## Function 1 - Simul_Con_MULT() ##################################################
+################################################## Function 1 - Simul_Mult() ##################################################
 
-Simul_Con_MULT = function(total_count = 750,
-                          n_lesion = 3,
-                          n_Trt. = 5) { #default conditions
+#' Simulates a contingency table consisting of counts of fish in n lesion categories/scores across n treatment groups. Intended for use in assessing power and/or false positive rates under different experimental conditions. Simulated counts based on random sampling from a multinomial distribution ('rmultinom()'). Simulation process may assume no fixed marginals or one fixed marginal (per treatment group) in the contingency table. For details on marginals see ref: https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf and comments on function arguments.
+#'
+#' @param total_count Total number of counts of fish in the contingency table. Default = 750.
+#' @param n_lesion Number of categories for lesions. Default = 3.
+#' @param n_Trt. Number of treatment groups. Default = 5.
+#' @param margin_fixed_Trt. Whether margins are to be fixed per treatment group (i.e. fixed number of fish per treatment). Default = FALSE.
+#' @param probs Matrix of probability values created using 'matrix()'. One row per treatment group and one column per lesion category. All probability values must sum to one if margins_fixed = FALSE (Default). Probability values must sum to one for every treatment group (each row) if margins_fixed = TRUE. Default probability = equal in each cell of the contingency table (i.e. in each combination of treatment group and lesion category).
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' Con_Tab = Simul_Mult(total_count = 750, n_lesion = 3, n_Trt. = 5)
+Simul_Mult = function(total_count = 750,
+                      n_lesion = 3,
+                      n_Trt. = 5,
+                      margin_fixed_Trt. = FALSE,
+                      probs = "equal") { #default conditions
 
-  #Generate vector of counts
-  Count_Vec1 = rmultinom(n = 1, size = total_count, p = rep(1/(n_lesion * n_Trt.), n_lesion * n_Trt.))
+  if (probs == "equal") {
+    probs = matrix(nrow = n_Trt., ncol = n_lesion, 1/(n_lesion * n_Trt.))
+  }
+
+  if(margin_fixed_Trt. == FALSE) {
+    #Generate vector of counts
+    Count_Mat = rmultinom(n = 1, size = total_count, p = probs)
+  } else {
+    Count_Mat = t(apply(probs, MARGIN = 1, FUN = rmultinom, n = 1, size = 750/n_Trt.))
+  }
 
   #Create contingency table
-  Con_Tab1 = matrix(Count_Vec1, nrow = n_Trt., ncol = n_lesion)
-  dimnames(Con_Tab1) = list(Trt. = LETTERS[1:n_Trt.],
-                            LS = 1:n_lesion)
+  Con_Tab = matrix(Count_Mat, nrow = n_Trt., ncol = n_lesion)
+  dimnames(Con_Tab) = list(Trt. = LETTERS[1:n_Trt.],
+                            Lesion_Category = 1:n_lesion)
 
-  return(Con_Tab1)
+  return(Con_Tab)
 }
 
 ###################################################################################################################################
