@@ -2,7 +2,7 @@
 % Please edit documentation in R/safuncs2.R
 \name{Simul_Mult}
 \alias{Simul_Mult}
-\title{Simulates a contingency table consisting of counts of fish in n lesion categories/scores across n treatment groups. Intended for use in assessing power and/or false positive rates under different experimental conditions. Simulated counts based on random sampling from a multinomial distribution ('rmultinom()'). Simulation process may assume no fixed marginals or one fixed marginal (per treatment group) in the contingency table. For details on marginals see ref: https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf and comments on function arguments.}
+\title{Simulate Contingeny Table}
 \usage{
 Simul_Mult(
   total_count = 750,
@@ -24,7 +24,10 @@ Simul_Mult(
 \item{probs}{Matrix of probability values created using 'matrix()'. One row per treatment group and one column per lesion category. All probability values must sum to one if margins_fixed = FALSE (Default). Probability values must sum to one for every treatment group (each row) if margins_fixed = TRUE. Default probability = equal in each cell of the contingency table (i.e. in each combination of treatment group and lesion category).}
 }
 \description{
-Simulates a contingency table consisting of counts of fish in n lesion categories/scores across n treatment groups. Intended for use in assessing power and/or false positive rates under different experimental conditions. Simulated counts based on random sampling from a multinomial distribution ('rmultinom()'). Simulation process may assume no fixed marginals or one fixed marginal (per treatment group) in the contingency table. For details on marginals see ref: https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf and comments on function arguments.
+Simulates a contingency table consisting of counts of fish in n lesion categories/scores across n treatment groups. Intended for use in assessing power and/or false positive rates under different experimental conditions.
+}
+\details{
+Simulated counts are based on random sampling from a multinomial distribution ('rmultinom()'). Simulation process may assume no fixed marginals or one fixed marginal (per treatment group) in the contingency table. For details on marginals see ref: https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf and comments on function arguments.
 }
 \examples{
 Con_Tab = Simul_Mult(total_count = 750, n_lesion = 3, n_Trt. = 5)

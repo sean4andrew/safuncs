@@ -16,7 +16,11 @@
 ###################################################################################################################################
 ################################################## Function 1 - Simul_Mult() ##################################################
 
-#' Simulates a contingency table consisting of counts of fish in n lesion categories/scores across n treatment groups. Intended for use in assessing power and/or false positive rates under different experimental conditions. Simulated counts based on random sampling from a multinomial distribution ('rmultinom()'). Simulation process may assume no fixed marginals or one fixed marginal (per treatment group) in the contingency table. For details on marginals see ref: https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf and comments on function arguments.
+#' Simulate Contingeny Table
+#'
+#' Simulates a contingency table consisting of counts of fish in n lesion categories/scores across n treatment groups. Intended for use in assessing power and/or false positive rates under different experimental conditions.
+#'
+#' Simulated counts are based on random sampling from a multinomial distribution ('rmultinom()'). Simulation process may assume no fixed marginals or one fixed marginal (per treatment group) in the contingency table. For details on marginals see ref: https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf and comments on function arguments.
 #'
 #' @param total_count Total number of counts of fish in the contingency table. Default = 750.
 #' @param n_lesion Number of categories for lesions. Default = 3.
