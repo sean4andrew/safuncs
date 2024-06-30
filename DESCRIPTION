@@ -5,7 +5,7 @@ Version: 0.1.0
 Author: Sean Andrew
 Maintainer: Sean Andrew <sean4andrew@gmail.com>
 Description: Contains mostly simulation functions useful for biological research.
-License: What license is it under?
+License: use_proprietary_license()
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/sean4andrew/safuncs2

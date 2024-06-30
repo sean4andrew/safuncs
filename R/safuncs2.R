@@ -18,7 +18,7 @@
 
 #' @title Simulate a Contingency Table
 #'
-#' @description Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion category and \emph{n} treatment group. Probability values can be assigned for each combination using \emph{probs}. Function intended for use in assessment of power and/or false positive rates under different experimental conditions.
+#' @description Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion category and \emph{n} treatment group. Probability values can be assigned for each combination using \emph{probs}. Function intended for use in assessing power and/or false positive rates under different experimental conditions.
 #'
 #' @details Counts are simulated based on random sampling from a multinomial distribution (\c?ode{rmultinom()}). Simulation process may assume no fixed marginals or one fixed marginal (per treatment group) in the contingency table.
 #'
