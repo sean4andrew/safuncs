@@ -13,26 +13,26 @@ Simul_Mult(
 )
 }
 \arguments{
-\item{total_count}{Total number of counts of fish in the contingency table. Default = 750.}
+\item{total_count}{Total number of counts in the contingency table. Default = 750.}
 
-\item{n_lesion}{Number of categories for lesions. Default = 3.}
+\item{n_lesion}{Number of lesion categories. Default = 3.}
 
 \item{n_Trt.}{Number of treatment groups. Default = 5.}
 
-\item{margin_fixed_Trt.}{Whether margins are to be fixed per treatment group (i.e. fixed number of fish per treatment). Default = FALSE. See \bold{Details} for further information on marginals.}
+\item{margin_fixed_Trt.}{Whether margins are fixed per treatment group (i.e. fixed number of fish per treatment). Default = FALSE. See \bold{Details} for further information on marginals.}
 
-\item{probs}{Matrix of probability values created using \code{matrix()}. One row per treatment group and 1 column per lesion category. All probability values must sum to 1 if margins_fixed = FALSE (Default). Probability values must sum to one for every treatment group (each row) if margins_fixed = TRUE. Default = equal probability across cells (i.e. for each combination of treatment and lesion category).}
+\item{probs}{Matrix of probability values created using \code{matrix()}. Each row in the matrix should represent a treatment group and each column a lesion category. All probability values in the matrix should sum to 1 if margins are not fixed. If margin_fixed_Trt. = TRUE, each row (treatment group) should have probability values that sum to 1. Default = equal probability across all cells.}
 }
 \value{
 A contingency table with counts for different treatment groups (as rows) and lesion categories (as columns).
 }
 \description{
-Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion category and \emph{n} treatment group. Probability values can be assigned for each factor combination using \emph{probs} argument. Function intended for use in power and/or false positive rates assessment under different experimental conditions.
+Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion categories and \emph{n} treatment groups. Probability values can be assigned for each factor combination (i.e. each cell in the table) using the \emph{probs} argument. This function's intended use is for evaluating power and/or false positive rates under different experimental conditions.
 }
 \details{
-Counts are simulated based on random sampling from a multinomial distribution using \code{rmultinom()}. Simulation process may assume no fixed marginals or one fixed marginal (for treatment groups) in the contingency table.
+Counts are simulated from a multinomial distribution using \code{rmultinom()}. Counts may be assumed to have a fixed total in the marginals (e.g. per treatment group) or no fixed total in row or column marginals.
 
-For explanations and discussion on types of marginals for contingency tables see: \url{https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf} and comments on function arguments.
+For further discussion into the types of marginals in contingency tables, refer to: \url{https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf} and the comments on \bold{Arguments}.
 }
 \examples{
 Con_Tab = Simul_Mult(total_count = 750, n_lesion = 3, n_Trt. = 5)
