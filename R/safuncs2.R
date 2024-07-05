@@ -47,7 +47,8 @@ Simul_Mult = function(total_count = 750,
   if (probs[1] == "equal") {
     probs = matrix(nrow = n_Trt., ncol = n_lesion, 1/(n_lesion * n_Trt.))
   }
-  else {
+
+  if (is.matrix(probs)) {
     n_Trt. = nrow(probs)
     n_lesion = ncol(probs)
   }
