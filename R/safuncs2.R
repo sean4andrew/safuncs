@@ -19,17 +19,18 @@
 
 #' @title Simulate a Contingency Table
 #'
-#' @description Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion categories and \emph{n} treatment groups. Probability values can be assigned for each factor combination (i.e. each cell in the table) using the \emph{probs} argument. This function's intended use is for evaluating power and/or false positive rates under different experimental conditions.
+#' @description Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion categories and \emph{n} treatment groups. Probability values can be assigned for each factor combination (i.e. each cell in the table) using the \emph{probs} argument. This function is intended for use in power and/or false positive rates evaluations under different experimental conditions.
 #'
 #' @details Counts are simulated from a multinomial distribution using \code{rmultinom()}. Counts may be assumed to have a fixed total in the marginals (e.g. per treatment group) or no fixed total in row or column marginals.
 #'
 #' For further discussion into the types of marginals in contingency tables, refer to: \url{https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf} and the comments on \bold{Arguments}.
 #'
 #' @param total_count Total number of counts in the contingency table. Default = 750.
-#' @param n_lesion Number of lesion categories. Default = 3.
-#' @param n_Trt. Number of treatment groups. Default = 5.
+#' @param n_lesion Number of lesion categories, according to \code{probs} if specified. Default = 3.
+#' @param n_Trt. Number of treatment groups, according to\code{probs} if specified. Default = 5.
 #' @param margin_fixed_Trt. Whether margins are fixed per treatment group (i.e. fixed number of fish per treatment). Default = FALSE. See \bold{Details} for further information on marginals.
 #' @param probs Matrix of probability values created using \code{matrix()}. Each row in the matrix should represent a treatment group and each column a lesion category. All probability values in the matrix should sum to 1 if margins are not fixed. If margin_fixed_Trt. = TRUE, each row (treatment group) should have probability values that sum to 1. Default = equal probability across all cells.
+#' @param verbose Verbose output. Default = FALSE.
 #'
 #' @return A contingency table with counts for different treatment groups (as rows) and lesion categories (as columns).
 #' @export
@@ -40,14 +41,19 @@ Simul_Mult = function(total_count = 750,
                       n_lesion = 3,
                       n_Trt. = 5,
                       margin_fixed_Trt. = FALSE,
-                      probs = "equal") { #default conditions
+                      probs = "equal",
+                      verbose = FALSE) { #default conditions
 
-  if (probs == "equal") {
+  if (probs[1] == "equal") {
     probs = matrix(nrow = n_Trt., ncol = n_lesion, 1/(n_lesion * n_Trt.))
   }
+  else {
+    n_Trt. = nrow(probs)
+    n_lesion = ncol(probs)
+  }
 
+  #Generate vector of counts
   if(margin_fixed_Trt. == FALSE) {
-    #Generate vector of counts
     Count_Mat = rmultinom(n = 1, size = total_count, p = probs)
   } else {
     Count_Mat = t(apply(probs, MARGIN = 1, FUN = rmultinom, n = 1, size = 750/n_Trt.))
@@ -58,8 +64,71 @@ Simul_Mult = function(total_count = 750,
   dimnames(Con_Tab) = list(Trt. = LETTERS[1:n_Trt.],
                             Lesion_Category = 1:n_lesion)
 
-  return(Con_Tab)
+  if(verbose == FALSE) {
+    return(Con_Tab)
+  } else {
+    return(list(Contin_Table = Con_Tab,
+                Prob_Mat = probs,
+                Params = c(total_count = total_count, n_lesion = n_lesion, n_Trt. = n_Trt., margin_fixed_Trt. = margin_fixed_Trt.)))
+  }
 }
+
+
+Pow_Simul_Mult = function(Simul_Mult_Obj = Simul_Mult(),
+                          n_sim = 1000,
+                          vec_total_count = NULL,
+                          breaks_eff = NULL,
+                          add_yates_corr = FALSE,
+                          add_resamp_chisq = FALSE,
+                          add_fisher_exact = TRUE,
+                          FPR = TRUE) {
+
+  Params = Simul_Mult_Obj$Params
+  P_Chisq1_Eff = c()
+  P_Chisq1_Null = c()
+  P_ChisqY_Eff = c()
+  P_ChisqY_Null = c()
+  P_Fish_Eff = c()
+  P_Fish_Null = c()
+
+  if(is.null(vec_total_count)) {vec_total_count <- Params[1]}
+
+  for(tot_count in vec_total_count) {
+
+    for(iter in 1:n_sim) {
+      Sim_Tab_Eff = Simul_Mult_Obj(total_count = vec_total_count,
+                                   n_lesion = Params[2],
+                                   n_Trt. = Params[3],
+                                   margin_fixed_Trt. = Params[4],
+                                   probs = Simul_Mult_Obj$Prob_Mat)
+
+      P_Chisq1_Eff = append(P_Chisq1_Eff, chisq.test(x = Sim_Tab_Eff, correct = FALSE))
+      if(yates_corr == TRUE) {P_ChisqY_Eff <- append(P_ChisqY_Eff, chisq.test(x = Sim_Tab_Eff, correct = TRUE))}
+      if(add_fisher_exact == TRUE) {P_Fish_Eff <- append(P_Fish_Eff, fisher.test(x = Sim_Tab_Eff))}
+    }
+
+    if(FPR == TRUE) {
+    for(iter in 1:n_sim) {
+
+      Sim_Tab_Null = Simul_Mult_Obj(total_count = vec_total_count,
+                                    n_lesion = Params[2],
+                                    n_Trt. = Params[3],
+                                    margin_fixed_Trt. = Params[4],
+                                    probs = matrix(nrow = Params[3], ncol = Params[2], 1/(Params[2] * Params[3])))
+
+      P_Chisq1_Null = append(P_Chisq1_Null, chisq.test(x = Sim_Tab_Null, correct = FALSE))
+      if(yates_corr == TRUE) {P_ChisqY_Null <- append(P_ChisqY_Null, chisq.test(x = Sim_Tab_Null, correct = TRUE))}
+      if(add_fisher_exact == TRUE) {P_Fish_Null <- append(P_Fish_Null, fisher.test(x = Sim_Tab_Null))}
+    }
+    }
+
+    PR_DB = data.frame(Total_count = vec_total_count,
+                       P_Chisq1_Eff = P_Chisq1_Eff,
+                       P_Chisq1_Null = P_Chisq1_Null)
+
+  }
+}
+
 
 ###################################################################################################################################
 ############################################# Function 2 - Simul_Con_MULT.FISH.ORD() ##############################################
