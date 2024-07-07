@@ -19,45 +19,49 @@
 
 #' @title Simulate a Contingency Table
 #'
-#' @description Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion categories and \emph{n} treatment groups. Probability values can be assigned for each factor combination (i.e. each cell in the table) using the \emph{probs} argument. This function is intended for use in power and/or false positive rates evaluations under different experimental conditions.
+#' @description Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts can be assigned for each each cell in the contingency table using the \emph{probs} argument. This function is intended for use in power and/or false positive rates evaluations under different experimental conditions, see \code{Pow_Simul_Mult()}.
 #'
 #' @details Counts are simulated from a multinomial distribution using \code{rmultinom()}. Counts may be assumed to have a fixed total in the marginals (e.g. per treatment group) or no fixed total in row or column marginals.
 #'
 #' For further discussion into the types of marginals in contingency tables, refer to: \url{https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf} and the comments on \bold{Arguments}.
 #'
-#' @param total_count Total number of counts in the contingency table. Default = 750.
-#' @param n_lesion Number of lesion categories, according to \code{probs} if specified. Default = 3.
-#' @param n_Trt. Number of treatment groups, according to\code{probs} if specified. Default = 5.
+#' @param probs Matrix of probability values created using \code{matrix()}. Each row in the matrix should represent a treatment group and each column a lesion category. All probability values in the matrix should sum to 1. Default = equal probability across all cells.
+#' @param total_count Total number of counts in the contingency table. Defaults to 750.
+#' @param n_lesion Number of lesion categories. Ignored if \code{probs} specified. Defaults to 3.
+#' @param n_Trt. Number of treatment groups. Ignored if \code{probs} specified. Defaults to 5.
 #' @param margin_fixed_Trt. Whether margins are fixed per treatment group (i.e. fixed number of fish per treatment). Default = FALSE. See \bold{Details} for further information on marginals.
-#' @param probs Matrix of probability values created using \code{matrix()}. Each row in the matrix should represent a treatment group and each column a lesion category. All probability values in the matrix should sum to 1 if margins are not fixed. If margin_fixed_Trt. = TRUE, each row (treatment group) should have probability values that sum to 1. Default = equal probability across all cells.
-#' @param verbose Verbose output. Default = FALSE.
+#' @param verbose Whether to print the parameters and probability matrix used. Default = TRUE.
 #'
 #' @return A contingency table with counts for different treatment groups (as rows) and lesion categories (as columns).
 #' @export
 #'
 #' @examples
 #' Con_Tab = Simul_Mult(total_count = 750, n_lesion = 3, n_Trt. = 5)
-Simul_Mult = function(total_count = 750,
+#' Con_Tab = Simul_Mult(probs = matrix(nrow = 2, ncol = 3, c(1/6, 3/12, 1/6, 1/6, 1/6, 1/12)))
+Simul_Mult = function(probs = "equal",
+                      total_count = 750,
                       n_lesion = 3,
                       n_Trt. = 5,
                       margin_fixed_Trt. = FALSE,
-                      probs = "equal",
-                      verbose = FALSE) { #default conditions
+                      verbose = TRUE) { #default conditions
 
   if (probs[1] == "equal") {
     probs = matrix(nrow = n_Trt., ncol = n_lesion, 1/(n_lesion * n_Trt.))
   }
 
   if (is.matrix(probs)) {
+    if(abs(1 - sum(probs)) > 0.01) {stop("Will not run. Sum of all probabilities must be near equal to 1 (+/- 0.01)")}
     n_Trt. = nrow(probs)
     n_lesion = ncol(probs)
   }
+
 
   #Generate vector of counts
   if(margin_fixed_Trt. == FALSE) {
     Count_Mat = rmultinom(n = 1, size = total_count, p = probs)
   } else {
-    Count_Mat = t(apply(probs, MARGIN = 1, FUN = rmultinom, n = 1, size = 750/n_Trt.))
+    row_prob = apply(probs, MARGIN = 1, FUN = sum)
+    Count_Mat = t(apply(probs, MARGIN = 1, FUN = rmultinom, n = 1, size = 750 * row_prob))
   }
 
   #Create contingency table
@@ -68,68 +72,117 @@ Simul_Mult = function(total_count = 750,
   if(verbose == FALSE) {
     return(Con_Tab)
   } else {
-    return(list(Contin_Table = Con_Tab,
-                Prob_Mat = probs,
-                Params = c(total_count = total_count, n_lesion = n_lesion, n_Trt. = n_Trt., margin_fixed_Trt. = margin_fixed_Trt.)))
+    return(list(Params = c(total_count = total_count, n_lesion = n_lesion, n_Trt. = n_Trt., margin_fixed_Trt. = margin_fixed_Trt.),
+                Probability_Matrix = probs,
+                Simulated_Contingency_Table = Con_Tab))
   }
 }
 
 
-Pow_Simul_Mult = function(Simul_Mult_Obj = Simul_Mult(),
+Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
                           n_sim = 1000,
                           vec_total_count = NULL,
-                          breaks_eff = NULL,
-                          add_yates_corr = FALSE,
-                          add_resamp_chisq = FALSE,
-                          add_fisher_exact = TRUE,
+                          add_ord = FALSE,
+                          add_fisher_exact = FALSE,
                           FPR = TRUE) {
 
-  Params = Simul_Mult_Obj$Params
-  P_Chisq1_Eff = c()
-  P_Chisq1_Null = c()
-  P_ChisqY_Eff = c()
-  P_ChisqY_Null = c()
-  P_Fish_Eff = c()
-  P_Fish_Null = c()
-
+  Params = Simul_Mult_Object$Params
+  PR_DB = data.frame()
   if(is.null(vec_total_count)) {vec_total_count <- Params[1]}
 
-  for(tot_count in vec_total_count) {
+  for(tot_count in as.vector(vec_total_count)) {
+
+    P_Chisq1_Eff = c()
+    P_Chisq1_Null = c()
+    P_Ord_Eff = c()
+    P_Ord_Null = c()
+    P_Fish_Eff = c()
+    P_Fish_Null = c()
 
     for(iter in 1:n_sim) {
-      Sim_Tab_Eff = Simul_Mult_Obj(total_count = vec_total_count,
-                                   n_lesion = Params[2],
-                                   n_Trt. = Params[3],
-                                   margin_fixed_Trt. = Params[4],
-                                   probs = Simul_Mult_Obj$Prob_Mat)
+      Sim_Tab_Eff = Simul_Mult(total_count = tot_count,
+                               n_lesion = Params[2],
+                               n_Trt. = Params[3],
+                               margin_fixed_Trt. = Params[4],
+                               probs = Simul_Mult_Object$Probability_Matrix,
+                               verbose = FALSE)
 
-      P_Chisq1_Eff = append(P_Chisq1_Eff, chisq.test(x = Sim_Tab_Eff, correct = FALSE))
-      if(yates_corr == TRUE) {P_ChisqY_Eff <- append(P_ChisqY_Eff, chisq.test(x = Sim_Tab_Eff, correct = TRUE))}
-      if(add_fisher_exact == TRUE) {P_Fish_Eff <- append(P_Fish_Eff, fisher.test(x = Sim_Tab_Eff))}
+      P_Chisq1_Eff = append(P_Chisq1_Eff, suppressWarnings(chisq.test(x = Sim_Tab_Eff, correct = FALSE)$p.value))
+      if(add_ord == TRUE) {
+        DB_Ord_Eff = as.data.frame(as.table(Sim_Tab_Eff))
+        DB_Ord_Eff = data.frame(lapply(DB_Ord_Eff, rep, DB_Ord_Eff$Freq))
+        Ord_Eff = ordinal::clm(data = DB_Ord_Eff, factor(Lesion_Category, ordered = TRUE) ~ Trt.)
+        P_Ord_Eff = append(P_Ord_Eff, anova(Ord_Eff)$'Pr(>Chisq)')
+      }
+      if(add_fisher_exact == TRUE) {
+        if(nrow(Sim_Tab_Eff) == 2 & ncol(Sim_Tab_Eff) == 2) {
+          P_Fish_Eff <- append(P_Fish_Eff, fisher.test(x = Sim_Tab_Eff, simulate.p.value = FALSE)$p.value)
+        } else {
+          P_Fish_Eff <- append(P_Fish_Eff, fisher.test(x = Sim_Tab_Eff, simulate.p.value = TRUE)$p.value)
+        }
+      }
     }
 
     if(FPR == TRUE) {
-    for(iter in 1:n_sim) {
+      for(iter in 1:n_sim) {
 
-      Sim_Tab_Null = Simul_Mult_Obj(total_count = vec_total_count,
-                                    n_lesion = Params[2],
-                                    n_Trt. = Params[3],
-                                    margin_fixed_Trt. = Params[4],
-                                    probs = matrix(nrow = Params[3], ncol = Params[2], 1/(Params[2] * Params[3])))
+        Sim_Tab_Null = Simul_Mult(total_count = vec_total_count,
+                                  n_lesion = Params[2],
+                                  n_Trt. = Params[3],
+                                  margin_fixed_Trt. = Params[4],
+                                  probs = matrix(nrow = Params[3], ncol = Params[2], 1/(Params[2] * Params[3])),
+                                  verbose = FALSE)
 
-      P_Chisq1_Null = append(P_Chisq1_Null, chisq.test(x = Sim_Tab_Null, correct = FALSE))
-      if(yates_corr == TRUE) {P_ChisqY_Null <- append(P_ChisqY_Null, chisq.test(x = Sim_Tab_Null, correct = TRUE))}
-      if(add_fisher_exact == TRUE) {P_Fish_Null <- append(P_Fish_Null, fisher.test(x = Sim_Tab_Null))}
+        P_Chisq1_Null = append(P_Chisq1_Null, suppressWarnings(chisq.test(x = Sim_Tab_Null, correct = TRUE)$p.value))
+        if(add_ord == TRUE) {
+          DB_Ord_Null = as.data.frame(as.table(Sim_Tab_Null))
+          DB_Ord_Null = data.frame(lapply(DB_Ord_Null, rep, DB_Ord_Null$Freq))
+          Ord_Null = ordinal::clm(data = DB_Ord_Null, factor(Lesion_Category, ordered = TRUE) ~ Trt.)
+          P_Ord_Null = append(P_Ord_Null, anova(Ord_Null)$'Pr(>Chisq)')
+        }
+        if(add_fisher_exact == TRUE) {
+          if(nrow(Sim_Tab_Null) == 2 & ncol(Sim_Tab_Null) == 2) {
+            P_Fish_Null <- append(P_Fish_Null, fisher.test(x = Sim_Tab_Null, simulate.p.value = FALSE)$p.value)
+          } else {
+            P_Fish_Null <- append(P_Fish_Null, fisher.test(x = Sim_Tab_Null, simulate.p.value = TRUE)$p.value)
+          }
+        }
+      }
     }
-    }
 
-    PR_DB = data.frame(Total_count = vec_total_count,
-                       P_Chisq1_Eff = P_Chisq1_Eff,
-                       P_Chisq1_Null = P_Chisq1_Null)
-
+    PR_DB = rbind(PR_DB, data.frame(Total_count = tot_count,
+                                    Power_Chisquare = sum(P_Chisq1_Eff < 0.05) / length(P_Chisq1_Eff),
+                                    Power_OrdinalRegression = sum(P_Ord_Eff < 0.05) / length(P_Ord_Eff),
+                                    Power_FishersExact = sum(P_Fish_Eff < 0.05) / length(P_Fish_Eff),
+                                    FPR_Chisquare = sum(P_Chisq1_Null < 0.05) / length(P_Chisq1_Null),
+                                    FPR_OrdinalRegression = sum(P_Ord_Null < 0.05) / length(P_Ord_Null),
+                                    FPR_FishersExact = sum(P_Fish_Null < 0.05) / length(P_Fish_Null)))
   }
-}
 
+  PR_DB_stacked = data.frame(PR_DB$Total_count,
+                             stack(x = PR_DB, select = c("Power_Chisquare", "Power_OrdinalRegression", "Power_FishersExact",
+                                                         "FPR_Chisquare", "FPR_OrdinalRegression", "FPR_FishersExact")))
+  PR_DB_stacked = na.omit(PR_DB_stacked)
+  split_txt = strsplit(x = as.character(PR_DB_stacked$ind), split = "_")
+  PR_DB_stacked$Statistical_Test = sapply(split_txt, '[', 2)
+  PR_DB_stacked$Class = sapply(split_txt, '[', 1)
+  PR_DB_stacked = PR_DB_stacked[,-3]
+  colnames(PR_DB_stacked) <- c("Total_Count", "Percent_of_Significant_Results", "Statistical_Test", "Class")
+
+  #remove na columns
+  PR_DB = PR_DB[, colSums(is.na(PR_DB)) < nrow(PR_DB)]
+
+  plot1 = ggplot2::ggplot(data = PR_DB_stacked, aes(x = Total_Count, y = Percent_of_Significant_Results * 100, color = Statistical_Test)) +
+    geom_point() +
+    geom_line() +
+    facet_wrap(~ Class) +
+    xlab("Total Counts in Contingency Table") +
+    ylab("Percent of Significant Results (%)") +
+    scale_y_continuous(breaks = seq(0, 100, 5), limits = c(0, 100)) +
+    labs(color = "Statistical Test")
+
+  return(list(Results_Table = PR_DB_stacked, Plot = plot1))
+}
 
 ###################################################################################################################################
 ############################################# Function 2 - Simul_Con_MULT.FISH.ORD() ##############################################
