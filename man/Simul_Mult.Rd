@@ -16,11 +16,11 @@ Simul_Mult(
 \arguments{
 \item{probs}{Matrix of probability values created using \code{matrix()}. Each row in the matrix should represent a treatment group and each column a lesion category. All probability values in the matrix should sum to 1. Default = equal probability across all cells.}
 
-\item{total_count}{Total number of counts in the contingency table. Default = 750.}
+\item{total_count}{Total number of counts in the contingency table. Defaults to 750.}
 
-\item{n_lesion}{Number of lesion categories. Ignored if \code{probs} specified. Default = 3.}
+\item{n_lesion}{Number of lesion categories. Ignored if \code{probs} specified. Defaults to 3.}
 
-\item{n_Trt.}{Number of treatment groups. Ignored if \code{probs} specified. Default = 5.}
+\item{n_Trt.}{Number of treatment groups. Ignored if \code{probs} specified. Defaults to 5.}
 
 \item{margin_fixed_Trt.}{Whether margins are fixed per treatment group (i.e. fixed number of fish per treatment). Default = FALSE. See \bold{Details} for further information on marginals.}
 
@@ -30,7 +30,7 @@ Simul_Mult(
 A contingency table with counts for different treatment groups (as rows) and lesion categories (as columns).
 }
 \description{
-Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts can be assigned for each each cell in the contingency table using the \emph{probs} argument. This function is intended for use in power and/or false positive rates evaluations under different experimental conditions, see /code{Pow_Simul_Mult()}.
+Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts can be assigned for each each cell in the contingency table using the \emph{probs} argument. This function is intended for use in power and/or false positive rates evaluations under different experimental conditions, see \code{Pow_Simul_Mult()}.
 }
 \details{
 Counts are simulated from a multinomial distribution using \code{rmultinom()}. Counts may be assumed to have a fixed total in the marginals (e.g. per treatment group) or no fixed total in row or column marginals.
@@ -39,4 +39,5 @@ For further discussion into the types of marginals in contingency tables, refer 
 }
 \examples{
 Con_Tab = Simul_Mult(total_count = 750, n_lesion = 3, n_Trt. = 5)
+Con_Tab = Simul_Mult(probs = matrix(nrow = 2, ncol = 3, c(1/6, 3/12, 1/6, 1/6, 1/6, 1/12)))
 }

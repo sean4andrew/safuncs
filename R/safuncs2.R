@@ -15,7 +15,7 @@
 # For example, I can type "Surv_Gen0()" in the R console and obtain the example output.
 
 ###################################################################################################################################
-################################################## Function 1 - Simul_Mult() ##################################################
+################################################## Function 1 - Simul_Mult() ######################################################
 
 #' @title Simulate a Contingency Table
 #'
@@ -78,7 +78,26 @@ Simul_Mult = function(probs = "equal",
   }
 }
 
+###################################################################################################################################
+################################################## Function 1b - Pow_Simul_Mult() #################################################
 
+#' @title Positive Rates for Contingency Tables
+#'
+#' @description Calculates power and/or false positive rates for statistical tests on contingency tables generated using a user-defined process. Specify the data generating process using \code{Simul_Mult()} which is taken as input. Positive rate is calculated for the Chi-square test and optionally for Fisher's exact and the Wald test on an ordinal regression model.
+#'
+#' @details Test
+#'
+#' @param Simul_Mult_Object placeholder
+#' @param n_sim placeholder
+#' @param vec_total_count placeholder
+#' @param add_ord placeholder
+#' @param add_fisher_exact placeholder
+#' @param FPR placeholder
+#'
+#' @return placeholder
+#' @export
+#'
+#' @examples placeholder
 Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
                           n_sim = 1000,
                           vec_total_count = NULL,
@@ -168,21 +187,23 @@ Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
   PR_DB_stacked$Class = sapply(split_txt, '[', 1)
   PR_DB_stacked = PR_DB_stacked[,-3]
   colnames(PR_DB_stacked) <- c("Total_Count", "Percent_of_Significant_Results", "Statistical_Test", "Class")
+  PR_DB_stacked$Percent_of_Significant_Results = 100 * PR_DB_stacked$Percent_of_Significant_Results
 
   #remove na columns
   PR_DB = PR_DB[, colSums(is.na(PR_DB)) < nrow(PR_DB)]
 
-  plot1 = ggplot2::ggplot(data = PR_DB_stacked, aes(x = Total_Count, y = Percent_of_Significant_Results * 100, color = Statistical_Test)) +
-    geom_point() +
-    geom_line() +
-    facet_wrap(~ Class) +
-    xlab("Total Counts in Contingency Table") +
-    ylab("Percent of Significant Results (%)") +
-    scale_y_continuous(breaks = seq(0, 100, 5), limits = c(0, 100)) +
-    labs(color = "Statistical Test")
+  plot1 = ggplot2::ggplot(data = PR_DB_stacked, ggplot2::aes(x = Total_Count, y = Percent_of_Significant_Results, color = Statistical_Test)) +
+    ggplot2::geom_point() +
+    ggplot2::geom_line() +
+    ggplot2::facet_wrap(~ Class) +
+    ggplot2::xlab("Total Counts in Contingency Table") +
+    ggplot2::ylab("Percent of Significant Results (%)") +
+    ggplot2::scale_y_continuous(breaks = seq(0, 100, 5), limits = c(0, 100)) +
+    ggplot2::labs(color = "Statistical Test")
 
   return(list(Results_Table = PR_DB_stacked, Plot = plot1))
 }
+
 
 ###################################################################################################################################
 ############################################# Function 2 - Simul_Con_MULT.FISH.ORD() ##############################################
