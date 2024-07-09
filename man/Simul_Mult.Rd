@@ -27,10 +27,10 @@ Simul_Mult(
 \item{verbose}{Whether to print the parameters and probability matrix used. Default = TRUE.}
 }
 \value{
-A contingency table with counts for different treatment groups (as rows) and lesion categories (as columns).
+A list consisting of the simulated contingency table with counts in each cell for the different treatment groups (as rows) and lesion categories (as columns), the table parameters, and the probability matrix for the data generation process.
 }
 \description{
-Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts can be assigned for each each cell in the contingency table using the \emph{probs} argument. This function is intended for use in power and/or false positive rates evaluations under different experimental conditions, see \code{Pow_Simul_Mult()}.
+Simulate a contingency table consisting of fish counts in \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts in each cell of the table (i.e. each factor level combination) can be assigned using the \code{probs} argument. This intended use for this function is in power and/or false positive rate calculations, see \code{Pow_Simul_Mult()}.
 }
 \details{
 Counts are simulated from a multinomial distribution using \code{rmultinom()}. Counts may be assumed to have a fixed total in the marginals (e.g. per treatment group) or no fixed total in row or column marginals.

@@ -2,6 +2,7 @@
 
 # Available functions:
 # 1. Simul_Mult() -- simulates contingency tables based on the multinomial distribution. WITH HELP PAGE/DOCUMENTATION.
+# 1b. Pow_Simul_Mult() -- calculates positive rates for statistical tests on contingency tables. WITH HELP PAGE/DOCUMENTATION
 # 2. Simul_Con_MULT.FISH.ORD() -- simulates ordinal-distributed data across treatments and lesions with inter-fish variation in the PO. WITHOUT HELP PAGE/DOCUMENTATION.
 # 3. Simul_Surv() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
 # 4. theme_Publication() -- ggplot theme for generating publication-ready plots.
@@ -19,7 +20,7 @@
 
 #' @title Simulate a Contingency Table
 #'
-#' @description Simulate a sample contingency table consisting of counts of fish in \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts can be assigned for each each cell in the contingency table using the \emph{probs} argument. This function is intended for use in power and/or false positive rates evaluations under different experimental conditions, see \code{Pow_Simul_Mult()}.
+#' @description Simulate a contingency table consisting of fish counts in \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts in each cell of the table (i.e. each factor level combination) can be assigned using the \code{probs} argument. This intended use for this function is in power and/or false positive rate calculations, see \code{Pow_Simul_Mult()}.
 #'
 #' @details Counts are simulated from a multinomial distribution using \code{rmultinom()}. Counts may be assumed to have a fixed total in the marginals (e.g. per treatment group) or no fixed total in row or column marginals.
 #'
@@ -32,7 +33,7 @@
 #' @param margin_fixed_Trt. Whether margins are fixed per treatment group (i.e. fixed number of fish per treatment). Default = FALSE. See \bold{Details} for further information on marginals.
 #' @param verbose Whether to print the parameters and probability matrix used. Default = TRUE.
 #'
-#' @return A contingency table with counts for different treatment groups (as rows) and lesion categories (as columns).
+#' @return A list consisting of the simulated contingency table with counts in each cell for the different treatment groups (as rows) and lesion categories (as columns), the table parameters, and the probability matrix for the data generation process.
 #' @export
 #'
 #' @examples
@@ -72,9 +73,9 @@ Simul_Mult = function(probs = "equal",
   if(verbose == FALSE) {
     return(Con_Tab)
   } else {
-    return(list(Params = c(total_count = total_count, n_lesion = n_lesion, n_Trt. = n_Trt., margin_fixed_Trt. = margin_fixed_Trt.),
-                Probability_Matrix = probs,
-                Simulated_Contingency_Table = Con_Tab))
+    return(list(Simulated_Contingency_Table = Con_Tab),
+                Params = c(total_count = total_count, n_lesion = n_lesion, n_Trt. = n_Trt., margin_fixed_Trt. = margin_fixed_Trt.),
+                Probability_Matrix = probs)
   }
 }
 
@@ -83,33 +84,33 @@ Simul_Mult = function(probs = "equal",
 
 #' @title Positive Rates for Contingency Tables
 #'
-#' @description Calculates power and/or false positive rates for statistical tests on contingency tables generated using a user-defined process. Specify the data generating process using \code{Simul_Mult()} which is taken as input. Positive rate is calculated for the Chi-square test and optionally for Fisher's exact and the Wald test on an ordinal regression model.
+#' @description Calculates power and optionally the false positive rates of statistical tests on contingency tables. The data generation process for the contingency table is specified using \code{Simul_Mult()} which is taken as input. Positive rates are calculated for the Chi-square test and optionally for the Fisher's exact and the Wald test on an ordinal regression model.
 #'
 #' @details Test
 #'
-#' @param Simul_Mult_Object placeholder
-#' @param n_sim placeholder
-#' @param vec_total_count placeholder
-#' @param add_ord placeholder
-#' @param add_fisher_exact placeholder
-#' @param FPR placeholder
+#' @param Simul_Mult_Object Output from \code{Simul_Mult()} with the argument \code{verbose} set to TRUE.
+#' @param add_fisher_exact Whether to additionally calculate the positive rates for Fisher's Exact test. May add >1 min of calculation time. Defaults to FALSE.
+#' @param add_ord Whether to additionally calculate the positive rates for Wald test on a fitted ordinal regression model. May add >1 min of calculation time. Defaults to FALSE.
+#' @param sample_sizes A vector of sample sizes over which false positive rates are to be calculated. A sample size is defined as the total number of counts in a contingency table. Defaults to the total count passed onto \code{Simul_Mult_Object}.
+#' @param n_sim Number of simulated datasets for every calculated positive rate. Defaults to 1000.
+#' @param FPR Whether to calculate false positive rate in addition to power. Defaults to FALSE.
 #'
 #' @return placeholder
 #' @export
 #'
 #' @examples placeholder
 Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
-                          n_sim = 1000,
-                          vec_total_count = NULL,
-                          add_ord = FALSE,
                           add_fisher_exact = FALSE,
+                          add_ord = FALSE,
+                          sample_sizes = NULL,
+                          n_sim = 1000,
                           FPR = TRUE) {
 
   Params = Simul_Mult_Object$Params
   PR_DB = data.frame()
-  if(is.null(vec_total_count)) {vec_total_count <- Params[1]}
+  if(is.null(sample_sizes)) {sample_sizes <- Params[1]}
 
-  for(tot_count in as.vector(vec_total_count)) {
+  for(tot_count in as.vector(sample_sizes)) {
 
     P_Chisq1_Eff = c()
     P_Chisq1_Null = c()
@@ -145,7 +146,7 @@ Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
     if(FPR == TRUE) {
       for(iter in 1:n_sim) {
 
-        Sim_Tab_Null = Simul_Mult(total_count = vec_total_count,
+        Sim_Tab_Null = Simul_Mult(total_count = tot_count,
                                   n_lesion = Params[2],
                                   n_Trt. = Params[3],
                                   margin_fixed_Trt. = Params[4],
