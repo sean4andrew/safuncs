@@ -20,7 +20,7 @@
 
 #' @title Simulate a Contingency Table
 #'
-#' @description Simulate a contingency table consisting of fish counts in \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts in each cell of the table (i.e. each factor level combination) can be assigned using the \code{probs} argument. This intended use for this function is in power and/or false positive rate calculations, see \code{Pow_Simul_Mult()}.
+#' @description Simulate a contingency table with fish counts distributed across \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts in each cell (i.e. each factor level combination) can be assigned using the \code{probs} argument. This function is designed for use in power and/or false positive rate calculations; for details, refer to \code{Pow_Simul_Mult()}.
 #'
 #' @details Counts are simulated from a multinomial distribution using \code{rmultinom()}. Counts may be assumed to have a fixed total in the marginals (e.g. per treatment group) or no fixed total in row or column marginals.
 #'
@@ -84,16 +84,16 @@ Simul_Mult = function(probs = "equal",
 
 #' @title Positive Rates for Contingency Tables
 #'
-#' @description Calculates power and optionally the false positive rates of statistical tests on contingency tables. The data generation process for the contingency table is specified using \code{Simul_Mult()} which is taken as input. Positive rates are calculated for the Chi-square test and optionally for the Fisher's exact and the Wald test on an ordinal regression model.
+#' @description Calculates power and optionally the false positive rates of statistical tests on contingency tables. The data generation process for the contingency table is specified using \code{Simul_Mult()} which is taken as input. Positive rates are calculated for the Chi-square test and optionally for Fisher's exact and the Wald test on an ordinal regression model.
 #'
-#' @details Test
+#' @details This function uses simulations of contingency tables based on parameters specified to \code{Simul_Mult()}. The simulation parameter for xyz involves, while xyz is used for xyz. The percentage of simulated datasets producing positives or significant results (p-value < 0.05) in each case is defined as false positive rate and power respectively. Next, talk about each statistical test in the next paragraph.
 #'
 #' @param Simul_Mult_Object Output from \code{Simul_Mult()} with the argument \code{verbose} set to TRUE.
-#' @param add_fisher_exact Whether to additionally calculate the positive rates for Fisher's Exact test. May add >1 min of calculation time. Defaults to FALSE.
-#' @param add_ord Whether to additionally calculate the positive rates for Wald test on a fitted ordinal regression model. May add >1 min of calculation time. Defaults to FALSE.
-#' @param sample_sizes A vector of sample sizes over which false positive rates are to be calculated. A sample size is defined as the total number of counts in a contingency table. Defaults to the total count passed onto \code{Simul_Mult_Object}.
-#' @param n_sim Number of simulated datasets for every calculated positive rate. Defaults to 1000.
-#' @param FPR Whether to calculate false positive rate in addition to power. Defaults to FALSE.
+#' @param add_fisher_exact Whether to compute positive rates for Fisher's Exact test. May add >1 min of calculation time. Defaults to FALSE.
+#' @param add_ord Whether to compute positive rates for Wald test on a fitted ordinal regression model. May add >1 min of calculation time. Defaults to FALSE.
+#' @param sample_sizes A vector of sample sizes over which false positive rates are to be calculated. A sample size is defined as the total number of counts in a contingency table. Defaults to total count received by \code{Simul_Mult_Object}.
+#' @param n_sim Number of datasets simulated for every calculation of positive rate. Defaults to 1000.
+#' @param FPR Whether to calculate false positive rate in addition to power. Defaults to TRUE.
 #'
 #' @return placeholder
 #' @export

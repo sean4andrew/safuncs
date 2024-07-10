@@ -16,24 +16,24 @@ Pow_Simul_Mult(
 \arguments{
 \item{Simul_Mult_Object}{Output from \code{Simul_Mult()} with the argument \code{verbose} set to TRUE.}
 
-\item{add_fisher_exact}{Whether to additionally calculate the positive rates for Fisher's Exact test. May add >1 min of calculation time. Defaults to FALSE.}
+\item{add_fisher_exact}{Whether to compute positive rates for Fisher's Exact test. May add >1 min of calculation time. Defaults to FALSE.}
 
-\item{add_ord}{Whether to additionally calculate the positive rates for Wald test on a fitted ordinal regression model. May add >1 min of calculation time. Defaults to FALSE.}
+\item{add_ord}{Whether to compute positive rates for Wald test on a fitted ordinal regression model. May add >1 min of calculation time. Defaults to FALSE.}
 
-\item{sample_sizes}{A vector of sample sizes over which false positive rates are to be calculated. A sample size is defined as the total number of counts in a contingency table. Defaults to the total count passed onto \code{Simul_Mult_Object}.}
+\item{sample_sizes}{A vector of sample sizes over which false positive rates are to be calculated. A sample size is defined as the total number of counts in a contingency table. Defaults to total count received by \code{Simul_Mult_Object}.}
 
-\item{n_sim}{Number of simulated datasets for every calculated positive rate. Defaults to 1000.}
+\item{n_sim}{Number of datasets simulated for every calculation of positive rate. Defaults to 1000.}
 
-\item{FPR}{Whether to calculate false positive rate in addition to power. Defaults to FALSE.}
+\item{FPR}{Whether to calculate false positive rate in addition to power. Defaults to TRUE.}
 }
 \value{
 placeholder
 }
 \description{
-Calculates power and optionally the false positive rates of statistical tests on contingency tables. The data generation process for the contingency table is specified using \code{Simul_Mult()} which is taken as input. Positive rates are calculated for the Chi-square test and optionally for the Fisher's exact and the Wald test on an ordinal regression model.
+Calculates power and optionally the false positive rates of statistical tests on contingency tables. The data generation process for the contingency table is specified using \code{Simul_Mult()} which is taken as input. Positive rates are calculated for the Chi-square test and optionally for Fisher's exact and the Wald test on an ordinal regression model.
 }
 \details{
-Test
+This function uses simulations of contingency tables based on parameters specified to \code{Simul_Mult()}. The simulation parameter for xyz involves, while xyz is used for xyz. The percentage of simulated datasets producing positives or significant results (p-value < 0.05) in each case is defined as false positive rate and power respectively. Next, talk about each statistical test in the next paragraph.
 }
 \examples{
 placeholder
