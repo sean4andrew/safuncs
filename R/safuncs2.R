@@ -73,9 +73,9 @@ Simul_Mult = function(probs = "equal",
   if(verbose == FALSE) {
     return(Con_Tab)
   } else {
-    return(list(Simulated_Contingency_Table = Con_Tab),
+    return(list(Simulated_Contingency_Table = Con_Tab,
                 Params = c(total_count = total_count, n_lesion = n_lesion, n_Trt. = n_Trt., margin_fixed_Trt. = margin_fixed_Trt.),
-                Probability_Matrix = probs)
+                Probability_Matrix = probs))
   }
 }
 
@@ -84,15 +84,21 @@ Simul_Mult = function(probs = "equal",
 
 #' @title Positive Rates for Contingency Tables
 #'
-#' @description Calculates power and optionally the false positive rates of statistical tests on contingency tables. The data generation process for the contingency table is specified using \code{Simul_Mult()} which is taken as input. Positive rates are calculated for the Chi-square test and optionally for Fisher's exact and the Wald test on an ordinal regression model.
+#' @description Computes the statistical power and, optionally, the false positive rates of tests applied to contingency tables. The contingency table data generation process is defined using \code{Simul_Mult()}, which serves as input. Positive rates are computed for the Chi-square test and optionally for Fisher's exact test and the Wald test applied to an ordinal regression model.
 #'
-#' @details This function uses simulations of contingency tables based on parameters specified to \code{Simul_Mult()}. The simulation parameter for xyz involves, while xyz is used for xyz. The percentage of simulated datasets producing positives or significant results (p-value < 0.05) in each case is defined as false positive rate and power respectively. Next, talk about each statistical test in the next paragraph.
+#' @details Positive rate calculations are based on Monte Carlo simulations.
+#'
+#' Power refers to the percentage of tests resulting in positives (p-value < 0.05) when conducted on a set of contingency tables simulated from the specified data generating process and probability matrix in \code{Simul_Mult()}. The probability matrix should represent the population parameters ("the truth") where there is a desire to detect a significant effect in the sample. The simulated contingency tables then reflect the different possibilities of the sample given the population parameters.
+#'
+#' False Positive Rate refers to the percentage of tests resulting in positives (p-value < 0.05) when conducted on a set of contingency tables simulated from a probability matrix where no treatment effect is present --
+#'
+#' Next, talk about each statistical test in the next paragraph.
 #'
 #' @param Simul_Mult_Object Output from \code{Simul_Mult()} with the argument \code{verbose} set to TRUE.
 #' @param add_fisher_exact Whether to compute positive rates for Fisher's Exact test. May add >1 min of calculation time. Defaults to FALSE.
 #' @param add_ord Whether to compute positive rates for Wald test on a fitted ordinal regression model. May add >1 min of calculation time. Defaults to FALSE.
 #' @param sample_sizes A vector of sample sizes over which false positive rates are to be calculated. A sample size is defined as the total number of counts in a contingency table. Defaults to total count received by \code{Simul_Mult_Object}.
-#' @param n_sim Number of datasets simulated for every calculation of positive rate. Defaults to 1000.
+#' @param n_sim Number of contingency tables simulated for each positive rate calculation. Defaults to 1000.
 #' @param FPR Whether to calculate false positive rate in addition to power. Defaults to TRUE.
 #'
 #' @return placeholder
@@ -144,14 +150,22 @@ Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
     }
 
     if(FPR == TRUE) {
+      probs_null_mat = matrix(nrow = nrow(Simul_Mult_Object$Probability_Matrix),
+                              ncol = ncol(Simul_Mult_Object$Probability_Matrix),
+                              data = rep(Simul_Mult_Object$Probability_Matrix[1,],
+                                         each = nrow(Simul_Mult_Object$Probability_Matrix)))
+      probs_null_mat = probs_null_mat * rowSums(Simul_Mult_Object$Probability_Matrix)
+      probs_null_mat = probs_null_mat / sum(probs_null_mat)
+
       for(iter in 1:n_sim) {
 
         Sim_Tab_Null = Simul_Mult(total_count = tot_count,
                                   n_lesion = Params[2],
                                   n_Trt. = Params[3],
                                   margin_fixed_Trt. = Params[4],
-                                  probs = matrix(nrow = Params[3], ncol = Params[2], 1/(Params[2] * Params[3])),
+                                  probs = probs_null_mat,
                                   verbose = FALSE)
+
 
         P_Chisq1_Null = append(P_Chisq1_Null, suppressWarnings(chisq.test(x = Sim_Tab_Null, correct = TRUE)$p.value))
         if(add_ord == TRUE) {
@@ -202,7 +216,10 @@ Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
     ggplot2::scale_y_continuous(breaks = seq(0, 100, 5), limits = c(0, 100)) +
     ggplot2::labs(color = "Statistical Test")
 
-  return(list(Results_Table = PR_DB_stacked, Plot = plot1))
+  return(list(Calculated_Positive_Rates = PR_DB_stacked,
+              Effects_Probability_Matrix = Simul_Mult_Object$Probability_Matrix,
+              Null_Probability_Matrix = probs_null_mat,
+              Plot = plot1))
 }
 
 

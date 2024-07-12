@@ -22,7 +22,7 @@ Pow_Simul_Mult(
 
 \item{sample_sizes}{A vector of sample sizes over which false positive rates are to be calculated. A sample size is defined as the total number of counts in a contingency table. Defaults to total count received by \code{Simul_Mult_Object}.}
 
-\item{n_sim}{Number of datasets simulated for every calculation of positive rate. Defaults to 1000.}
+\item{n_sim}{Number of contingency tables simulated for each positive rate calculation. Defaults to 1000.}
 
 \item{FPR}{Whether to calculate false positive rate in addition to power. Defaults to TRUE.}
 }
@@ -30,10 +30,14 @@ Pow_Simul_Mult(
 placeholder
 }
 \description{
-Calculates power and optionally the false positive rates of statistical tests on contingency tables. The data generation process for the contingency table is specified using \code{Simul_Mult()} which is taken as input. Positive rates are calculated for the Chi-square test and optionally for Fisher's exact and the Wald test on an ordinal regression model.
+Computes the statistical power and, optionally, the false positive rates of tests applied to contingency tables. The contingency table data generation process is defined using \code{Simul_Mult()}, which serves as input. Positive rates are computed for the Chi-square test and optionally for Fisher's exact test and the Wald test applied to an ordinal regression model.
 }
 \details{
-This function uses simulations of contingency tables based on parameters specified to \code{Simul_Mult()}. The simulation parameter for xyz involves, while xyz is used for xyz. The percentage of simulated datasets producing positives or significant results (p-value < 0.05) in each case is defined as false positive rate and power respectively. Next, talk about each statistical test in the next paragraph.
+Power is calculated as the percentage of tests that results in positives (p-value < 0.05) when conducted on the simulated set of contingency tables given the data-generating process and parameters like the probability matrix specified in \code{Simul_Mult()}. This probability matrix is supposed to represent the population parameters from which the contingency tables are generated as representatives of our future sample.
+
+The probability [FPR] is set to be equal in each cell for simulations and ultimately calculations of the false positive rate.
+
+Next, talk about each statistical test in the next paragraph.
 }
 \examples{
 placeholder
