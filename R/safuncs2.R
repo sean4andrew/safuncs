@@ -434,10 +434,7 @@ Predict_SR = function(New_DB = Predict_SR_New_DB, #Data from ongoing study, with
 ################################################## Function 6 - Surv_Gen0() #######################################################
 
 Surv_Gen0 = function(DB_Mort = Surv_Gen0_DB_Mort,  #Mort data with specific column names. See data(Surv_Gen0_DB_Mort).
-                     Starting_Number_of_Fish_per_Tank = 70) {
-
-  require(dplyr)
-  require(plyr)
+                     Starting_Number_of_Fish_per_Tank) {
 
   DB_Mort_Gensum = data.frame(DB_Mort %>%
                                 dplyr::group_by(Trt.ID, Tank.ID) %>%
@@ -447,7 +444,7 @@ Surv_Gen0 = function(DB_Mort = Surv_Gen0_DB_Mort,  #Mort data with specific colu
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
   DB_Mort_Genalive$Status = 0
   DB_Mort_Genalive$TTE = max(DB_Mort$TTE)
-  DB_Mort_Gencomb = rbind.fill(DB_Mort, DB_Mort_Genalive[,-c(3:4)])
+  DB_Mort_Gencomb = plyr::rbind.fill(DB_Mort, DB_Mort_Genalive[,-c(3:4)])
 
   return(DB_Mort_Gencomb)
 }
