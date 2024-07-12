@@ -443,11 +443,11 @@ Surv_Gen0 = function(DB_Mort = Surv_Gen0_DB_Mort,  #Mort data with specific colu
                                 dplyr::group_by(Trt.ID, Tank.ID) %>%
                                 dplyr::summarise(Num_dead = n()))
 
-  DB_Mort_Gensum$Num_alive = Starting_Number_of_Fish - DB_Mort_Gensum$Num_dead
+  DB_Mort_Gensum$Num_alive = Starting_Number_of_Fish_per_Tank - DB_Mort_Gensum$Num_dead
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
   DB_Mort_Genalive$Status = 0
-  DB_Mort_Genalive$TTE = max(DB_Mort_Gen$TTE)
-  DB_Mort_Gencomb = rbind.fill(DB_Mort_Gen, DB_Mort_Genalive[,-c(3:4)])
+  DB_Mort_Genalive$TTE = max(DB_Mort$TTE)
+  DB_Mort_Gencomb = rbind.fill(DB_Mort, DB_Mort_Genalive[,-c(3:4)])
 
   return(DB_Mort_Gencomb)
 }
