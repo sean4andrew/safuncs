@@ -1,26 +1,22 @@
 # This is an R package containing useful functions for my work.
 
-# Available functions:
-# 1. Simul_Mult() -- simulates contingency tables based on the multinomial distribution. WITH HELP PAGE/DOCUMENTATION.
-# 1b. Pow_Simul_Mult() -- calculates positive rates for statistical tests on contingency tables. WITH HELP PAGE/DOCUMENTATION
+# Available functions with documentation:
+# 1. Simul_Mult() -- simulates contingency tables based on the multinomial distribution.
+# 1b. Pow_Simul_Mult() -- calculates positive rates for statistical tests on contingency tables.
+
+# Available functions without documentation:
 # 2. Simul_Con_MULT.FISH.ORD() -- simulates ordinal-distributed data across treatments and lesions with inter-fish variation in the PO. WITHOUT HELP PAGE/DOCUMENTATION.
 # 3. Simul_Surv() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
 # 4. theme_Publication() -- ggplot theme for generating publication-ready plots.
 # 5. Predict_SR() -- predict future survival rate(s) for ongoing experiment based on a reference hazard function from older data.
 # 6. Surv_Gen0() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
 
-# IGNORE THE PARAGRAPH BELOW. CURRENTLY UNTRUE.
-# Some functions require datasets as inputs. To show how these datasets are structured, sample datasets can be loaded by executing
-# "data(function.name_argument.name)" in the R console. For example, for function #6, type "data(Surv_Gen0_DB_Mort)" where "DB_Mort"
-# is the argument for the input dataset. Once the sample dataset is loaded, the function can run on "nothing" to produce an example output.
-# For example, I can type "Surv_Gen0()" in the R console and obtain the example output.
-
 ###################################################################################################################################
 ################################################## Function 1 - Simul_Mult() ######################################################
 
 #' @title Simulate a Contingency Table
 #'
-#' @description Simulate a contingency table with fish counts distributed across \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts in each cell (i.e. each factor level combination) can be assigned using the \code{probs} argument. This function is designed for use in power and/or false positive rate calculations; for details, refer to \code{Pow_Simul_Mult()}.
+#' @description Simulate a contingency table with fish counts distributed across \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts in each cell (i.e. each factor level combination) can be assigned using the \code{probs} argument. This function is designed for use in power and/or false positive rate calculations; for details on such use, see \code{Pow_Simul_Mult()}.
 #'
 #' @details Counts are simulated from a multinomial distribution using \code{rmultinom()}. Counts may be assumed to have a fixed total in the marginals (e.g. per treatment group) or no fixed total in row or column marginals.
 #'
@@ -33,7 +29,12 @@
 #' @param margin_fixed_Trt. Whether margins are fixed per treatment group (i.e. fixed number of fish per treatment). Default = FALSE. See \bold{Details} for further information on marginals.
 #' @param verbose Whether to print the parameters and probability matrix used. Default = TRUE.
 #'
-#' @return A list consisting of the simulated contingency table with counts in each cell for the different treatment groups (as rows) and lesion categories (as columns), the table parameters, and the probability matrix for the data generation process.
+#' @return Returns a list containing:\tabular{lll}{
+#'  \code{sim_tab} \tab \tab The simulated contingency table containing counts across different treatment groups (rows) and lesion categories (columns) \cr
+#'  \code{params} \tab \tab The simulation parameters as a vector \cr
+#'  \code{probs} \tab \tab The probability matrix used for simulation \cr
+#' }
+#'
 #' @export
 #'
 #' @examples
@@ -66,16 +67,16 @@ Simul_Mult = function(probs = "equal",
   }
 
   #Create contingency table
-  Con_Tab = matrix(Count_Mat, nrow = n_Trt., ncol = n_lesion)
-  dimnames(Con_Tab) = list(Trt. = LETTERS[1:n_Trt.],
-                            Lesion_Category = 1:n_lesion)
+  Con_Tab = matrix(Count_Mat, nrow = n_Trt., ncol = n_lesion,
+                   dimnames = list(Trt. = LETTERS[1:n_Trt.],
+                                   Lesion_Category = 1:n_lesion))
 
   if(verbose == FALSE) {
     return(Con_Tab)
   } else {
-    return(list(Simulated_Contingency_Table = Con_Tab,
-                Params = c(total_count = total_count, n_lesion = n_lesion, n_Trt. = n_Trt., margin_fixed_Trt. = margin_fixed_Trt.),
-                Probability_Matrix = probs))
+    return(list(sim_tab = Con_Tab,
+                params = c(total_count = total_count, n_lesion = n_lesion, n_Trt. = n_Trt., margin_fixed_Trt. = margin_fixed_Trt.),
+                probs = probs))
   }
 }
 
@@ -84,15 +85,13 @@ Simul_Mult = function(probs = "equal",
 
 #' @title Positive Rates for Contingency Tables
 #'
-#' @description Computes the statistical power and, optionally, the false positive rates of tests applied to contingency tables. The contingency table data generation process is defined using \code{Simul_Mult()}, which serves as input. Positive rates are computed for the Chi-square test and optionally for Fisher's exact test and the Wald test applied to an ordinal regression model.
+#' @description Computes statistical power and optionally false positive rates for tests applied to contingency tables based on Monte Carlo simulations. Specify the simulation process using \code{Simul_Mult()}, which serves as input. Positive rates are computed for the Chi-square test and optionally for Fisher's exact test and the Wald test applied to an ordinal regression model.
 #'
-#' @details Positive rate calculations are based on Monte Carlo simulations.
+#' @details Power is defined as the percentage of tests yielding positive results (p-value < 0.05) on a set of contingency tables simulated based on the data-generating process and probability matrix specified in \code{Simul_Mult()}. The specified probability matrix should represent the parameters of the population where there is a desire to detect a significant effect in the sample. The simulated contingency tables then reflect the sample outcomes of the specified population parameter.
 #'
-#' Power refers to the percentage of tests resulting in positives (p-value < 0.05) when conducted on a set of contingency tables simulated from the specified data generating process and probability matrix in \code{Simul_Mult()}. The probability matrix should represent the population parameters ("the truth") where there is a desire to detect a significant effect in the sample. The simulated contingency tables then reflect the different possibilities of the sample given the population parameters.
+#' False Positive Rate is defined as the percentage of tests yielding positive results (p-value < 0.05) on contingency tables simulated based on a probability matrix without treatment effect. The lesion odds ratios for the control group (assumed to be the first row in the probability matrix) is assumed to be true across all treatments.
 #'
-#' False Positive Rate refers to the percentage of tests resulting in positives (p-value < 0.05) when conducted on a set of contingency tables simulated from a probability matrix where no treatment effect is present --
-#'
-#' Next, talk about each statistical test in the next paragraph.
+#' P-values for the Chi-square test are computed using \code{stats::chisq.test()} with default parameters. P-values for Fisher's exact test are computed using \code{stats::fisher.test()} with \code{simulate.p.value} set to TRUE, alongside default parameters. P-values for ordinal regression are computed from \code{stats::anova()} applied to the output of \code{ordinal::clm()}.
 #'
 #' @param Simul_Mult_Object Output from \code{Simul_Mult()} with the argument \code{verbose} set to TRUE.
 #' @param add_fisher_exact Whether to compute positive rates for Fisher's Exact test. May add >1 min of calculation time. Defaults to FALSE.
@@ -101,10 +100,32 @@ Simul_Mult = function(probs = "equal",
 #' @param n_sim Number of contingency tables simulated for each positive rate calculation. Defaults to 1000.
 #' @param FPR Whether to calculate false positive rate in addition to power. Defaults to TRUE.
 #'
-#' @return placeholder
+#' @return Returns a list containing:\tabular{lll}{
+#'  \code{pos_rate} \tab \tab A data frame containing positive rates of various tests at specified sample sizes \cr
+#'  \code{eff_mat} \tab \tab The probability matrix used to calculate power  \cr
+#'  \code{null_mat} \tab \tab The probability matrix used to calculate false positive rate \cr
+#'  \code{plot} \tab \tab A plot of positive rates of various tests at specified sample sizes \cr
+#' }
+#'
 #' @export
 #'
-#' @examples placeholder
+#' @examples
+#' #Below I show how we can perform a simple power calculation using this tool.
+#' #Suppose I want to calculate power for Treatment B which halves the lesions in category 2 and 3.
+#' #I then specify the following probability matrix and feed it into Simul_Mult():
+#' probs_mat = matrix(nrow = 2, ncol = 3, data = c(1/6, 1/3, 1/6, 1/12, 1/6, 1/12))
+#' sim_tab = Simul_Mult(probs_mat)
+#'
+#' #Next, I feed the output into Pow_Simul_Mult():
+#' Pow_Simul_Mult(sim_tab, sample_sizes = c(50, 100, 150))
+#'
+#' #Results: Power is ~55, 86, and 97% for the Chi-square test using total counts of 50, 100, and 150, respectively.
+#'
+#' #The same power for Chi-square test can be calculated using Cohen's omega (w) method which is faster but more limited:
+#' library(pwr)
+#' pwr.chisq.test(w = ES.w2(probs_mat), df = 2, sig.level = 0.05, N = 100)
+#'
+#' #Results: Power is 85.6% for the Chi-square test at the total count of 100.
 Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
                           add_fisher_exact = FALSE,
                           add_ord = FALSE,
@@ -112,7 +133,7 @@ Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
                           n_sim = 1000,
                           FPR = TRUE) {
 
-  Params = Simul_Mult_Object$Params
+  Params = Simul_Mult_Object$params
   PR_DB = data.frame()
   if(is.null(sample_sizes)) {sample_sizes <- Params[1]}
 
@@ -130,10 +151,10 @@ Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
                                n_lesion = Params[2],
                                n_Trt. = Params[3],
                                margin_fixed_Trt. = Params[4],
-                               probs = Simul_Mult_Object$Probability_Matrix,
+                               probs = Simul_Mult_Object$probs,
                                verbose = FALSE)
 
-      P_Chisq1_Eff = append(P_Chisq1_Eff, suppressWarnings(chisq.test(x = Sim_Tab_Eff, correct = FALSE)$p.value))
+      P_Chisq1_Eff = append(P_Chisq1_Eff, suppressWarnings(chisq.test(x = Sim_Tab_Eff)$p.value))
       if(add_ord == TRUE) {
         DB_Ord_Eff = as.data.frame(as.table(Sim_Tab_Eff))
         DB_Ord_Eff = data.frame(lapply(DB_Ord_Eff, rep, DB_Ord_Eff$Freq))
@@ -141,20 +162,16 @@ Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
         P_Ord_Eff = append(P_Ord_Eff, anova(Ord_Eff)$'Pr(>Chisq)')
       }
       if(add_fisher_exact == TRUE) {
-        if(nrow(Sim_Tab_Eff) == 2 & ncol(Sim_Tab_Eff) == 2) {
-          P_Fish_Eff <- append(P_Fish_Eff, fisher.test(x = Sim_Tab_Eff, simulate.p.value = FALSE)$p.value)
-        } else {
-          P_Fish_Eff <- append(P_Fish_Eff, fisher.test(x = Sim_Tab_Eff, simulate.p.value = TRUE)$p.value)
-        }
+        P_Fish_Eff <- append(P_Fish_Eff, fisher.test(x = Sim_Tab_Eff, simulate.p.value = TRUE)$p.value)
       }
     }
 
     if(FPR == TRUE) {
-      probs_null_mat = matrix(nrow = nrow(Simul_Mult_Object$Probability_Matrix),
-                              ncol = ncol(Simul_Mult_Object$Probability_Matrix),
-                              data = rep(Simul_Mult_Object$Probability_Matrix[1,],
-                                         each = nrow(Simul_Mult_Object$Probability_Matrix)))
-      probs_null_mat = probs_null_mat * rowSums(Simul_Mult_Object$Probability_Matrix)
+      probs_null_mat = matrix(nrow = nrow(Simul_Mult_Object$probs),
+                              ncol = ncol(Simul_Mult_Object$probs),
+                              data = rep(Simul_Mult_Object$probs[1,],
+                                         each = nrow(Simul_Mult_Object$probs)))
+      probs_null_mat = probs_null_mat * rowSums(Simul_Mult_Object$probs)
       probs_null_mat = probs_null_mat / sum(probs_null_mat)
 
       for(iter in 1:n_sim) {
@@ -167,7 +184,7 @@ Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
                                   verbose = FALSE)
 
 
-        P_Chisq1_Null = append(P_Chisq1_Null, suppressWarnings(chisq.test(x = Sim_Tab_Null, correct = TRUE)$p.value))
+        P_Chisq1_Null = append(P_Chisq1_Null, suppressWarnings(chisq.test(x = Sim_Tab_Null)$p.value))
         if(add_ord == TRUE) {
           DB_Ord_Null = as.data.frame(as.table(Sim_Tab_Null))
           DB_Ord_Null = data.frame(lapply(DB_Ord_Null, rep, DB_Ord_Null$Freq))
@@ -175,11 +192,7 @@ Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
           P_Ord_Null = append(P_Ord_Null, anova(Ord_Null)$'Pr(>Chisq)')
         }
         if(add_fisher_exact == TRUE) {
-          if(nrow(Sim_Tab_Null) == 2 & ncol(Sim_Tab_Null) == 2) {
-            P_Fish_Null <- append(P_Fish_Null, fisher.test(x = Sim_Tab_Null, simulate.p.value = FALSE)$p.value)
-          } else {
-            P_Fish_Null <- append(P_Fish_Null, fisher.test(x = Sim_Tab_Null, simulate.p.value = TRUE)$p.value)
-          }
+          P_Fish_Null <- append(P_Fish_Null, fisher.test(x = Sim_Tab_Null, simulate.p.value = TRUE)$p.value)
         }
       }
     }
@@ -216,10 +229,10 @@ Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
     ggplot2::scale_y_continuous(breaks = seq(0, 100, 5), limits = c(0, 100)) +
     ggplot2::labs(color = "Statistical Test")
 
-  return(list(Calculated_Positive_Rates = PR_DB_stacked,
-              Effects_Probability_Matrix = Simul_Mult_Object$Probability_Matrix,
-              Null_Probability_Matrix = probs_null_mat,
-              Plot = plot1))
+  return(list(pos_rate = PR_DB_stacked,
+              eff_mat = Simul_Mult_Object$probs,
+              null_mat = probs_null_mat,
+              plot = plot1))
 }
 
 

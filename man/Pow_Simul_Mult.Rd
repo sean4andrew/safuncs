@@ -27,18 +27,38 @@ Pow_Simul_Mult(
 \item{FPR}{Whether to calculate false positive rate in addition to power. Defaults to TRUE.}
 }
 \value{
-placeholder
+Returns a list containing:\tabular{lll}{
+ \code{pos_rate} \tab \tab A data frame containing positive rates of various tests at specified sample sizes \cr
+ \code{eff_mat} \tab \tab The probability matrix used to calculate power  \cr
+ \code{null_mat} \tab \tab The probability matrix used to calculate false positive rate \cr
+ \code{plot} \tab \tab A plot of positive rates of various tests at specified sample sizes \cr
+}
 }
 \description{
-Computes the statistical power and, optionally, the false positive rates of tests applied to contingency tables. The contingency table data generation process is defined using \code{Simul_Mult()}, which serves as input. Positive rates are computed for the Chi-square test and optionally for Fisher's exact test and the Wald test applied to an ordinal regression model.
+Computes statistical power and optionally false positive rates for tests applied to contingency tables based on Monte Carlo simulations. Specify the simulation process using \code{Simul_Mult()}, which serves as input. Positive rates are computed for the Chi-square test and optionally for Fisher's exact test and the Wald test applied to an ordinal regression model.
 }
 \details{
-Power is calculated as the percentage of tests that results in positives (p-value < 0.05) when conducted on the simulated set of contingency tables given the data-generating process and parameters like the probability matrix specified in \code{Simul_Mult()}. This probability matrix is supposed to represent the population parameters from which the contingency tables are generated as representatives of our future sample.
+Power is defined as the percentage of tests yielding positive results (p-value < 0.05) on a set of contingency tables simulated based on the data-generating process and probability matrix specified in \code{Simul_Mult()}. The specified probability matrix should represent the parameters of the population where there is a desire to detect a significant effect in the sample. The simulated contingency tables then reflect the sample outcomes of the specified population parameter.
 
-The probability [FPR] is set to be equal in each cell for simulations and ultimately calculations of the false positive rate.
+False Positive Rate is defined as the percentage of tests yielding positive results (p-value < 0.05) on contingency tables simulated based on a probability matrix without treatment effect. The lesion odds ratios for the control group (assumed to be the first row in the probability matrix) is assumed to be true across all treatments.
 
-Next, talk about each statistical test in the next paragraph.
+P-values for the Chi-square test are computed using \code{stats::chisq.test()} with default parameters. P-values for Fisher's exact test are computed using \code{stats::fisher.test()} with \code{simulate.p.value} set to TRUE, alongside default parameters. P-values for ordinal regression are computed from \code{stats::anova()} applied to the output of \code{ordinal::clm()}.
 }
 \examples{
-placeholder
+#Below I show how we can perform a simple power calculation using this tool.
+#Suppose I want to calculate power for Treatment B which halves the lesions in category 2 and 3.
+#I then specify the following probability matrix and feed it into Simul_Mult():
+
+
+#Next, I feed the output into Pow_Simul_Mult():
+
+#Results: Power is __ (Chi-square test) and xxxx (Ordinal Regression) at total counts of x, y, and z.
+
+#Below I show that the same power for Chi-square test is calculated using the Cohen's omega (w) method which is faster but more limited:
+library(pwr)
+pwr.chisq.test(w = ES.w2(probs_mat),
+               df = 2,
+               sig.level = 0.05)
+
+#Results: Power is _ for the Chi-square test at the total count of xxx.
 }
