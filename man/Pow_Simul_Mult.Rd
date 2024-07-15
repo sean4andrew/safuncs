@@ -48,17 +48,17 @@ P-values for the Chi-square test are computed using \code{stats::chisq.test()} w
 #Below I show how we can perform a simple power calculation using this tool.
 #Suppose I want to calculate power for Treatment B which halves the lesions in category 2 and 3.
 #I then specify the following probability matrix and feed it into Simul_Mult():
-
+probs_mat = matrix(nrow = 2, ncol = 3, data = c(1/6, 1/3, 1/6, 1/12, 1/6, 1/12))
+sim_tab = Simul_Mult(probs_mat)
 
 #Next, I feed the output into Pow_Simul_Mult():
+Pow_Simul_Mult(sim_tab, sample_sizes = c(50, 100, 150))
 
-#Results: Power is __ (Chi-square test) and xxxx (Ordinal Regression) at total counts of x, y, and z.
+#Results: Power is ~55, 86, and 97\% for the Chi-square test using total counts of 50, 100, and 150, respectively.
 
-#Below I show that the same power for Chi-square test is calculated using the Cohen's omega (w) method which is faster but more limited:
+#The same power for Chi-square test can be calculated using Cohen's omega (w) method which is faster but more limited:
 library(pwr)
-pwr.chisq.test(w = ES.w2(probs_mat),
-               df = 2,
-               sig.level = 0.05)
+pwr.chisq.test(w = ES.w2(probs_mat), df = 2, sig.level = 0.05, N = 100)
 
-#Results: Power is _ for the Chi-square test at the total count of xxx.
+#Results: Power is 85.6\% for the Chi-square test at the total count of 100.
 }
