@@ -498,12 +498,14 @@ Surv_Gen = function(mort_db = db_mort_ex,
 #'
 Surv_Plots = function(surv_db,
                       figure_name_prefix = "figure_name_prefix",
-                      x_axis_limits = c(0, max(surv_db$TTE)),
+                      x_axis_limits = NULL,
                       y_axis_limits = c(0, 1),
                       x_lab = "Days Post Challenge",
                       lambda = NULL) {
 
   library(ggplot2)
+
+  if(is.null(x_axis_limits)) {x_axis_limits <- c(0, max(surv_db$TTE))}
 
   surv_obj = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
   attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
