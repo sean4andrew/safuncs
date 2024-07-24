@@ -503,6 +503,8 @@ Surv_Plots = function(surv_db,
                       x_lab = "Days Post Challenge",
                       lambda = NULL) {
 
+  library(ggplot2)
+
   surv_obj = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
   attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
 
