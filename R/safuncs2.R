@@ -460,8 +460,9 @@ Surv_Gen = function(mort_db = db_mort_ex,
                     trt_without_mort,
                     starting_fish_count) {
 
-  DB_Mort_Gensum = data.frame(mort_db dplyr::%>%
-                                dplyr::group_by(Trt.ID, Tank.ID) dplyr::%>%
+  library(dplyr)
+  DB_Mort_Gensum = data.frame(mort_db %>%
+                                dplyr::group_by(Trt.ID, Tank.ID) %>%
                                 dplyr::summarise(Num_dead = n()))
 
   WM_DB = data.frame(Trt.ID = trt_without_mort,
