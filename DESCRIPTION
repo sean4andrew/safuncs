@@ -17,4 +17,6 @@ Imports:
     dplyr,
     ggplot2,
     ordinal,
-    plyr
+    plyr,
+    survival,
+    survminer
