@@ -503,7 +503,7 @@ Surv_Plots = function(surv_db,
                       x_lab = "Days Post Challenge",
                       lambda = NULL) {
 
-  surv_obj = survival::survfit(Surv(TTE, Status) ~ Trt.ID, data = surv_db)
+  surv_obj = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
   attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
 
   surv_plot = survminer::ggsurvplot(surv_obj,
@@ -524,13 +524,13 @@ Surv_Plots = function(surv_db,
     if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
       Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
                                   data = surv_db_trt,
-                                  Surv(TTE, Status) ~ Tank.ID,
+                                  survival::Surv(TTE, Status) ~ Tank.ID,
                                   verbose = FALSE,
                                   lambda = lambda)
     } else {
       Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
                                   data = surv_db_trt,
-                                  Surv(TTE, Status) ~ 1,
+                                  survival::Surv(TTE, Status) ~ 1,
                                   verbose = FALSE,
                                   lambda = lambda)
     }
