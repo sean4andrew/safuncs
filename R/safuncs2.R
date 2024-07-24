@@ -16,7 +16,7 @@
 
 #' @title Simulate a Contingency Table
 #'
-#' @description Simulate a contingency table with fish counts distributed across \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts in each cell (i.e. each factor level combination) can be assigned using the \code{probs} argument. This function is designed for use in power and/or false positive rate calculations; for details on such use, see \code{Pow_Simul_Mult()}.
+#' @description Simulate a contingency table with fish counts distributed across \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts in each cell (i.e. each factor level combination) can be assigned using the \code{probs} argument. This function is designed for use in power and/or false positive rate calculations; for details, see \code{Pow_Simul_Mult()}.
 #'
 #' @details Counts are simulated from a multinomial distribution using \code{rmultinom()}. Counts may be assumed to have a fixed total in the marginals (e.g. per treatment group) or no fixed total in row or column marginals.
 #'
@@ -110,22 +110,20 @@ Simul_Mult = function(probs = "equal",
 #' @export
 #'
 #' @examples
-#' #Below I show how we can perform a simple power calculation using this tool.
-#' #Suppose I want to calculate power for Treatment B which halves the lesions in category 2 and 3.
-#' #I then specify the following probability matrix and feed it into Simul_Mult():
+#' ## Below I show how we can perform a simple power calculation using this tool.
+#' ## Suppose I want to calculate power for Treatment B which halves the lesions in category 2 and 3.
+#' ## I then specify the following probability matrix and feed it into Simul_Mult():
 #' probs_mat = matrix(nrow = 2, ncol = 3, data = c(1/6, 1/3, 1/6, 1/12, 1/6, 1/12))
 #' sim_tab = Simul_Mult(probs_mat)
 #'
-#' #Next, I feed the output into Pow_Simul_Mult():
+#' ## Next, I feed the output into Pow_Simul_Mult():
 #' Pow_Simul_Mult(sim_tab, sample_sizes = c(50, 100, 150))
+#' ## Results: Power is ~55, 86, and 97% for the Chi-square test using total counts of 50, 100, and 150, respectively.
 #'
-#' #Results: Power is ~55, 86, and 97% for the Chi-square test using total counts of 50, 100, and 150, respectively.
-#'
-#' #The same power for Chi-square test can be calculated using Cohen's omega (w) method which is faster but more limited:
+#' ## The same power for Chi-square test can be calculated using Cohen's omega (w) method which is faster but has its own limitations:
 #' library(pwr)
 #' pwr.chisq.test(w = ES.w2(probs_mat), df = 2, sig.level = 0.05, N = 100)
-#'
-#' #Results: Power is 85.6% for the Chi-square test at the total count of 100.
+#' ## Results: Power is 85.6% for the Chi-square test at the total count of 100.
 Pow_Simul_Mult = function(Simul_Mult_Object = Simul_Mult(),
                           add_fisher_exact = FALSE,
                           add_ord = FALSE,
@@ -362,8 +360,8 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 ###################################################################################################################################
 ################################################## Function 5 - Predict_SR() ######################################################
 
-Predict_SR = function(New_DB = Predict_SR_New_DB, #Data from ongoing study, with SR to be predicted. Need specific column names, see data(Predict_SR_New_DB)
-                      Ref_DB = Predict_SR_Ref_DB, #Reference survival data to create the reference hazard function. See data(Predict_SR_Ref_DB)
+Predict_SR = function(New_DB = Predict_SR_New_DB, #Data from ongoing study, with SR to be predicted.
+                      Ref_DB = Predict_SR_Ref_DB, #Reference survival data to create the reference hazard function.
                       End_Day = 18,  #The end date at which SR is to be predicted
                       Method = 2,      #SR prediction method, minor differences between Method 1-2 (choose any should be OK)
                       PH_Mod = "GLMM") #Model used to estimate HR. Can be either "GLMM" or "GEE". GLMM recommended.
@@ -444,20 +442,115 @@ Predict_SR = function(New_DB = Predict_SR_New_DB, #Data from ongoing study, with
 }
 
 ###################################################################################################################################
-################################################## Function 6 - Surv_Gen0() #######################################################
+################################################## Function 6 - Surv_Gen() ########################################################
 
-Surv_Gen0 = function(DB_Mort = Surv_Gen0_DB_Mort,  #Mort data with specific column names. See data(Surv_Gen0_DB_Mort).
-                     Starting_Number_of_Fish_per_Tank) {
+#' Title
+#'
+#' @param DB_Mort
+#' @param Starting_Number_of_Fish_per_Tank
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+Surv_Gen = function(mort_db = db_mort_ex,
+                    today_tte,
+                    tank_without_mort,
+                    trt_without_mort,
+                    starting_fish_count) {
 
-  DB_Mort_Gensum = data.frame(DB_Mort %>%
+  DB_Mort_Gensum = data.frame(mort_db %>%
                                 dplyr::group_by(Trt.ID, Tank.ID) %>%
                                 dplyr::summarise(Num_dead = n()))
 
-  DB_Mort_Gensum$Num_alive = Starting_Number_of_Fish_per_Tank - DB_Mort_Gensum$Num_dead
+  WM_DB = data.frame(Trt.ID = trt_without_mort,
+                     Tank.ID = tank_without_mort,
+                     Num_dead = 0)
+  DB_Mort_Gensum = rbind(DB_Mort_Gensum, WM_DB)
+
+  DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
   DB_Mort_Genalive$Status = 0
-  DB_Mort_Genalive$TTE = max(DB_Mort$TTE)
-  DB_Mort_Gencomb = plyr::rbind.fill(DB_Mort, DB_Mort_Genalive[,-c(3:4)])
+  DB_Mort_Genalive$TTE = today_tte
+  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[,-c(3:4)])
 
   return(DB_Mort_Gencomb)
+}
+
+###################################################################################################################################
+################################################# Function 7 - Surv_Plots() #######################################################
+
+#' Title
+#'
+#' @param surv_db
+#' @param figure_name_prefix
+#' @param x_axis_limits
+#' @param y_axis_limits
+#' @param x_lab
+#' @param lambda
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+Surv_Plots = function(surv_db,
+                      figure_name_prefix = "figure_name_prefix",
+                      x_axis_limits = c(0, max(surv_db$TTE)),
+                      y_axis_limits = c(0, 1),
+                      x_lab = "Days Post Challenge",
+                      lambda = NULL) {
+
+  surv_obj = survival::survfit(Surv(TTE, Status) ~ Trt.ID, data = surv_db)
+  attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
+
+  surv_plot = survminer::ggsurvplot(surv_obj,
+                                    conf.int = FALSE,
+                                    ggtheme = theme(plot.background = element_rect(fill = "white")),
+                                    break.y.by = 0.1,
+                                    break.x.by = min(round(max(x_axis_limits) / 15), 1),
+                                    xlim = x_axis_limits,
+                                    ylim = y_axis_limits,
+                                    xlab = x_lab,
+                                    surv.scale = "percent")
+  plot_a = surv_plot$plot + ggplot2::theme(legend.position = "right") + ggplot2::guides(color = guide_legend("Trt."))
+  ggplot2::ggsave(paste(figure_name_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = plot_a)
+
+  Haz_list = list()
+  for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
+    surv_db_trt = surv_db[surv_db$Trt.ID == Haz_Trt,]
+    if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
+      Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
+                                  data = surv_db_trt,
+                                  Surv(TTE, Status) ~ Tank.ID,
+                                  verbose = FALSE,
+                                  lambda = lambda)
+    } else {
+      Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
+                                  data = surv_db_trt,
+                                  Surv(TTE, Status) ~ 1,
+                                  verbose = FALSE,
+                                  lambda = lambda)
+    }
+
+    Haz_DB = data.frame(Hazard = Haz_bs$hazard,
+                        Time = Haz_bs$time)
+    Haz_list[[Haz_Trt]] = data.frame(Hazard = Haz_bs$hazard,
+                                     Time = Haz_bs$time)
+  }
+
+  Haz_DB = dplyr::bind_rows(Haz_list, .id = "Trt.ID")
+  plot_b = ggplot(data = Haz_DB, aes(x = Time, y = Hazard, color = Trt.ID)) +
+    geom_line(linewidth = 1) +
+    geom_point() +
+    xlab("Days Post Challenge") +
+    scale_x_continuous(breaks = seq(from = min(x_axis_limits),
+                                    to = max(x_axis_limits),
+                                    by = min(round(max(x_axis_limits) / 15), 1)),
+                       limits = x_axis_limits)
+
+  ggplot2::ggsave(paste(figure_name_prefix, "Hazard Curve.tiff"), dpi = 300, width = 6, height = 4, plot = plot_b)
+
+  return(list(plot_a, plot_b))
 }

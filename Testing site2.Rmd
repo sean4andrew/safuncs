@@ -1,0 +1,128 @@
+---
+title: "Testing Grounds"
+output: 
+  rmdformats::readthedown:
+    code_download: true
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+---
+
+# Heading 1
+
+```{r}
+remotes::install_github("sean4andrew/safuncs2")
+use_package() 
+
+```
+
+```{r}
+Surv_Gen = function(mort_db = db_mort_ex, 
+                    today_tte,
+                    tank_without_mort,
+                    trt_without_mort,
+                    starting_fish_count) {
+
+  DB_Mort_Gensum = data.frame(mort_db %>%
+                                dplyr::group_by(Trt.ID, Tank.ID) %>%
+                                dplyr::summarise(Num_dead = n()))
+  
+  WM_DB = data.frame(Trt.ID = trt_without_mort,
+                     Tank.ID = tank_without_mort,
+                     Num_dead = 0)
+  DB_Mort_Gensum = rbind(DB_Mort_Gensum, WM_DB)
+  
+  DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead
+  DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
+  DB_Mort_Genalive$Status = 0
+  DB_Mort_Genalive$TTE = today_tte
+  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[,-c(3:4)])
+
+  return(DB_Mort_Gencomb)
+}
+```
+
+## Heading 2
+
+Surv_Plots()
+```{r}
+setwd("C:/Users/sean4/Downloads")
+Surv_Plots = function(surv_db,
+                      figure_name_prefix = "figure_name_prefix",
+                      x_axis_limits = c(0, max(surv_db$TTE)),
+                      y_axis_limits = c(0, 1),
+                      x_lab = "Days Post Challenge",
+                      lambda = NULL) {
+  
+  surv_obj = survival::survfit(Surv(TTE, Status) ~ Trt.ID, data = surv_db)
+  attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
+  
+  surv_plot = survminer::ggsurvplot(surv_obj, 
+                                      conf.int = FALSE, 
+                                      ggtheme = theme(plot.background = element_rect(fill = "white")), 
+                                      break.y.by = 0.1, 
+                                      break.x.by = min(round(max(x_axis_limits) / 15), 1), 
+                                      xlim = x_axis_limits, 
+                                      ylim = y_axis_limits, 
+                                      xlab = x_lab,
+                                      surv.scale = "percent")
+  plot_a = surv_plot$plot + ggplot2::theme(legend.position = "right") + ggplot2::guides(color = guide_legend("Trt."))
+  ggplot2::ggsave(paste(figure_name_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = plot_a)
+    
+  Haz_list = list()
+  for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
+    surv_db_trt = surv_db[surv_db$Trt.ID == Haz_Trt,]
+    if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
+      Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
+                                  data = surv_db_trt, 
+                                  Surv(TTE, Status) ~ Tank.ID, 
+                                  verbose = FALSE,
+                                  lambda = lambda)  
+    } else {
+      Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE), 
+                                  data = surv_db_trt, 
+                                  Surv(TTE, Status) ~ 1, 
+                                  verbose = FALSE,
+                                  lambda = lambda) 
+    }
+      
+    Haz_DB = data.frame(Hazard = Haz_bs$hazard,
+                          Time = Haz_bs$time)
+    Haz_list[[Haz_Trt]] = data.frame(Hazard = Haz_bs$hazard,
+                                       Time = Haz_bs$time)    
+  }
+
+  Haz_DB = dplyr::bind_rows(Haz_list, .id = "Trt.ID")
+  plot_b = ggplot(data = Haz_DB, aes(x = Time, y = Hazard, color = Trt.ID)) +
+    geom_line(linewidth = 1) +
+    geom_point() + 
+    xlab("Days Post Challenge") +
+    scale_x_continuous(breaks = seq(from = min(x_axis_limits), 
+                                    to = max(x_axis_limits), 
+                                    by = min(round(max(x_axis_limits) / 15), 1)), 
+                       limits = x_axis_limits)
+  
+  ggplot2::ggsave(paste(figure_name_prefix, "Hazard Curve.tiff"), dpi = 300, width = 6, height = 4, plot = plot_b)
+  
+  return(list(plot_a, plot_b))
+}
+```
+
+
+```{r}
+#Load data
+setwd("C:/Users/sean4/Downloads")
+QCATC1070_Mort = read.csv(file = "QCATC1070-2 Mort Data.csv")
+
+#Filter for desired data
+QCATC1070_Mort = QCATC1070_Mort[QCATC1070_Mort$Tank.Type == "Challenge",]
+
+#Generate survival data
+QCATC1070_Surv_DB = Surv_Gen(mort_db = QCATC1070_Mort,
+                             today_tte = 13,
+                             tank_without_mort = c("F14", "F20"),
+                             trt_without_mort = c("2", "5"),
+                             starting_fish_count = 40)
+
+#Generate plots
+Surv_Plots(surv_db = QCATC1070_Surv_DB, figure_name_prefix = "QCATC1070-2", lambda = 10)
+```
+
