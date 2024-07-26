@@ -4,7 +4,7 @@ Title: Useful Functions for Biological Research
 Version: 0.1.0
 Author: Sean Andrew
 Maintainer: Sean Andrew <sean4andrew@gmail.com>
-Description: Contains mostly simulation functions useful for biological research.
+Description: Contains mostly simulation functions for biological research.
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true

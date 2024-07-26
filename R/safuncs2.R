@@ -3,13 +3,13 @@
 # Available functions with documentation:
 # 1. Simul_Mult() -- simulates contingency tables based on the multinomial distribution.
 # 1b. Pow_Simul_Mult() -- calculates positive rates for statistical tests on contingency tables.
+# 6. Surv_Gen() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
 
 # Available functions without documentation:
-# 2. Simul_Con_MULT.FISH.ORD() -- simulates ordinal-distributed data across treatments and lesions with inter-fish variation in the PO. WITHOUT HELP PAGE/DOCUMENTATION.
+# 2. Simul_Con_MULT.FISH.ORD() -- simulates ordinal-distributed data across treatments and lesions with inter-fish variation in the PO.
 # 3. Simul_Surv() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
 # 4. theme_Publication() -- ggplot theme for generating publication-ready plots.
 # 5. Predict_SR() -- predict future survival rate(s) for ongoing experiment based on a reference hazard function from older data.
-# 6. Surv_Gen() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
 # 7. Surv_Plots() -- generate Kaplan-Meier survival curve and hazard curve from survival data.
 
 ###################################################################################################################################
