@@ -9,7 +9,8 @@
 # 3. Simul_Surv() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
 # 4. theme_Publication() -- ggplot theme for generating publication-ready plots.
 # 5. Predict_SR() -- predict future survival rate(s) for ongoing experiment based on a reference hazard function from older data.
-# 6. Surv_Gen0() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
+# 6. Surv_Gen() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
+# 7. Surv_Plots() -- generate Kaplan-Meier survival curve and hazard curve from survival data.
 
 ###################################################################################################################################
 ################################################## Function 1 - Simul_Mult() ######################################################
@@ -444,20 +445,34 @@ Predict_SR = function(New_DB = Predict_SR_New_DB, #Data from ongoing study, with
 ###################################################################################################################################
 ################################################## Function 6 - Surv_Gen() ########################################################
 
-#' Title
+#' @title Generate Survivor Data
 #'
-#' @param DB_Mort
-#' @param Starting_Number_of_Fish_per_Tank
+#' @description Produces a completed survival dataset with rows for every survivor based on the starting number of fish and the supplied "mort" data frame. This function can also generate survivor data for tanks not mentioned in the mort data frame (e.g. tanks without mortalities yet) by using the argument \code{tank_without_mort} and \code{trt_without_mort}.
 #'
-#' @return
+#' @details The mort data frame should have one row of data for every dead/sampled fish and the following information in 4 different columns:
+#' * "Trt.ID" = Label for each treatment group in the study.
+#' * "Tank.ID" = Label for each different tanks in the study (each tank must have a unique label).
+#' * "TTE" = Time to Event. The event could be fish death or being sampled and removed depending on "Status".
+#' * "Status" = Value indicating what happened at TTE. 1 for dead fish 0 for those sampled and removed.
+#'
+#' For an example dataset, execute \code{data("mort_db_ex")}.
+#' @md
+#'
+#' @param mort_db A mort data frame described in \bold{Details}.
+#' @param today_tte The time to event value assigned to the generated rows of survivor data.
+#' @param tank_without_mort A vector of tank IDs absent from the mort data frame for which survivor data is to be generated.
+#' @param trt_without_mort A vector of treatment IDs corresponding to \code{tank_without_mort}, in the same order.
+#' @param starting_fish_count Value representing the starting number of fish in each tank.
+#'
+#' @return The mort data frame appended with rows representing every survivor.
 #' @export
 #'
 #' @examples
 #'
-Surv_Gen = function(mort_db = db_mort_ex,
+Surv_Gen = function(mort_db,
                     today_tte,
-                    tank_without_mort,
-                    trt_without_mort,
+                    tank_without_mort = NULL,
+                    trt_without_mort = NULL,
                     starting_fish_count) {
 
   library(dplyr)
@@ -465,10 +480,12 @@ Surv_Gen = function(mort_db = db_mort_ex,
                                 dplyr::group_by(Trt.ID, Tank.ID) %>%
                                 dplyr::summarise(Num_dead = n()))
 
-  WM_DB = data.frame(Trt.ID = trt_without_mort,
-                     Tank.ID = tank_without_mort,
-                     Num_dead = 0)
-  DB_Mort_Gensum = rbind(DB_Mort_Gensum, WM_DB)
+  if(!is.null(tank_without_mort) && !is.null(trt_without_mort)) {
+    WM_DB = data.frame(Trt.ID = trt_without_mort,
+                       Tank.ID = tank_without_mort,
+                       Num_dead = 0)
+    DB_Mort_Gensum = rbind(DB_Mort_Gensum, WM_DB)
+  }
 
   DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
