@@ -4,13 +4,13 @@
 # 1. Simul_Mult() -- simulates contingency tables based on the multinomial distribution.
 # 1b. Pow_Simul_Mult() -- calculates positive rates for statistical tests on contingency tables.
 # 6. Surv_Gen() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
+# 7. Surv_Plots() -- generate Kaplan-Meier survival curve and hazard curve from survival data.
 
 # Available functions without documentation:
 # 2. Simul_Con_MULT.FISH.ORD() -- simulates ordinal-distributed data across treatments and lesions with inter-fish variation in the PO.
 # 3. Simul_Surv() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
 # 4. theme_Publication() -- ggplot theme for generating publication-ready plots.
-# 5. Predict_SR() -- predict future survival rate(s) for ongoing experiment based on a reference hazard function from older data.
-# 7. Surv_Plots() -- generate Kaplan-Meier survival curve and hazard curve from survival data.
+# 5. Surv_Pred() -- predict future survival rate(s) for ongoing experiment based on a reference hazard function from older data.
 
 ###################################################################################################################################
 ################################################## Function 1 - Simul_Mult() ######################################################
@@ -360,8 +360,20 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 }
 
 ###################################################################################################################################
-################################################## Function 5 - Predict_SR() ######################################################
+################################################## Function 5 - Surv_Pred() #######################################################
 
+#' Predict Survival Rate
+#'
+#' @param pred_db
+#' @param ref_db
+#' @param predsr_tte
+#' @param method
+#' @param coxph_mod
+#'
+#' @return
+#' @export
+#'
+#' @examples
 Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted. See \bold{Details} for specifics.
                      ref_db, #Reference survival data from to create the reference hazard function.
                      predsr_tte, #The day at which SR is to be predicted. Minimum is Day 5 post challenge.
