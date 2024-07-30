@@ -15,30 +15,28 @@ Surv_Gen(
 \arguments{
 \item{mort_db}{A mort data frame as described in \bold{Details}.}
 
-\item{today_tte}{The time to event to assign for every row of survivor data.}
+\item{today_tte}{The time to event to assign for every row of generated survivor data.}
 
-\item{starting_fish_count}{Value representing the starting number of fish in each tank.}
+\item{tank_without_mort}{Tank IDs absent from the mort data frame for which survivor data is to be generated. Input a character string vector.}
 
-\item{tank_without_mort}{Tank IDs absent from the mort data frame for which survivor data is to be generated. Input a vector of character strings.}
-
-\item{trt_without_mort}{Treatment IDs corresponding to \code{tank_without_mort} in the same order. Input a vector of character strings.}
+\item{trt_without_mort}{Treatment IDs corresponding to \code{tank_without_mort} in the same order. Input a character string vector. #' @param starting_fish_count Value representing the starting number of fish per tank.}
 }
 \value{
 A data frame containing the input mort data and additional rows representing survivors.
 }
 \description{
-Produces a completed survival dataset that contains rows for fish that survived given the starting number of fish and mortality. Mortality per tank information is supplied using the \code{mort_db} argument. Survivor data can also be generated for tanks absent from \code{mort_db} (e.g. those without mortalities) using \code{tank_without_mort} and \code{trt_without_mort} arguments.
+Produces a completed survival dataset that includes rows for fish that survived given the starting number of fish and mortality. Mortality per tank information is supplied using the \code{mort_db} argument. Survivor data can also be generated for tanks absent from \code{mort_db} (e.g. those without mortalities) using \code{tank_without_mort} and \code{trt_without_mort} arguments.
 }
 \details{
 The mort data frame should have one row of data for every dead/removed fish and the following 4 columns and contents at minimum:
 \itemize{
-\item "Trt.ID" = Label for each treatment group in the study.
-\item "Tank.ID" = Label for each tank in the study (each tank must have a unique label).
-\item "TTE" = Time to Event. The event could be fish death or being sampled and removed depending on "Status".
+\item "Trt.ID" = Labels for treatment groups in the study.
+\item "Tank.ID" = Labels for tanks in the study (each tank must have a unique label).
+\item "TTE" = Time to Event. Usually in days post-challenge. The event could be fish death or being sampled and removed depending on "Status".
 \item "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for those sampled and removed.
 }
 
-For an example dataset, view \code{(data(mort_db_ex)}.
+For an example dataset, view \code{data(mort_db_ex)}.
 }
 \examples{
 Surv_Gen(mort_db = mort_db_ex,

@@ -471,7 +471,7 @@ Predict_SR = function(New_DB = Predict_SR_New_DB, #Data from ongoing study, with
 #' * "TTE" = Time to Event. Usually in days post-challenge. The event could be fish death or being sampled and removed depending on "Status".
 #' * "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for those sampled and removed.
 #'
-#' For an example dataset, view \code{(data(mort_db_ex)}.
+#' For an example dataset, view \code{data(mort_db_ex)}.
 #' @md
 #'
 #' @param mort_db A mort data frame as described in \bold{Details}.
@@ -521,7 +521,7 @@ Surv_Gen = function(mort_db,
 
 #' Generate Survival Plots
 #'
-#' @description Uses a survival dataset to produce a Kaplan-Meier Survival Plot and a Hazard Plot. Each plot can contain multiple curves for the different treatment groups. Plots are saved automatically to the set working directory.
+#' @description Uses a survival dataset to produce a Kaplan-Meier Survival Plot and a Hazard Plot with curves for every treatment group. Plots saved automatically to the set working directory.
 #'
 #' @details The survival dataset should be a data frame containing at least 4 different columns:
 #' * "Trt.ID" = Labels for treatment groups in the study.

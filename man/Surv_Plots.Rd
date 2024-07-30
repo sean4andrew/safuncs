@@ -6,7 +6,7 @@
 \usage{
 Surv_Plots(
   surv_db = surv_db_ex,
-  figure_name_prefix = "figure_name_prefix",
+  plot_prefix = "figure_name_prefix",
   x_axis_limits = NULL,
   y_axis_limits = c(0, 1),
   x_lab = "Days Post Challenge",
@@ -16,7 +16,7 @@ Surv_Plots(
 \arguments{
 \item{surv_db}{A survival data frame as described in \bold{Details}.}
 
-\item{figure_name_prefix}{The prefix for the plots' file name. Input as character string.}
+\item{plot_prefix}{The prefix for the plots' file name. Input as character string.}
 
 \item{x_axis_limits}{The plot x-axis lower and upper bound as a vector in that order.}
 
@@ -30,22 +30,22 @@ Surv_Plots(
 A list containing the Kaplan-Meier Survival Curve and Hazard Curve.
 }
 \description{
-Uses a survival dataset to produce a Kaplan-Meier Survival Plot and a Hazard Plot with curves for every treatment group. Plots saved automatically to working directory.
+Uses a survival dataset to produce a Kaplan-Meier Survival Plot and a Hazard Plot with curves for every treatment group. Plots saved automatically to the set working directory.
 }
 \details{
 The survival dataset should be a data frame containing at least 4 different columns:
 \itemize{
-\item "Trt.ID" = Label for treatment groups in the study.
-\item "Tank.ID" = Label for tanks in the study (each tank must have a unique label).
-\item "TTE" = Time to Event, usually in days post challenge. The event depends on "Status".
-\item "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for survivors or those sampled then removed.
+\item "Trt.ID" = Labels for treatment groups in the study.
+\item "Tank.ID" = Labels for tanks in the study (each tank must have a unique label).
+\item "TTE" = Time to Event. Usually in days post-challenge. The event depends on "Status".
+\item "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for survivors or those sampled and removed.
 }
 
-For an example dataset, execute \code{data(surv_db_ex)}.
+For an example dataset, view \code{data(surv_db_ex)}.
 }
 \examples{
 Surv_Plots(surv_db = surv_db_ex,
-           figure_name_prefix = "QCATC1090",
+           plot_prefix = "QCATC1090",
            x_axis_limits = c(0, 50),
            y_axis_limits = c(0, 1),
            x_lab = "TTE",
