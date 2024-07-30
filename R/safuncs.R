@@ -90,7 +90,7 @@ Con_Simul = function(probs = "equal",
 #'
 #' @details Power is defined as the percentage of tests yielding positive results (p-value < 0.05) on a set of contingency tables simulated based on the data-generating process and probability matrix specified in \code{Con_Simul()}. The specified probability matrix should represent the parameters of the population where there is a desire to detect a significant effect in the sample. The simulated contingency tables then reflect the sample outcomes of the specified population parameter.
 #'
-#' False Positive Rate is defined as the percentage of tests yielding positive results (p-value < 0.05) on contingency tables simulated based on a probability matrix without treatment effect. The lesion odds ratios for the control group (assumed to be the first row in the probability matrix) is assumed to be true across all treatments.
+#' False Positive Rate is defined as the percentage of tests yielding positive results (p-value < 0.05) on contingency tables simulated based on a probability matrix without treatment effect. The odd ratios between lesion scores for all treatment groups are assumed to be the same as that for control (first row in the probability matrix).
 #'
 #' P-values for the Chi-square test are computed using \code{stats::chisq.test()} with default parameters. P-values for Fisher's exact test are computed using \code{stats::fisher.test()} with \code{simulate.p.value} set to TRUE, alongside default parameters. P-values for ordinal regression are computed from \code{stats::anova()} applied to the output of \code{ordinal::clm()}.
 #'
@@ -455,23 +455,24 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 
 #' @title Generate Survivor Data
 #'
-#' @description Produces a completed survival dataset that includes rows for fish that survived given the starting number of fish and mortality. Mortality per tank information is supplied using the \code{mort_db} argument. Survivor data can also be generated for tanks absent from \code{mort_db} (e.g. those without mortalities) using \code{tank_without_mort} and \code{trt_without_mort} arguments.
+#' @description Returns a completed survival dataset that include rows for every survivor given the starting number of fish and mortality count. Mortality per tank is supplied through the argument \code{mort_db}. To generate survivor data for tanks absent from \code{mort_db} (e.g. those without mortalities), specify \code{tank_without_mort} and \code{trt_without_mort} arguments.
 #'
-#' @details The mort dataframe should have one row of data for every dead/removed fish and the following 4 columns and contents at minimum:
+#' @details The mort dataframe input should consist of one row of data for every dead/removed fish and the following 4 columns at minimum:
 #' * "Trt.ID" = Labels for treatment groups in the study.
 #' * "Tank.ID" = Labels for tanks in the study (each tank must have a unique label).
-#' * "TTE" = Time to Event. Usually in days post-challenge. The event could be fish death or being sampled and removed depending on "Status".
+#' * "TTE" = Time to Event. Event could be fish death or being sampled and removed depending on "Status".
 #' * "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for those sampled and removed.
 #'
 #' For an example dataset, view \code{data(mort_db_ex)}.
 #' @md
 #'
 #' @param mort_db A mort dataframe as described in \bold{Details}.
-#' @param today_tte The time to event to assign for every row of generated survivor data.
-#' @param tank_without_mort Tank IDs absent from the mort dataframe for which survivor data is to be generated. Input a character string vector.
-#' @param trt_without_mort Treatment IDs corresponding to \code{tank_without_mort} in the same order. Input a character string vector. #' @param starting_fish_count Value representing the starting number of fish per tank.
+#' @param today_tte The time to event assigned to every generated row of survivor data.
+#' @param tank_without_mort Tank IDs not in the mort dataframe but needing survivor data generation. Input a vector of strings.
+#' @param trt_without_mort Treatment IDs corresponding to \code{tank_without_mort} in the same order. Input a vector of strings.
+#' @param starting_fish_count Value representing the starting number of fish per tank.
 #'
-#' @return A dataframe containing the input mort data and additional rows representing survivors.
+#' @return A dataframe produced by combining the input mort data and generated rows of survivor data.
 #' @export
 #'
 #' @examples
@@ -513,23 +514,23 @@ Surv_Gen = function(mort_db,
 
 #' Generate Survival Plots
 #'
-#' @description Uses a survival dataset to produce a Kaplan-Meier Survival Plot and a Hazard Plot with curves for every treatment group. Plots saved automatically to the set working directory.
+#' @description Uses survival data to produce a Kaplan-Meier Survival Plot and a Hazard Plot with curves representing each treatment group. Plots saved automatically to working directory.
 #'
 #' @details The survival dataset should be a dataframe containing at least 4 different columns:
 #' * "Trt.ID" = Labels for treatment groups in the study.
 #' * "Tank.ID" = Labels for tanks in the study (each tank must have a unique label).
-#' * "TTE" = Time to Event. Usually in days post-challenge. The event depends on "Status".
+#' * "TTE" = Time to Event. Event depends on "Status".
 #' * "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for survivors or those sampled and removed.
 #'
 #' For an example dataset, view \code{data(surv_db_ex)}.
 #' @md
 #'
 #' @param surv_db A survival dataframe as described in \bold{Details}.
-#' @param plot_prefix The prefix for the plots' file name. Input as character string.
-#' @param x_axis_limits The plot x-axis lower and upper bound as a vector in that order.
-#' @param y_axis_limits The plot y-axis lower and upper bound as a vector in that order.
-#' @param x_lab The plot x-axis label. Input as character string.
-#' @param lambda Smoothing parameter for the hazard curve estimated by \code{bshazard()}. Defaults to NULL where \code{bshazard()} uses the survival data to estimate lambda.
+#' @param plot_prefix A string specifying the prefix for the filename of the saved plots.
+#' @param x_axis_limits A vector specifying the plot x-axis lower and upper limits, respectively.
+#' @param y_axis_limits A vector specifying the plot y-axis lower and upper limits, respectively.
+#' @param x_lab A string specifying the plot x-axis label.
+#' @param lambda Smoothing parameter for the hazard curve estimated by \code{bshazard()}. Defaults to NULL where \code{bshazard()} employs a data-driven approach to estimating lambda.
 #'
 #' @return A list containing the Kaplan-Meier Survival Curve and Hazard Curve.
 #'

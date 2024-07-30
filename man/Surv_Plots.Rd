@@ -16,28 +16,28 @@ Surv_Plots(
 \arguments{
 \item{surv_db}{A survival dataframe as described in \bold{Details}.}
 
-\item{plot_prefix}{The prefix for the plots' file name. Input as character string.}
+\item{plot_prefix}{A string specifying the prefix for the filename of the saved plots.}
 
-\item{x_axis_limits}{The plot x-axis lower and upper bound as a vector in that order.}
+\item{x_axis_limits}{A vector specifying the plot x-axis lower and upper limits, respectively.}
 
-\item{y_axis_limits}{The plot y-axis lower and upper bound as a vector in that order.}
+\item{y_axis_limits}{A vector specifying the plot y-axis lower and upper limits, respectively.}
 
-\item{x_lab}{The plot x-axis label. Input as character string.}
+\item{x_lab}{A string specifying the plot x-axis label.}
 
-\item{lambda}{Smoothing parameter for the hazard curve estimated by \code{bshazard()}. Defaults to NULL where \code{bshazard()} uses the survival data to estimate lambda.}
+\item{lambda}{Smoothing parameter for the hazard curve estimated by \code{bshazard()}. Defaults to NULL where \code{bshazard()} employs a data-driven approach to estimating lambda.}
 }
 \value{
 A list containing the Kaplan-Meier Survival Curve and Hazard Curve.
 }
 \description{
-Uses a survival dataset to produce a Kaplan-Meier Survival Plot and a Hazard Plot with curves for every treatment group. Plots saved automatically to the set working directory.
+Uses survival data to produce a Kaplan-Meier Survival Plot and a Hazard Plot with curves representing each treatment group. Plots saved automatically to working directory.
 }
 \details{
 The survival dataset should be a dataframe containing at least 4 different columns:
 \itemize{
 \item "Trt.ID" = Labels for treatment groups in the study.
 \item "Tank.ID" = Labels for tanks in the study (each tank must have a unique label).
-\item "TTE" = Time to Event. Usually in days post-challenge. The event depends on "Status".
+\item "TTE" = Time to Event. Event depends on "Status".
 \item "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for survivors or those sampled and removed.
 }
 

@@ -15,24 +15,26 @@ Surv_Gen(
 \arguments{
 \item{mort_db}{A mort dataframe as described in \bold{Details}.}
 
-\item{today_tte}{The time to event to assign for every row of generated survivor data.}
+\item{today_tte}{The time to event assigned to every generated row of survivor data.}
 
-\item{tank_without_mort}{Tank IDs absent from the mort dataframe for which survivor data is to be generated. Input a character string vector.}
+\item{starting_fish_count}{Value representing the starting number of fish per tank.}
 
-\item{trt_without_mort}{Treatment IDs corresponding to \code{tank_without_mort} in the same order. Input a character string vector. #' @param starting_fish_count Value representing the starting number of fish per tank.}
+\item{tank_without_mort}{Tank IDs not in the mort dataframe but needing survivor data generation. Input a vector of strings.}
+
+\item{trt_without_mort}{Treatment IDs corresponding to \code{tank_without_mort} in the same order. Input a vector of strings.}
 }
 \value{
-A dataframe containing the input mort data and additional rows representing survivors.
+A dataframe produced by combining the input mort data and generated rows of survivor data.
 }
 \description{
-Produces a completed survival dataset that includes rows for fish that survived given the starting number of fish and mortality. Mortality per tank information is supplied using the \code{mort_db} argument. Survivor data can also be generated for tanks absent from \code{mort_db} (e.g. those without mortalities) using \code{tank_without_mort} and \code{trt_without_mort} arguments.
+Returns a completed survival dataset that include rows for every survivor given the starting number of fish and mortality count. Mortality per tank is supplied through the argument \code{mort_db}. To generate survivor data for tanks absent from \code{mort_db} (e.g. those without mortalities), specify \code{tank_without_mort} and \code{trt_without_mort} arguments.
 }
 \details{
-The mort dataframe should have one row of data for every dead/removed fish and the following 4 columns and contents at minimum:
+The mort dataframe input should consist of one row of data for every dead/removed fish and the following 4 columns at minimum:
 \itemize{
 \item "Trt.ID" = Labels for treatment groups in the study.
 \item "Tank.ID" = Labels for tanks in the study (each tank must have a unique label).
-\item "TTE" = Time to Event. Usually in days post-challenge. The event could be fish death or being sampled and removed depending on "Status".
+\item "TTE" = Time to Event. Event could be fish death or being sampled and removed depending on "Status".
 \item "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for those sampled and removed.
 }
 
