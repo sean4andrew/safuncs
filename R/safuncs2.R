@@ -15,7 +15,7 @@
 ###################################################################################################################################
 ################################################## Function 1 - Simul_Mult() ######################################################
 
-#' @title Simulate a Contingency Table
+#' @title Simulate Contingency Table
 #'
 #' @description Simulate a contingency table with fish counts distributed across \emph{n} lesion categories and \emph{n} treatment groups. Probability values for generating counts in each cell (i.e. each factor level combination) can be assigned using the \code{probs} argument. This function is designed for use in power and/or false positive rate calculations; for details, see \code{Pow_Simul_Mult()}.
 #'
@@ -84,7 +84,7 @@ Simul_Mult = function(probs = "equal",
 ###################################################################################################################################
 ################################################## Function 1b - Pow_Simul_Mult() #################################################
 
-#' @title Positive Rates for Contingency Tables
+#' @title Calculate Positive Rates for Contingency Tables
 #'
 #' @description Computes statistical power and optionally false positive rates for tests applied to contingency tables based on Monte Carlo simulations. Specify the simulation process using \code{Simul_Mult()}, which serves as input. Positive rates are computed for the Chi-square test and optionally for Fisher's exact test and the Wald test applied to an ordinal regression model.
 #'
@@ -121,7 +121,8 @@ Simul_Mult = function(probs = "equal",
 #' Pow_Simul_Mult(sim_tab, sample_sizes = c(50, 100, 150))
 #' ## Results: Power is ~55, 86, and 97% for the Chi-square test using total counts of 50, 100, and 150, respectively.
 #'
-#' ## The same power for Chi-square test can be calculated using Cohen's omega (w) method which is faster but has its own limitations:
+#' ## The same power for Chi-square test can be calculated using Cohen's omega (w) method which is faster but has its own limitations;
+#' ## e.g. assumes one data generating process for the contingency table (the no fixed marginals).
 #' library(pwr)
 #' pwr.chisq.test(w = ES.w2(probs_mat), df = 2, sig.level = 0.05, N = 100)
 #' ## Results: Power is 85.6% for the Chi-square test at the total count of 100.
@@ -461,7 +462,7 @@ Predict_SR = function(New_DB = Predict_SR_New_DB, #Data from ongoing study, with
 ###################################################################################################################################
 ################################################## Function 6 - Surv_Gen() ########################################################
 
-#' @title Generates Survivor Data
+#' @title Generate Survivor Data
 #'
 #' @description Produces a completed survival dataset that includes rows for fish that survived given the starting number of fish and mortality. Mortality per tank information is supplied using the \code{mort_db} argument. Survivor data can also be generated for tanks absent from \code{mort_db} (e.g. those without mortalities) using \code{tank_without_mort} and \code{trt_without_mort} arguments.
 #'

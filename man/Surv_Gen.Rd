@@ -2,7 +2,7 @@
 % Please edit documentation in R/safuncs2.R
 \name{Surv_Gen}
 \alias{Surv_Gen}
-\title{Generates Survivor Data}
+\title{Generate Survivor Data}
 \usage{
 Surv_Gen(
   mort_db,
