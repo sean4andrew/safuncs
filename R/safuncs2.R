@@ -102,7 +102,7 @@ Simul_Mult = function(probs = "equal",
 #' @param FPR Whether to calculate false positive rate in addition to power. Defaults to TRUE.
 #'
 #' @return Returns a list containing:\tabular{lll}{
-#'  \code{pos_rate} \tab \tab A data frame containing positive rates of various tests at specified sample sizes \cr
+#'  \code{pos_rate} \tab \tab A dataframe containing positive rates of various tests at specified sample sizes \cr
 #'  \code{eff_mat} \tab \tab The probability matrix used to calculate power  \cr
 #'  \code{null_mat} \tab \tab The probability matrix used to calculate false positive rate \cr
 #'  \code{plot} \tab \tab A plot of positive rates of various tests at specified sample sizes \cr
@@ -271,7 +271,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
   fish_ls_var = exp(fish_susc_var) * odds_vec #variation in p between lesions, returned to absolute scale
   Count_Vec1 = rmultinom(n = 1, size = total_count, p = fish_ls_var)
 
-  #Create Count Data Frame
+  #Create Count Dataframe
   Count_DF = data.frame(Trt. = rep(LETTERS[1:n_Trt.], each = n_Fish_total * n_lesion / n_Trt.),
                         LS = rep(1:n_lesion, times = n_Fish_total),
                         Fish.ID = rep(1:n_Fish_total, each = n_lesion),
@@ -362,101 +362,80 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 ###################################################################################################################################
 ################################################## Function 5 - Predict_SR() ######################################################
 
-Predict_SR = function(New_DB = Predict_SR_New_DB, #Data from ongoing study, with SR to be predicted. See \bold{Details} for specifics.
-                      Ref_DB = Predict_SR_Ref_DB, #Reference survival data from to create the reference hazard function.
-                      Pred_Day, #The day at which SR is to be predicted. Minimum is Day 5 post challenge.
-                      Method = 2, #SR prediction method. See \bold{Details} for more info.
-                      PH_Mod = "GLMM") #Model used to estimate HR. Can be either "GLMM" or "GEE". See \bold{Details} for more info.
+Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted. See \bold{Details} for specifics.
+                     ref_db, #Reference survival data from to create the reference hazard function.
+                     predsr_tte, #The day at which SR is to be predicted. Minimum is Day 5 post challenge.
+                     method = 2, #SR prediction method. See \bold{Details} for more info.
+                     coxph_mod = "GLMM") #Model used to estimate HR. Can be either "GLMM" or "GEE". See \bold{Details} for more info.
 {
 
-  SR_Days = 5:Pred_Day
-  New_DB = New_DB[New_DB$Std_Day > 0, ]
+  pred_db = pred_db[pred_db$TTE > 0, ] #ensure positive TTE
 
-  Ref_ID = levels(as.factor(Ref_DB$Trt.ID))
-  Ref_bshaz = SimDesign::quiet(bshazard::bshazard(data = Ref_DB, survival::Surv(Std_Day, Status) ~ Tank.ID,
-                                                  verbose = FALSE, nbin = max(Ref_DB$Std_Day)))
-  Comb_DB = rbind(Ref_DB, New_DB)
-  Comb_DB$Trt.ID = relevel(as.factor(Comb_DB$Trt.ID), ref = Ref_ID)
+  #Generate combined dataframe with reference treatment group as the reference level
+  ref_id = levels(as.factor(ref_db$Trt.ID))
+  ref_bshaz = bshazard::bshazard(data = ref_db, survival::Surv(TTE, Status) ~ Tank.ID,
+                                 verbose = FALSE, nbin = max(ref_db$TTE))
+  Comb_DB = rbind(ref_db, pred_db)
+  Comb_DB$Trt.ID = relevel(as.factor(Comb_DB$Trt.ID), ref = ref_id)
 
+  #initialize dataframes
   pred_SR_DB = data.frame()
   Haz_DB = data.frame()
 
-  for(Comp_HR in levels(as.factor(New_DB$Trt.ID))) {
+  #loop for every treatment
+  for(Comp_HR in levels(as.factor(pred_db$Trt.ID))) {
 
-    for(SR_Day in SR_Days) {
-      Comb_DB2 = survival::survSplit(Comb_DB, cut = SR_Day, end = "Std_Day", event = "Status", episode = "Obs")
+    #loop for every predictable day
+    for(SR_Day in 5:predsr_tte) {
+      Comb_DB2 = survival::survSplit(Comb_DB, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
       Comb_DB2 = Comb_DB2[Comb_DB2$Obs == 1, ]
 
       #Get HR
-      if(PH_Mod == "GLMM"){
-        cox_comp = coxme::coxme(survival::Surv(Std_Day, Status) ~ Trt.ID + (1|Tank.ID),
-                                data = droplevels(Comb_DB2[Comb_DB2$Trt.ID %in% c(Ref_ID, Comp_HR),]))
-      }
-      if(PH_Mod == "GEE"){
-        cox_comp = survival::coxph(survival::Surv(Std_Day, Status) ~ Trt.ID, cluster = Tank.ID,
-                         data = droplevels(Comb_DB2[Comb_DB2$Trt.ID %in% c(Ref_ID, Comp_HR),]))
-      }
+      if(coxph_mod == "GLMM"){cox_comp = coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID),
+                                                      data = droplevels(Comb_DB2[Comb_DB2$Trt.ID %in% c(ref_id, Comp_HR),]))}
+      if(coxph_mod == "GEE"){cox_comp = survival::coxph(survival::Surv(TTE, Status) ~ Trt.ID, cluster = Tank.ID,
+                                                        data = droplevels(Comb_DB2[Comb_DB2$Trt.ID %in% c(ref_id, Comp_HR),]))}
       pred_HR = exp(coef(cox_comp))
 
       #Get SR
-      Ref_bshaz_t = Ref_bshaz[Ref_bshaz$time < max(SR_Days),]
+      ref_bshaz_t = ref_bshaz[ref_bshaz$time < predsr_tte,]
 
-      if(Method == 1) {
-        Cumhaz1 = DescTools::AUC(x = Ref_bshaz_t$time,
-                                 y = Ref_bshaz_t$hazard * pred_HR) +
-                  dplyr::last(Ref_bshaz_t$hazard) * 0.5 * pred_HR +
-                  dplyr::first(Ref_bshaz_t$hazard) * 0.5 * pred_HR
+      if(method == 1) {
+        Cumhaz1 = DescTools::AUC(x = c(ref_bshaz_t$time[1]-0.5, ref_bshaz_t$time, max(ref_bshaz_t$time + 0.5)),
+                                 y = c(ref_bshaz_t$hazard[1], ref_bshaz_t$hazard, dplyr::last(ref_bshaz_t$hazard)) * pred_HR)
         pred_SR = 100 * exp(Cumhaz1)
       }
 
-      if(Method == 2) {
-        New_DB2 = survival::survSplit(New_DB, cut = SR_Day, end = "Std_Day", event = "Status", episode = "Obs")
-        New_DB2 = New_DB2[New_DB2$Obs == 1, ]
-        Comp_bshaz = SimDesign::quiet(bshazard::bshazard(data = droplevels(New_DB2[New_DB2$Trt.ID == Comp_HR,]),
-                                                         survival::Surv(Std_Day, Status) ~ Tank.ID, verbose = FALSE, nbin = SR_Day))
+      if(method == 2) {
+        pred_db2 = survival::survSplit(pred_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
+        pred_db2 = pred_db2[pred_db2$Obs == 1, ]
+        Comp_bshaz = bshazard::bshazard(data = droplevels(pred_db2[pred_db2$Trt.ID == Comp_HR,]),
+                                        survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, nbin = SR_Day)
 
-        Cumhaz1 = DescTools::AUC(x = Comp_bshaz$time,
-                                 y = Comp_bshaz$hazard) +
-                  dplyr::last(Comp_bshaz$hazard) * 0.5 +
-                  dplyr::first(Comp_bshaz$hazard) * 0.5
+        Cumhaz1 = DescTools::AUC(x = c(Comp_bshaz_t$time[1]-0.5, Comp_bshaz$time, max(Comp_bshaz_t$time + 0.5)),
+                                 y = c(Comp_bshaz$hazard[1], Comp_bshaz$hazard, dplyr::last(Comp_bshaz$hazard)))
+        ref_bshaz_t2 = ref_bshaz_t[Ref_bshaz_t$time > SR_Day,]
+        Cumhaz2 = DescTools::AUC(x = c(ref_bshaz_t2$time[1]-0.5, ref_bshaz_t2$time, max(ref_bshaz_t2$time + 0.5)),
+                                 y = c(ref_bshaz_t2$hazard[1], ref_bshaz_t2$hazard, dplyr::last(ref_bshaz_t2$hazard)) * pred_HR)
 
-        Cumhaz2 = ifelse(SR_Day < max(SR_Days) - 1,
-
-                         DescTools::AUC(x = Ref_bshaz_t$time[Ref_bshaz_t$time > SR_Day],
-                                        y = Ref_bshaz_t$hazard[Ref_bshaz_t$time > SR_Day] * pred_HR) +
-                         dplyr::last(Ref_bshaz_t$hazard[Ref_bshaz_t$time > SR_Day]) * 0.5 * pred_HR +
-                         dplyr::first(Ref_bshaz_t$hazard[Ref_bshaz_t$time > SR_Day]) * 0.5 * pred_HR,
-
-                         dplyr::last(Ref_bshaz$hazard[Ref_bshaz$time < max(SR_Days) & Ref_bshaz$time > SR_Day]) * 0.5 * pred_HR +
-                         dplyr::first(Ref_bshaz$hazard[Ref_bshaz$time < max(SR_Days) & Ref_bshaz$time > SR_Day]) * 0.5 * pred_HR)
-
-        ifelse(is.na(Cumhaz2), Cumhaz2 <- 0, NA)
+        if(is.na(Cumhaz2)) {Cumhaz2 <- 0}
         pred_SR = 100 * exp(-(Cumhaz1 + Cumhaz2))
       }
+      #compile survival prediction database
       pred_SR_DB = rbind(pred_SR_DB, data.frame(Trt.ID = Comp_HR, Observable_SR_Day = SR_Day, pred_SR, pred_HR))
-      Haz_DB = rbind(Haz_DB,
-                     data.frame(Trt.ID = "Ref", Time = Ref_bshaz$time, Haz = Ref_bshaz$hazard),
-                     data.frame(Trt.ID = Comp_HR, Time = Comp_bshaz$time, Haz = Comp_bshaz$hazard))
     }
   }
   row.names(pred_SR_DB) = NULL
-  row.names(Haz_DB) = NULL
 
+  #create survival prediction plot
   library(ggplot2)
   Pred_SR_Plot = ggplot(data = pred_SR_DB, aes(x = Observable_SR_Day, y = pred_SR, color = Trt.ID)) +
     geom_point() +
-    facet_wrap(~Trt.ID, scales = "free_y") +
-    ylab(paste("Predicted Survival (%) on ", Pred_Day)) +
-    xlab("Std. Days Used to Predict")
-  Haz_Plot = ggplot(aes(x = Time, y = Haz, color = Trt.ID)) +
-    geom_point(data = Haz_DB[Haz_DB$Trt.ID != "Ref"]) +
-    geom_line(data = Haz_DB[Haz_DB$Trt.ID != "Ref"]) +
-    geom_point(data = Haz_DB[Haz_DB$Trt.ID == "Ref"], color = "black") +
-    geom_line(data = Haz_DB[Haz_DB$Trt.ID == "Ref"], color = "black") +
-    ylab("Hazard Rate") +
-    Xlab("Std. Day")
+    facet_wrap(~Trt.ID) +
+    scale_y_continuous(name = paste("Predicted Survival (%) on ", predsr_tte), breaks = seq(0, 100, 10), limits = c(0, 100)) +
+    scale_x_continuous(name = "TTEs used in Prediction", breaks = seq(0, 100, 1))
 
-  return(list(pred_SR_DB, Haz_DB, Pred_SR_Plot, Haz_Plot))
+  return(list(pred_SR_DB, Pred_SR_Plot))
 }
 
 ###################################################################################################################################
@@ -466,7 +445,7 @@ Predict_SR = function(New_DB = Predict_SR_New_DB, #Data from ongoing study, with
 #'
 #' @description Produces a completed survival dataset that includes rows for fish that survived given the starting number of fish and mortality. Mortality per tank information is supplied using the \code{mort_db} argument. Survivor data can also be generated for tanks absent from \code{mort_db} (e.g. those without mortalities) using \code{tank_without_mort} and \code{trt_without_mort} arguments.
 #'
-#' @details The mort data frame should have one row of data for every dead/removed fish and the following 4 columns and contents at minimum:
+#' @details The mort dataframe should have one row of data for every dead/removed fish and the following 4 columns and contents at minimum:
 #' * "Trt.ID" = Labels for treatment groups in the study.
 #' * "Tank.ID" = Labels for tanks in the study (each tank must have a unique label).
 #' * "TTE" = Time to Event. Usually in days post-challenge. The event could be fish death or being sampled and removed depending on "Status".
@@ -475,12 +454,12 @@ Predict_SR = function(New_DB = Predict_SR_New_DB, #Data from ongoing study, with
 #' For an example dataset, view \code{data(mort_db_ex)}.
 #' @md
 #'
-#' @param mort_db A mort data frame as described in \bold{Details}.
+#' @param mort_db A mort dataframe as described in \bold{Details}.
 #' @param today_tte The time to event to assign for every row of generated survivor data.
-#' @param tank_without_mort Tank IDs absent from the mort data frame for which survivor data is to be generated. Input a character string vector.
+#' @param tank_without_mort Tank IDs absent from the mort dataframe for which survivor data is to be generated. Input a character string vector.
 #' @param trt_without_mort Treatment IDs corresponding to \code{tank_without_mort} in the same order. Input a character string vector. #' @param starting_fish_count Value representing the starting number of fish per tank.
 #'
-#' @return A data frame containing the input mort data and additional rows representing survivors.
+#' @return A dataframe containing the input mort data and additional rows representing survivors.
 #' @export
 #'
 #' @examples
@@ -524,7 +503,7 @@ Surv_Gen = function(mort_db,
 #'
 #' @description Uses a survival dataset to produce a Kaplan-Meier Survival Plot and a Hazard Plot with curves for every treatment group. Plots saved automatically to the set working directory.
 #'
-#' @details The survival dataset should be a data frame containing at least 4 different columns:
+#' @details The survival dataset should be a dataframe containing at least 4 different columns:
 #' * "Trt.ID" = Labels for treatment groups in the study.
 #' * "Tank.ID" = Labels for tanks in the study (each tank must have a unique label).
 #' * "TTE" = Time to Event. Usually in days post-challenge. The event depends on "Status".
@@ -533,7 +512,7 @@ Surv_Gen = function(mort_db,
 #' For an example dataset, view \code{data(surv_db_ex)}.
 #' @md
 #'
-#' @param surv_db A survival data frame as described in \bold{Details}.
+#' @param surv_db A survival dataframe as described in \bold{Details}.
 #' @param plot_prefix The prefix for the plots' file name. Input as character string.
 #' @param x_axis_limits The plot x-axis lower and upper bound as a vector in that order.
 #' @param y_axis_limits The plot y-axis lower and upper bound as a vector in that order.

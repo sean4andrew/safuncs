@@ -28,7 +28,7 @@ Pow_Simul_Mult(
 }
 \value{
 Returns a list containing:\tabular{lll}{
- \code{pos_rate} \tab \tab A data frame containing positive rates of various tests at specified sample sizes \cr
+ \code{pos_rate} \tab \tab A dataframe containing positive rates of various tests at specified sample sizes \cr
  \code{eff_mat} \tab \tab The probability matrix used to calculate power  \cr
  \code{null_mat} \tab \tab The probability matrix used to calculate false positive rate \cr
  \code{plot} \tab \tab A plot of positive rates of various tests at specified sample sizes \cr

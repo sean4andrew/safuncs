@@ -2,7 +2,7 @@
 % Please edit documentation in R/safuncs2.R
 \name{Simul_Mult}
 \alias{Simul_Mult}
-\title{Simulate a Contingency Table}
+\title{Simulate Contingency Table}
 \usage{
 Simul_Mult(
   probs = "equal",

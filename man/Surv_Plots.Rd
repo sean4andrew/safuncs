@@ -14,7 +14,7 @@ Surv_Plots(
 )
 }
 \arguments{
-\item{surv_db}{A survival data frame as described in \bold{Details}.}
+\item{surv_db}{A survival dataframe as described in \bold{Details}.}
 
 \item{plot_prefix}{The prefix for the plots' file name. Input as character string.}
 
@@ -33,7 +33,7 @@ A list containing the Kaplan-Meier Survival Curve and Hazard Curve.
 Uses a survival dataset to produce a Kaplan-Meier Survival Plot and a Hazard Plot with curves for every treatment group. Plots saved automatically to the set working directory.
 }
 \details{
-The survival dataset should be a data frame containing at least 4 different columns:
+The survival dataset should be a dataframe containing at least 4 different columns:
 \itemize{
 \item "Trt.ID" = Labels for treatment groups in the study.
 \item "Tank.ID" = Labels for tanks in the study (each tank must have a unique label).
