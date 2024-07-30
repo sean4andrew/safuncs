@@ -9,7 +9,7 @@ date: '`r format(Sys.time(), "%d %B, %Y")`'
 # Heading 1
 
 ```{r}
-remotes::install_github("sean4andrew/safuncs2")
+remotes::install_github("sean4andrew/safuncs")
 use_package() 
 
 ```
