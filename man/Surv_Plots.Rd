@@ -6,7 +6,7 @@
 \usage{
 Surv_Plots(
   surv_db,
-  plot_prefix = "figure_name_prefix",
+  plot_prefix = "plot_prefix",
   x_axis_limits = NULL,
   y_axis_limits = c(0, 1),
   x_lab = "Days Post Challenge",

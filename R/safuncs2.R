@@ -544,7 +544,7 @@ Surv_Gen = function(mort_db,
 #'            lambda1 = 10)
 #'
 Surv_Plots = function(surv_db,
-                      plot_prefix = "figure_name_prefix",
+                      plot_prefix = "plot_prefix",
                       x_axis_limits = NULL,
                       y_axis_limits = c(0, 1),
                       x_lab = "Days Post Challenge",
@@ -554,7 +554,7 @@ Surv_Plots = function(surv_db,
 
   if(is.null(x_axis_limits)) {x_axis_limits <- c(0, max(surv_db$TTE))}
 
-  surv_obj = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
+  surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
   attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
 
   surv_plot = survminer::ggsurvplot(surv_obj,
@@ -567,7 +567,7 @@ Surv_Plots = function(surv_db,
                                     xlab = x_lab,
                                     surv.scale = "percent")
   Survival_Plot = surv_plot$plot + ggplot2::theme(legend.position = "right") + ggplot2::guides(color = guide_legend("Trt."))
-  ggplot2::ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = plot_a)
+  ggplot2::ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Survival_Plot)
 
   Haz_list = list()
   for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
@@ -601,7 +601,7 @@ Surv_Plots = function(surv_db,
                                     by = min(round(max(x_axis_limits) / 15), 1)),
                        limits = x_axis_limits)
 
-  ggplot2::ggsave(paste(plot_prefix, "Hazard Curve.tiff"), dpi = 300, width = 6, height = 4, plot = plot_b)
+  ggplot2::ggsave(paste(plot_prefix, "Hazard Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Hazard_Plot)
 
   return(list(Survival_Plot, Hazard_Plot))
 }
