@@ -124,12 +124,12 @@ QCATC1070_Mort = QCATC1070_Mort[QCATC1070_Mort$Tank.Type == "Challenge",]
 
 #Generate survival data
 QCATC1070_Surv_DB = Surv_Gen(mort_db = QCATC1070_Mort,
-                             today_tte = 13,
+                             today_tte = 19,
                              tank_without_mort = c("F14", "F20"),
                              trt_without_mort = c("2", "5"),
                              starting_fish_count = 40)
 
 #Generate plots
-Surv_Plots(surv_db = QCATC1070_Surv_DB, figure_name_prefix = "QCATC1070-2", lambda = 10)
+Surv_Plots(surv_db = QCATC1070_Surv_DB, figure_name_prefix = "QCATC1070-2")
 ```
 

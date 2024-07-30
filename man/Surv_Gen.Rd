@@ -2,41 +2,49 @@
 % Please edit documentation in R/safuncs2.R
 \name{Surv_Gen}
 \alias{Surv_Gen}
-\title{Generate Survivor Data}
+\title{Generates Survivor Data}
 \usage{
 Surv_Gen(
   mort_db,
   today_tte,
+  starting_fish_count,
   tank_without_mort = NULL,
-  trt_without_mort = NULL,
-  starting_fish_count
+  trt_without_mort = NULL
 )
 }
 \arguments{
-\item{mort_db}{A mort data frame described in \bold{Details}.}
+\item{mort_db}{A mort data frame as described in \bold{Details}.}
 
-\item{today_tte}{The time to event value assigned to the generated rows of survivor data.}
-
-\item{tank_without_mort}{A vector of tank IDs absent from the mort data frame for which survivor data is to be generated.}
-
-\item{trt_without_mort}{A vector of treatment IDs corresponding to \code{tank_without_mort}, in the same order.}
+\item{today_tte}{The time to event to assign for every row of survivor data.}
 
 \item{starting_fish_count}{Value representing the starting number of fish in each tank.}
+
+\item{tank_without_mort}{Tank IDs absent from the mort data frame for which survivor data is to be generated. Input a vector of character strings.}
+
+\item{trt_without_mort}{Treatment IDs corresponding to \code{tank_without_mort} in the same order. Input a vector of character strings.}
 }
 \value{
-The mort data frame appended with rows representing every survivor.
+A data frame containing the input mort data and additional rows representing survivors.
 }
 \description{
-Produces a completed survival dataset with rows for every survivor based on the starting number of fish and the supplied "mort" data frame. This function can also generate survivor data for tanks not mentioned in the mort data frame (e.g. tanks without mortalities yet) by using the argument \code{tank_without_mort} and \code{trt_without_mort}.
+Produces a completed survival dataset that contains rows for fish that survived given the starting number of fish and mortality. Mortality per tank information is supplied using the \code{mort_db} argument. Survivor data can also be generated for tanks absent from \code{mort_db} (e.g. those without mortalities) using \code{tank_without_mort} and \code{trt_without_mort} arguments.
 }
 \details{
-The mort data frame should have one row of data for every dead/sampled fish and the following information in 4 different columns:
+The mort data frame should have one row of data for every dead/removed fish and the following 4 columns and contents at minimum:
 \itemize{
 \item "Trt.ID" = Label for each treatment group in the study.
-\item "Tank.ID" = Label for each different tanks in the study (each tank must have a unique label).
+\item "Tank.ID" = Label for each tank in the study (each tank must have a unique label).
 \item "TTE" = Time to Event. The event could be fish death or being sampled and removed depending on "Status".
-\item "Status" = Value indicating what happened at TTE. 1 for dead fish 0 for those sampled and removed.
+\item "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for those sampled and removed.
 }
 
-For an example dataset, execute \code{data("mort_db_ex")}.
+For an example dataset, view \code{(data(mort_db_ex)}.
+}
+\examples{
+Surv_Gen(mort_db = mort_db_ex,
+         today_tte = 54,
+         starting_fish_count = 100,
+         tank_without_mort = c("C99", "C100"),
+         trt_without_mort = c("A", "B"))
+
 }

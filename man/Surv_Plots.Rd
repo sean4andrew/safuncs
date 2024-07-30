@@ -2,20 +2,53 @@
 % Please edit documentation in R/safuncs2.R
 \name{Surv_Plots}
 \alias{Surv_Plots}
-\title{Title}
+\title{Generate Survival Plots}
 \usage{
 Surv_Plots(
-  surv_db,
+  surv_db = surv_db_ex,
   figure_name_prefix = "figure_name_prefix",
   x_axis_limits = NULL,
   y_axis_limits = c(0, 1),
   x_lab = "Days Post Challenge",
-  lambda = NULL
+  lambda1 = NULL
 )
 }
 \arguments{
-\item{lambda}{}
+\item{surv_db}{A survival data frame as described in \bold{Details}.}
+
+\item{figure_name_prefix}{The prefix for the plots' file name. Input as character string.}
+
+\item{x_axis_limits}{The plot x-axis lower and upper bound as a vector in that order.}
+
+\item{y_axis_limits}{The plot y-axis lower and upper bound as a vector in that order.}
+
+\item{x_lab}{The plot x-axis label. Input as character string.}
+
+\item{lambda}{Smoothing parameter for the hazard curve estimated by \code{bshazard()}. Defaults to NULL where \code{bshazard()} uses the survival data to estimate lambda.}
+}
+\value{
+A list containing the Kaplan-Meier Survival Curve and Hazard Curve.
 }
 \description{
-Title
+Uses a survival dataset to produce a Kaplan-Meier Survival Plot and a Hazard Plot with curves for every treatment group. Plots saved automatically to working directory.
+}
+\details{
+The survival dataset should be a data frame containing at least 4 different columns:
+\itemize{
+\item "Trt.ID" = Label for treatment groups in the study.
+\item "Tank.ID" = Label for tanks in the study (each tank must have a unique label).
+\item "TTE" = Time to Event, usually in days post challenge. The event depends on "Status".
+\item "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for survivors or those sampled then removed.
+}
+
+For an example dataset, execute \code{data(surv_db_ex)}.
+}
+\examples{
+Surv_Plots(surv_db = surv_db_ex,
+           figure_name_prefix = "QCATC1090",
+           x_axis_limits = c(0, 50),
+           y_axis_limits = c(0, 1),
+           x_lab = "TTE",
+           lambda1 = 10)
+
 }
