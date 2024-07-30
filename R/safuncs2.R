@@ -543,7 +543,7 @@ Surv_Gen = function(mort_db,
 #'            x_lab = "TTE",
 #'            lambda1 = 10)
 #'
-Surv_Plots = function(surv_db = surv_db_ex,
+Surv_Plots = function(surv_db,
                       plot_prefix = "figure_name_prefix",
                       x_axis_limits = NULL,
                       y_axis_limits = c(0, 1),
@@ -567,7 +567,7 @@ Surv_Plots = function(surv_db = surv_db_ex,
                                     xlab = x_lab,
                                     surv.scale = "percent")
   Survival_Plot = surv_plot$plot + ggplot2::theme(legend.position = "right") + ggplot2::guides(color = guide_legend("Trt."))
-  ggplot2::ggsave(paste(figure_name_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = plot_a)
+  ggplot2::ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = plot_a)
 
   Haz_list = list()
   for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
@@ -582,6 +582,7 @@ Surv_Plots = function(surv_db = surv_db_ex,
       Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
                                   data = surv_db_trt,
                                   survival::Surv(TTE, Status) ~ 1,
+                                  verbose = FALSE,
                                   verbose = FALSE,
                                   lambda = lambda1)
     }

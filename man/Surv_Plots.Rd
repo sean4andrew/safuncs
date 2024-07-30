@@ -5,7 +5,7 @@
 \title{Generate Survival Plots}
 \usage{
 Surv_Plots(
-  surv_db = surv_db_ex,
+  surv_db,
   plot_prefix = "figure_name_prefix",
   x_axis_limits = NULL,
   y_axis_limits = c(0, 1),
