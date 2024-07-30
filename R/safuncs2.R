@@ -463,22 +463,21 @@ Predict_SR = function(New_DB = Predict_SR_New_DB, #Data from ongoing study, with
 
 #' @title Generates Survivor Data
 #'
-#' @description Produces a completed survival dataset that contains rows for fish that survived given the starting number of fish and mortality. Mortality per tank information is supplied using the \code{mort_db} argument. Survivor data can also be generated for tanks absent from \code{mort_db} (e.g. those without mortalities) using \code{tank_without_mort} and \code{trt_without_mort} arguments.
+#' @description Produces a completed survival dataset that includes rows for fish that survived given the starting number of fish and mortality. Mortality per tank information is supplied using the \code{mort_db} argument. Survivor data can also be generated for tanks absent from \code{mort_db} (e.g. those without mortalities) using \code{tank_without_mort} and \code{trt_without_mort} arguments.
 #'
 #' @details The mort data frame should have one row of data for every dead/removed fish and the following 4 columns and contents at minimum:
-#' * "Trt.ID" = Label for each treatment group in the study.
-#' * "Tank.ID" = Label for each tank in the study (each tank must have a unique label).
-#' * "TTE" = Time to Event. The event could be fish death or being sampled and removed depending on "Status".
+#' * "Trt.ID" = Labels for treatment groups in the study.
+#' * "Tank.ID" = Labels for tanks in the study (each tank must have a unique label).
+#' * "TTE" = Time to Event. Usually in days post-challenge. The event could be fish death or being sampled and removed depending on "Status".
 #' * "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for those sampled and removed.
 #'
 #' For an example dataset, view \code{(data(mort_db_ex)}.
 #' @md
 #'
 #' @param mort_db A mort data frame as described in \bold{Details}.
-#' @param today_tte The time to event to assign for every row of survivor data.
-#' @param tank_without_mort Tank IDs absent from the mort data frame for which survivor data is to be generated. Input a vector of character strings.
-#' @param trt_without_mort Treatment IDs corresponding to \code{tank_without_mort} in the same order. Input a vector of character strings.
-#' @param starting_fish_count Value representing the starting number of fish in each tank.
+#' @param today_tte The time to event to assign for every row of generated survivor data.
+#' @param tank_without_mort Tank IDs absent from the mort data frame for which survivor data is to be generated. Input a character string vector.
+#' @param trt_without_mort Treatment IDs corresponding to \code{tank_without_mort} in the same order. Input a character string vector. #' @param starting_fish_count Value representing the starting number of fish per tank.
 #'
 #' @return A data frame containing the input mort data and additional rows representing survivors.
 #' @export
@@ -522,19 +521,19 @@ Surv_Gen = function(mort_db,
 
 #' Generate Survival Plots
 #'
-#' @description Uses a survival dataset to produce a Kaplan-Meier Survival Plot and a Hazard Plot with curves for every treatment group. Plots saved automatically to working directory.
+#' @description Uses a survival dataset to produce a Kaplan-Meier Survival Plot and a Hazard Plot. Each plot can contain multiple curves for the different treatment groups. Plots are saved automatically to the set working directory.
 #'
 #' @details The survival dataset should be a data frame containing at least 4 different columns:
-#' * "Trt.ID" = Label for treatment groups in the study.
-#' * "Tank.ID" = Label for tanks in the study (each tank must have a unique label).
-#' * "TTE" = Time to Event, usually in days post challenge. The event depends on "Status".
-#' * "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for survivors or those sampled then removed.
+#' * "Trt.ID" = Labels for treatment groups in the study.
+#' * "Tank.ID" = Labels for tanks in the study (each tank must have a unique label).
+#' * "TTE" = Time to Event. Usually in days post-challenge. The event depends on "Status".
+#' * "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for survivors or those sampled and removed.
 #'
-#' For an example dataset, execute \code{data(surv_db_ex)}.
+#' For an example dataset, view \code{data(surv_db_ex)}.
 #' @md
 #'
 #' @param surv_db A survival data frame as described in \bold{Details}.
-#' @param figure_name_prefix The prefix for the plots' file name. Input as character string.
+#' @param plot_prefix The prefix for the plots' file name. Input as character string.
 #' @param x_axis_limits The plot x-axis lower and upper bound as a vector in that order.
 #' @param y_axis_limits The plot y-axis lower and upper bound as a vector in that order.
 #' @param x_lab The plot x-axis label. Input as character string.
@@ -546,14 +545,14 @@ Surv_Gen = function(mort_db,
 #'
 #' @examples
 #' Surv_Plots(surv_db = surv_db_ex,
-#'            figure_name_prefix = "QCATC1090",
+#'            plot_prefix = "QCATC1090",
 #'            x_axis_limits = c(0, 50),
 #'            y_axis_limits = c(0, 1),
 #'            x_lab = "TTE",
 #'            lambda1 = 10)
 #'
 Surv_Plots = function(surv_db = surv_db_ex,
-                      figure_name_prefix = "figure_name_prefix",
+                      plot_prefix = "figure_name_prefix",
                       x_axis_limits = NULL,
                       y_axis_limits = c(0, 1),
                       x_lab = "Days Post Challenge",
@@ -609,7 +608,7 @@ Surv_Plots = function(surv_db = surv_db_ex,
                                     by = min(round(max(x_axis_limits) / 15), 1)),
                        limits = x_axis_limits)
 
-  ggplot2::ggsave(paste(figure_name_prefix, "Hazard Curve.tiff"), dpi = 300, width = 6, height = 4, plot = plot_b)
+  ggplot2::ggsave(paste(plot_prefix, "Hazard Curve.tiff"), dpi = 300, width = 6, height = 4, plot = plot_b)
 
   return(list(Survival_Plot, Hazard_Plot))
 }
