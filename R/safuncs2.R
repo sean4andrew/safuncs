@@ -84,7 +84,7 @@ Con_Simul = function(probs = "equal",
 ###################################################################################################################################
 ################################################## Function 1b - Con_Simul_PR() #################################################
 
-#' @title Calculate Positive Rates for Contingency Tables
+#' @title Calculate Positive Rates for Contingency Table
 #'
 #' @description Computes statistical power and optionally false positive rates for tests applied to contingency tables based on Monte Carlo simulations. Specify the simulation process using \code{Con_Simul()}, which serves as input. Positive rates are computed for the Chi-square test and optionally for Fisher's exact test and the Wald test applied to an ordinal regression model.
 #'

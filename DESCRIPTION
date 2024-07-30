@@ -1,10 +1,10 @@
 Package: safuncs2
 Type: Package
-Title: Useful Functions for Biological Research
+Title: Badass Functions for Biological Research
 Version: 0.1.0
 Author: Sean Andrew
 Maintainer: Sean Andrew <sean4andrew@gmail.com>
-Description: Functions for simulations, power calculations, plot and data generation.
+Description: Functions for simulations, power calculations, prediction, plot and data generation.
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true

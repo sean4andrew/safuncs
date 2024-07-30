@@ -2,7 +2,7 @@
 % Please edit documentation in R/safuncs2.R
 \name{Con_Simul_PR}
 \alias{Con_Simul_PR}
-\title{Calculate Positive Rates for Contingency Tables}
+\title{Calculate Positive Rates for Contingency Table}
 \usage{
 Con_Simul_PR(
   Con_Simul_Object = Con_Simul(),
