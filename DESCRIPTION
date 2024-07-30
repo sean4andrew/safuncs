@@ -1,6 +1,6 @@
 Package: safuncs
 Type: Package
-Title: Badass Functions for Biological Research
+Title: Functions for Biological Research
 Version: 0.1.0
 Author: Sean Andrew
 Maintainer: Sean Andrew <sean4andrew@gmail.com>
