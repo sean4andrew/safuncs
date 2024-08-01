@@ -523,14 +523,24 @@ Surv_Gen = function(mort_db,
 #' * "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for survivors or those sampled and removed.
 #'
 #' For an example dataset, view \code{data(surv_db_ex)}.
+#'
+#' For details on the statistical methodology used by \code{bshazard()} to estimate the hazard curve, refer to \url{https://www.researchgate.net/publication /287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}. The author first expresses the hazard function h(t) in a count u(t) general linear mixed model; u(t) = h(t) * P(t) where P(t) is the number alive at the given time; the count error/residuals is modeled using a dispersion parameter (phi). The h(t) (basically) is to be modeled using basis splines. By assuming the basis spline curvatures (differences in slopes across hazard values at subsequent time points) are normally distributed with mean 0 (i.e. random effect), the curvatures become a function of the dispersion parameter (phi) estimated from the data. Specifically, variance of curvatures = phi / lambda. The lambda parameter can optionally be specified by the user; if it is increased, the variance of curvature decreases leading to smoother hazard curves, vice versa.
+#'
+#' A smoothing parameter of __
+#'
+#' When a curve ___ (NULL),
+#'
+#' Watch out for ___,
+#'
 #' @md
 #'
 #' @param surv_db A survival dataframe as described in \bold{Details}.
 #' @param plot_prefix A string specifying the prefix for the filename of the saved plots.
-#' @param x_axis_limits A vector specifying the plot x-axis lower and upper limits, respectively.
-#' @param y_axis_limits A vector specifying the plot y-axis lower and upper limits, respectively.
+#' @param x_axis_limits A vector specifying the plots x-axis lower and upper limits, respectively.
+#' @param y_axis_limits A vector specifying the Survival Plot y-axis lower and upper limits, respectively.
 #' @param x_lab A string specifying the plot x-axis label.
-#' @param lambda Smoothing parameter for the hazard curve estimated by \code{bshazard()}. Defaults to NULL where \code{bshazard()} employs a data-driven approach to estimating lambda.
+#' @param lambda1 Smoothing value for the hazard curve estimated by \code{bshazard()}. Defaults to NULL where \code{bshazard()} employs a data-driven approach to estimating lambda. See \bold{Details} if a value is to be chosen.
+#' @param unit Whether to consider tanks as a fixed covariate in \code{bshazard()} hazard curve estimation. Defaults to TRUE when tank replication is present. When the sample size is high (many morts) and lambda1 is NULL (i.e. lambda is estimated from the data), considering tank as a covariate is highly recommended.
 #'
 #' @return A list containing the Kaplan-Meier Survival Curve and Hazard Curve.
 #'
@@ -549,7 +559,8 @@ Surv_Plots = function(surv_db,
                       x_axis_limits = NULL,
                       y_axis_limits = c(0, 1),
                       x_lab = "Days Post Challenge",
-                      lambda1 = NULL) {
+                      lambda1 = NULL,
+                      unit = TRUE) {
 
   library(ggplot2)
 
@@ -570,26 +581,43 @@ Surv_Plots = function(surv_db,
   Survival_Plot = surv_plot$plot + ggplot2::theme(legend.position = "right") + ggplot2::guides(color = guide_legend("Trt."))
   ggplot2::ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Survival_Plot)
 
-  Haz_list = list()
-  for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
-    surv_db_trt = surv_db[surv_db$Trt.ID == Haz_Trt,]
-    if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
+  if(unit == TRUE){
+    #Create Haz_list
+    Haz_list = list()
+    for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
+      surv_db_trt = surv_db[surv_db$Trt.ID == Haz_Trt,]
+      if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
+        Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
+                                    data = surv_db_trt,
+                                    survival::Surv(TTE, Status) ~ Tank.ID,
+                                    verbose = FALSE,
+                                    lambda = lambda1)
+      } else {
+        Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
+                                    data = surv_db_trt,
+                                    survival::Surv(TTE, Status) ~ 1,
+                                    verbose = FALSE,
+                                    verbose = FALSE,
+                                    lambda = lambda1)
+      }
+      Haz_list[[Haz_Trt]] = data.frame(Hazard = Haz_bs$hazard,
+                                       Time = Haz_bs$time)
+    }
+  }
+
+  if(unit == FALSE) {
+    #Create Haz_list
+    Haz_list = list()
+    for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
+      surv_db_trt = surv_db[surv_db$Trt.ID == Haz_Trt,]
       Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
                                   data = surv_db_trt,
                                   survival::Surv(TTE, Status) ~ Tank.ID,
                                   verbose = FALSE,
                                   lambda = lambda1)
-    } else {
-      Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
-                                  data = surv_db_trt,
-                                  survival::Surv(TTE, Status) ~ 1,
-                                  verbose = FALSE,
-                                  verbose = FALSE,
-                                  lambda = lambda1)
+      Haz_list[[Haz_Trt]] = data.frame(Hazard = Haz_bs$hazard,
+                                       Time = Haz_bs$time)
     }
-
-    Haz_list[[Haz_Trt]] = data.frame(Hazard = Haz_bs$hazard,
-                                     Time = Haz_bs$time)
   }
 
   Haz_DB = dplyr::bind_rows(Haz_list, .id = "Trt.ID")
