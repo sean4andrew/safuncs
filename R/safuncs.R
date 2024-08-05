@@ -563,7 +563,7 @@ Surv_Plots = function(surv_db,
                       y_axis_limits = c(0, 1),
                       x_lab = "Days Post Challenge",
                       lambda = NULL,
-                      phi = NULL
+                      phi = NULL,
                       dailybin = TRUE) {
 
   library(ggplot2)
@@ -611,7 +611,7 @@ Surv_Plots = function(surv_db,
   Hazard_Plot = ggplot(data = Haz_DB, aes(x = Time, y = Hazard, color = Trt.ID)) +
     geom_line(linewidth = 1) +
     geom_point() +
-    xlab("Days Post Challenge") +
+    xlab(x_lab) +
     scale_x_continuous(breaks = seq(from = min(x_axis_limits),
                                     to = max(x_axis_limits),
                                     by = min(round(max(x_axis_limits) / 15), 1)),
