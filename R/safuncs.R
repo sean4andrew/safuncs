@@ -601,7 +601,6 @@ Surv_Plots = function(surv_db,
                                   data = surv_db_trt,
                                   survival::Surv(TTE, Status) ~ 1,
                                   verbose = FALSE,
-                                  verbose = FALSE,
                                   lambda = lambda,
                                   phi = phi)
     }
