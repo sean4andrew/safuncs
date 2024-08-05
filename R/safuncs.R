@@ -594,14 +594,16 @@ Surv_Plots = function(surv_db,
                                   data = surv_db_trt,
                                   survival::Surv(TTE, Status) ~ Tank.ID,
                                   verbose = FALSE,
-                                  lambda = lambda1)
+                                  lambda = lambda,
+                                  phi = phi)
     } else {
       Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
                                   data = surv_db_trt,
                                   survival::Surv(TTE, Status) ~ 1,
                                   verbose = FALSE,
                                   verbose = FALSE,
-                                  lambda = lambda1)
+                                  lambda = lambda,
+                                  phi = phi)
     }
     Haz_list[[Haz_Trt]] = data.frame(Hazard = Haz_bs$hazard,
                                      Time = Haz_bs$time)
