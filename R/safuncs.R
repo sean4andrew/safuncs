@@ -514,7 +514,7 @@ Surv_Gen = function(mort_db,
 #'
 #' For details on the statistical methodology used by \code{bshazard()}, refer to: \url{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}.
 #'
-#' General concept: the author first considers h(t) the hazard function in a count model: count(t) = h(t) * P(t) where P(t) is the number alive as a function of time. h(t) is modeled over time using basis splines. By assuming the basis spline curvatures have a normal distribution with mean 0 (i.e. a random effect), the author found that the curvature's variance can be estimated as a function of the degree of over-dispersion (phi) of counts. The author determined that the variance of curvatures (smoothness) is equal to phi divided by lambda (smoothness parameter). Based on this equation, when lambda increases, the variance of curvatures decreases, producing a smoother curve.
+#' General concept: the author first considers h(t) the hazard function in a count model: count(t) = h(t) * P(t) where P(t) is the number alive as a function of time. h(t) is modeled over time using basis splines. By assuming the basis spline curvatures have a normal distribution with mean 0 (a random effect), the author found that the curvature's variance can be estimated as a function of the degree of over-dispersion (phi) of counts. The author determined that the variance of curvatures (smoothness) is equal to phi divided by lambda (smoothness parameter). The user can specify phi or lambda which affects the smoothness (variance of curvatures) or can allow lambda and phi to be estimated from the data.
 #' @md
 #'
 #' @param surv_db A survival dataframe as described in \bold{Details}.
