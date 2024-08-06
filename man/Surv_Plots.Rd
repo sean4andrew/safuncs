@@ -49,9 +49,9 @@ The survival dataset should be a dataframe containing at least 4 different colum
 
 For an example dataset, view \code{data(surv_db_ex)}.
 
-For details on the statistical methodology used by \code{bshazard()}, refer to \url{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}.
+For details on the statistical methodology used by \code{bshazard()}, refer to: \url{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}.
 
-Briefly, the author considers h(t) the hazard function in a count model: count(t) = h(t) * P(t) where P(t) is the number alive at the given time. h(t) is modeled over time using basis splines. By assuming the basis spline curvatures have a normal distribution with mean 0 (i.e. a random effect), its variance can be estimated as a function of the degree of over-dispersion (phi) of counts. The author determined that the smoothing parameter (lambda) is equal to phi divided by the variance of curvatures. Hence, when the lambda is increased, the variance of curvatures decreases which creates a smoother curve.
+The author considers h(t) the hazard function in a count model: count(t) = h(t) * P(t) where P(t) is the number alive as a function of time. h(t) is modeled over time using basis splines. By assuming the basis spline curvatures have a normal distribution with mean 0 (i.e. a random effect), its variance can be estimated as a function of the degree of over-dispersion (phi) of counts. The author determined that the variance of curvatures (smoothness) is equal to phi divided by lambda (smoothness parameter). Hence, when the lambda is increased, the variance of curvatures decreases which creates a smoother curve.
 }
 \examples{
 Surv_Plots(surv_db = surv_db_ex,
