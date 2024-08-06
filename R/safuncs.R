@@ -502,7 +502,7 @@ Surv_Gen = function(mort_db,
 
 #' Generate Survival Plots
 #'
-#' @description Uses survival data to produce a Kaplan-Meier Survival Plot and a Hazard Plot with curves representing each treatment group. Plots saved automatically to working directory.
+#' @description Uses survival data to produce a Kaplan-Meier Survival Plot and/or Hazard Time Plot. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.
 #'
 #' @details The survival dataset should be a dataframe containing at least 4 different columns:
 #' * "Trt.ID" = Labels for treatment groups in the study.
@@ -514,43 +514,47 @@ Surv_Gen = function(mort_db,
 #'
 #' For details on the statistical methodology used by \code{bshazard()}, refer to: \url{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}.
 #'
-#' The author considers h(t) the hazard function in a count model: count(t) = h(t) * P(t) where P(t) is the number alive as a function of time. h(t) is modeled over time using basis splines. By assuming the basis spline curvatures have a normal distribution with mean 0 (i.e. a random effect), its variance can be estimated as a function of the degree of over-dispersion (phi) of counts. The author determined that the variance of curvatures (smoothness) is equal to phi divided by lambda (smoothness parameter). Hence, when the lambda is increased, the variance of curvatures decreases which creates a smoother curve.
+#' General concept: the author first considers h(t) the hazard function in a count model: count(t) = h(t) * P(t) where P(t) is the number alive as a function of time. h(t) is modeled over time using basis splines. By assuming the basis spline curvatures have a normal distribution with mean 0 (i.e. a random effect), the author found that the curvature's variance can be estimated as a function of the degree of over-dispersion (phi) of counts. The author determined that the variance of curvatures (smoothness) is equal to phi divided by lambda (smoothness parameter). Based on this equation, when lambda increases, the variance of curvatures decreases, producing a smoother curve.
 #' @md
 #'
 #' @param surv_db A survival dataframe as described in \bold{Details}.
 #' @param plot_prefix A string specifying the prefix for the filename of the saved plots.
-#' @param x_axis_limits A vector specifying the plots x-axis lower and upper limits, respectively.
-#' @param y_axis_limits A vector specifying the Survival Plot y-axis lower and upper limits, respectively.
-#' @param x_lab A string specifying the plot x-axis label.
+#' @param xlim A vector specifying the plots x-axis lower and upper limits, respectively.
+#' @param ylim A vector specifying the Survival Plot y-axis lower and upper limits, respectively.
+#' @param xlab A string specifying the plot x-axis label.
 #' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; recommended at large sample sizes which are usually our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
-#' @param phi Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; recommended at large sample sizes. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (phi ~ 0.8-1.4) in Onda where there are large sample sizes with tank-replication.
-#' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE at large sample sizes with tank-replication.
+#' @param phi Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate phi; recommended at large sample sizes. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (phi ~ 0.8-1.4) in Onda where there are large sample sizes with tank-replication. The value of 1 indicates counts (deaths) vary as "expected" (Poisson) given the hazard estimate along the curve, and are not overdispersed (phi > 1).
+#' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE at large sample sizes with tank-replication. Defaults to TRUE.
+#' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
 #'
-#' @return A list containing the Kaplan-Meier Survival Curve and Hazard Curve.
+#' @return Returns the Kaplan-Meier Survival Curve or the Hazard Curve or both in a list depending on \code{plot} argument.
 #'
 #' @export
 #'
 #' @examples
 #' Surv_Plots(surv_db = surv_db_ex,
-#'            plot_prefix = "QCATC1090",
-#'            x_axis_limits = c(0, 50),
-#'            y_axis_limits = c(0, 1),
-#'            x_lab = "TTE",
-#'            lambda1 = 10)
+#'            plot_prefix = "QCATC777",
+#'            xlim = c(0, 50),
+#'            ylim = c(0, 1),
+#'            xlab = "TTE",
+#'            phi = 1,
+#'            plot = "both")
 #'
 Surv_Plots = function(surv_db,
                       plot_prefix = "plot_prefix",
-                      x_axis_limits = NULL,
-                      y_axis_limits = c(0, 1),
-                      x_lab = "Days Post Challenge",
+                      xlim = NULL,
+                      ylim = c(0, 1),
+                      xlab = "Days Post Challenge",
                       lambda = NULL,
                       phi = NULL,
-                      dailybin = TRUE) {
+                      dailybin = TRUE,
+                      plot = "both") {
 
   library(ggplot2)
 
-  if(is.null(x_axis_limits)) {x_axis_limits <- c(0, max(surv_db$TTE))}
+  if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
 
+  if(plot == "surv" | plot == "both") {
   surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
   attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
 
@@ -558,31 +562,33 @@ Surv_Plots = function(surv_db,
                                     conf.int = FALSE,
                                     ggtheme = theme(plot.background = element_rect(fill = "white")),
                                     break.y.by = 0.1,
-                                    break.x.by = min(round(max(x_axis_limits) / 15), 1),
-                                    xlim = x_axis_limits,
-                                    ylim = y_axis_limits,
-                                    xlab = x_lab,
+                                    break.x.by = max(round(max(xlim) / 15), 1),
+                                    xlim = xlim,
+                                    ylim = ylim,
+                                    xlab = xlab,
                                     surv.scale = "percent")
   Survival_Plot = surv_plot$plot + ggplot2::theme(legend.position = "right") + ggplot2::guides(color = guide_legend("Trt."))
   ggplot2::ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Survival_Plot)
+  }
 
-
-  if(dailybin == TRUE) {dailybin <- NULL}
-  if(dailybin == FALSE) {dailybin <- max(surv_db$TTE)}
+  if(dailybin == TRUE) {dbin <- NULL}
+  if(dailybin == FALSE) {dbin <- max(surv_db$TTE)}
 
   #Create Haz_list
+
+  if(plot == "haz" | plot == "both") {
   Haz_list = list()
   for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
     surv_db_trt = surv_db[surv_db$Trt.ID == Haz_Trt,]
     if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
-      Haz_bs = bshazard::bshazard(nbin = dailybin,
+      Haz_bs = bshazard::bshazard(nbin = dbin,
                                   data = surv_db_trt,
                                   survival::Surv(TTE, Status) ~ Tank.ID,
                                   verbose = FALSE,
                                   lambda = lambda,
                                   phi = phi)
     } else {
-      Haz_bs = bshazard::bshazard(nbin = dailybin,
+      Haz_bs = bshazard::bshazard(nbin = dbin,
                                   data = surv_db_trt,
                                   survival::Surv(TTE, Status) ~ 1,
                                   verbose = FALSE,
@@ -597,13 +603,17 @@ Surv_Plots = function(surv_db,
   Hazard_Plot = ggplot(data = Haz_DB, aes(x = Time, y = Hazard, color = Trt.ID)) +
     geom_line(linewidth = 1) +
     geom_point() +
-    xlab(x_lab) +
-    scale_x_continuous(breaks = seq(from = min(x_axis_limits),
-                                    to = max(x_axis_limits),
-                                    by = min(round(max(x_axis_limits) / 15), 1)),
-                       limits = x_axis_limits)
+    xlab(xlab) +
+    scale_x_continuous(breaks = seq(from = min(xlim),
+                                    to = max(xlim),
+                                    by = max(round(max(xlim) / 15), 1)),
+                       limits = xlim)
 
   ggplot2::ggsave(paste(plot_prefix, "Hazard Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Hazard_Plot)
 
-  return(list(Survival_Plot, Hazard_Plot))
+  }
+
+  if(plot == "surv") {return(Survival_Plot)}
+  if(plot == "haz") {return(Hazard_Plot)}
+  if(plot == "both") {return(list(Survival_Plot, Hazard_Plot))}
 }
