@@ -26,9 +26,9 @@ Surv_Plots(
 
 \item{x_lab}{A string specifying the plot x-axis label.}
 
-\item{lambda}{Smoothing value for the hazard curve estimated by \code{bshazard()}. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; this is recommended at large sample sizes which are usually our full-scale studies with many mortalities and tank-replication. At low sample sizes (few morts, R&D), the lambda estimate can be unreliable and potentially biased (bias unverified). Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. However, in place of choosing lambda, choosing \code{phi} is recommend due to a theoretical justification for phi = 1 and support from past data; see below.}
+\item{lambda}{Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; recommended at large sample sizes which are usually our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.}
 
-\item{phi}{Dispersion parameter for the count model used in \code{bshazard()}. The relationship between the count model and hazard curve is expressed mathematically and discussed in \bold{Details}. Defaults to NULL where \code{bshazard()} estimates phi from the provided survival data; this is recommended at large sample sizes. At low sample sizes, the phi estimate can be unreliable and potentially biased (bias unverified). Choosing a phi value of 1 (i.e. fixing the value at 1) for low sample sizes is recommended. The value of 1 suggests the distribution/variability of counts of events (deaths) is expected based on the risk of death (hazard) at the different times and there is no additional factor adding to the variability. I.e. the count residual distribution is Poisson. This value of 1 (or close) seems to be that estimated based on various past data (phi ~ 0.8-1.4) in Onda where there are large sample sizes with tank-replication. Because the true phi is likely close to 1, to resolve the issue of poor estimatiation at low sample sizes we can fix phi to 1 then and this produced more accurate hazard curves.}
+\item{phi}{Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; recommended at large sample sizes. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (phi ~ 0.8-1.4) in Onda where there are large sample sizes with tank-replication.}
 
 \item{dailybin}{Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE at large sample sizes with tank-replication.}
 }
@@ -51,13 +51,7 @@ For an example dataset, view \code{data(surv_db_ex)}.
 
 For details on the statistical methodology used by \code{bshazard()}, refer to \url{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}.
 
-Briefly, the author considers h(t) the hazard function in a count model: count(t) = h(t) * P(t) where P(t) is the number alive at the given time. h(t) is modeled over time using basis splines. By assuming the basis spline curvatures have a normal distribution with mean 0 (i.e. a random effect), its variance can be estimated as a function of the degree of over-dispersion (phi) of counts. The author determined that the smoothing parameter (lambda) is equal to phi divided by the variance of curvatures. When the data is overdispersed (>1 phi), the smoothing parameter (lambda)  lambda. The lambda parameter can be specified by the user; if it is increased, the variance of curvature decreases leading to smoother hazard curves, vice versa.
-
-A smoothing parameter of __
-
-When a curve ___ (NULL),
-
-Watch out for ___,
+Briefly, the author considers h(t) the hazard function in a count model: count(t) = h(t) * P(t) where P(t) is the number alive at the given time. h(t) is modeled over time using basis splines. By assuming the basis spline curvatures have a normal distribution with mean 0 (i.e. a random effect), its variance can be estimated as a function of the degree of over-dispersion (phi) of counts. The author determined that the smoothing parameter (lambda) is equal to phi divided by the variance of curvatures. Hence, when the lambda is increased, the variance of curvatures decreases which creates a smoother curve.
 }
 \examples{
 Surv_Plots(surv_db = surv_db_ex,

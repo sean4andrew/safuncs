@@ -362,18 +362,6 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 ###################################################################################################################################
 ################################################## Function 5 - Surv_Pred() #######################################################
 
-#' Predict Survival Rate
-#'
-#' @param pred_db
-#' @param ref_db
-#' @param predsr_tte
-#' @param method
-#' @param coxph_mod
-#'
-#' @return
-#' @export
-#'
-#' @examples
 Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted. See \bold{Details} for specifics.
                      ref_db, #Reference survival data from to create the reference hazard function.
                      predsr_tte, #The day at which SR is to be predicted. Minimum is Day 5 post challenge.
@@ -526,14 +514,7 @@ Surv_Gen = function(mort_db,
 #'
 #' For details on the statistical methodology used by \code{bshazard()}, refer to \url{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}.
 #'
-#' Briefly, the author considers h(t) the hazard function in a count model: count(t) = h(t) * P(t) where P(t) is the number alive at the given time. h(t) is modeled over time using basis splines. By assuming the basis spline curvatures have a normal distribution with mean 0 (i.e. a random effect), its variance can be estimated as a function of the degree of over-dispersion (phi) of counts. The author determined that the smoothing parameter (lambda) is equal to phi divided by the variance of curvatures. When the data is overdispersed (>1 phi), the smoothing parameter (lambda)  lambda. The lambda parameter can be specified by the user; if it is increased, the variance of curvature decreases leading to smoother hazard curves, vice versa.
-#'
-#' A smoothing parameter of __
-#'
-#' When a curve ___ (NULL),
-#'
-#' Watch out for ___,
-#'
+#' Briefly, the author considers h(t) the hazard function in a count model: count(t) = h(t) * P(t) where P(t) is the number alive at the given time. h(t) is modeled over time using basis splines. By assuming the basis spline curvatures have a normal distribution with mean 0 (i.e. a random effect), its variance can be estimated as a function of the degree of over-dispersion (phi) of counts. The author determined that the smoothing parameter (lambda) is equal to phi divided by the variance of curvatures. Hence, when the lambda is increased, the variance of curvatures decreases which creates a smoother curve.
 #' @md
 #'
 #' @param surv_db A survival dataframe as described in \bold{Details}.
@@ -541,8 +522,8 @@ Surv_Gen = function(mort_db,
 #' @param x_axis_limits A vector specifying the plots x-axis lower and upper limits, respectively.
 #' @param y_axis_limits A vector specifying the Survival Plot y-axis lower and upper limits, respectively.
 #' @param x_lab A string specifying the plot x-axis label.
-#' @param lambda Smoothing value for the hazard curve estimated by \code{bshazard()}. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; this is recommended at large sample sizes which are usually our full-scale studies with many mortalities and tank-replication. At low sample sizes (few morts, R&D), the lambda estimate can be unreliable and potentially biased (bias unverified). Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. However, in place of choosing lambda, choosing \code{phi} is recommend due to a theoretical justification for phi = 1 and support from past data; see below.
-#' @param phi Dispersion parameter for the count model used in \code{bshazard()}. The relationship between the count model and hazard curve is expressed mathematically and discussed in \bold{Details}. Defaults to NULL where \code{bshazard()} estimates phi from the provided survival data; this is recommended at large sample sizes. At low sample sizes, the phi estimate can be unreliable and potentially biased (bias unverified). Choosing a phi value of 1 (i.e. fixing the value at 1) for low sample sizes is recommended. The value of 1 suggests the distribution/variability of counts of events (deaths) is expected based on the risk of death (hazard) at the different times and there is no additional factor adding to the variability. I.e. the count residual distribution is Poisson. This value of 1 (or close) seems to be that estimated based on various past data (phi ~ 0.8-1.4) in Onda where there are large sample sizes with tank-replication. Because the true phi is likely close to 1, to resolve the issue of poor estimatiation at low sample sizes we can fix phi to 1 then and this produced more accurate hazard curves.
+#' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; recommended at large sample sizes which are usually our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
+#' @param phi Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; recommended at large sample sizes. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (phi ~ 0.8-1.4) in Onda where there are large sample sizes with tank-replication.
 #' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE at large sample sizes with tank-replication.
 #'
 #' @return A list containing the Kaplan-Meier Survival Curve and Hazard Curve.
@@ -585,19 +566,23 @@ Surv_Plots = function(surv_db,
   Survival_Plot = surv_plot$plot + ggplot2::theme(legend.position = "right") + ggplot2::guides(color = guide_legend("Trt."))
   ggplot2::ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Survival_Plot)
 
+
+  if(dailybin == TRUE) {dailybin <- NULL}
+  if(dailybin == FALSE) {dailybin <- max(surv_db$TTE)}
+
   #Create Haz_list
   Haz_list = list()
   for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
     surv_db_trt = surv_db[surv_db$Trt.ID == Haz_Trt,]
     if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
-      Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
+      Haz_bs = bshazard::bshazard(nbin = dailybin,
                                   data = surv_db_trt,
                                   survival::Surv(TTE, Status) ~ Tank.ID,
                                   verbose = FALSE,
                                   lambda = lambda,
                                   phi = phi)
     } else {
-      Haz_bs = bshazard::bshazard(nbin = max(surv_db$TTE),
+      Haz_bs = bshazard::bshazard(nbin = dailybin,
                                   data = surv_db_trt,
                                   survival::Surv(TTE, Status) ~ 1,
                                   verbose = FALSE,
