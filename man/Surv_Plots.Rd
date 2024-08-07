@@ -50,7 +50,7 @@ The survival dataset should be a dataframe containing at least 4 different colum
 \item "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for survivors or those sampled and removed.
 }
 
-For an example dataset, view \code{data(surv_db_ex)}.
+Each row should represent one fish. For an example dataset, view \code{data(surv_db_ex)}.
 
 For details on the statistical methodology used by \code{bshazard()}, refer to: \url{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}.
 

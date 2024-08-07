@@ -443,22 +443,22 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 
 #' @title Generate Survivor Data
 #'
-#' @description Returns a completed survival dataset that include rows for every survivor given the starting number of fish and mortality count. Mortality per tank is supplied through the argument \code{mort_db}. To generate survivor data for tanks absent from \code{mort_db} (e.g. those without mortalities), specify \code{tank_without_mort} and \code{trt_without_mort} arguments.
+#' @description Returns a survival dataframe that includes rows representing every surviving fish based on the starting number of fish provided and the mortality count provided in a dataframe. To generate survivor data for tanks absent in the input dataframe, specify the arguments \code{tank_without_mort} and \code{trt_without_mort}.
 #'
-#' @details The mort dataframe input should consist of one row of data for every dead/removed fish and the following 4 columns at minimum:
+#' @details The mort dataframe supplied as input should consist of the following 4 columns at minimum:
 #' * "Trt.ID" = Labels for treatment groups in the study.
 #' * "Tank.ID" = Labels for tanks in the study (each tank must have a unique label).
 #' * "TTE" = Time to Event. Event could be fish death or being sampled and removed depending on "Status".
 #' * "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for those sampled and removed.
 #'
-#' For an example dataset, view \code{data(mort_db_ex)}.
+#' Each row should represent one fish. For an example dataset, view \code{data(mort_db_ex)}.
 #' @md
 #'
 #' @param mort_db A mort dataframe as described in \bold{Details}.
-#' @param today_tte The time to event assigned to every generated row of survivor data.
-#' @param tank_without_mort Tank IDs not in the mort dataframe but needing survivor data generation. Input a vector of strings.
-#' @param trt_without_mort Treatment IDs corresponding to \code{tank_without_mort} in the same order. Input a vector of strings.
 #' @param starting_fish_count Value representing the starting number of fish per tank.
+#' @param today_tte Value representing the day or time-to-event the fish survived to. Value assigned to every row of survivor data generated.
+#' @param tank_without_mort A vector of strings specifying the tanks absent from \code{mort_db} for which to generate survivor data.
+#' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep the order the same.
 #'
 #' @return A dataframe produced by combining the input mort data and generated rows of survivor data.
 #' @export
@@ -471,8 +471,8 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #'          trt_without_mort = c("A", "B"))
 #'
 Surv_Gen = function(mort_db,
-                    today_tte,
                     starting_fish_count,
+                    today_tte,
                     tank_without_mort = NULL,
                     trt_without_mort = NULL) {
 
@@ -510,7 +510,7 @@ Surv_Gen = function(mort_db,
 #' * "TTE" = Time to Event. Event depends on "Status".
 #' * "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for survivors or those sampled and removed.
 #'
-#' For an example dataset, view \code{data(surv_db_ex)}.
+#' Each row should represent one fish. For an example dataset, view \code{data(surv_db_ex)}.
 #'
 #' For details on the statistical methodology used by \code{bshazard()}, refer to: \url{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}.
 #'
