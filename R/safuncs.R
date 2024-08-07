@@ -366,63 +366,66 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
                      ref_db, #Reference survival data from to create the reference hazard function.
                      predsr_tte, #The day at which SR is to be predicted. Minimum is Day 5 post challenge.
                      method = 2, #SR prediction method. See \bold{Details} for more info.
-                     coxph_mod = "GLMM") #Model used to estimate HR. Can be either "GLMM" or "GEE". See \bold{Details} for more info.
+                     coxph_mod = "GLMM", #Model used to estimate HR. Can be either "GLMM" or "GEE". See \bold{Details} for more info.
+                     lambda_pred_db = NULL) #Lambda parameter for the bshazard curve of the predicted dataset.
 {
 
   pred_db = pred_db[pred_db$TTE > 0, ] #ensure positive TTE
 
-  #Generate combined dataframe with reference treatment group as the reference level
+  #Generate reference level bshazard curve
   ref_id = levels(as.factor(ref_db$Trt.ID))
   ref_bshaz = bshazard::bshazard(data = ref_db, survival::Surv(TTE, Status) ~ Tank.ID,
                                  verbose = FALSE, nbin = max(ref_db$TTE))
-  Comb_DB = rbind(ref_db, pred_db)
-  Comb_DB$Trt.ID = relevel(as.factor(Comb_DB$Trt.ID), ref = ref_id)
 
   #initialize dataframes
   pred_SR_DB = data.frame()
-  Haz_DB = data.frame()
+  haz_db = data.frame()
 
   #loop for every treatment
-  for(Comp_HR in levels(as.factor(pred_db$Trt.ID))) {
+  for(pred_trt in levels(as.factor(pred_db$Trt.ID))) {
+
+    comb_db = rbind(ref_db, pred_db[pred_db$Trt.ID == pred_trt,])
+    comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = ref_id)
 
     #loop for every predictable day
     for(SR_Day in 5:predsr_tte) {
-      Comb_DB2 = survival::survSplit(Comb_DB, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
-      Comb_DB2 = Comb_DB2[Comb_DB2$Obs == 1, ]
+      comb_db2 = survival::survSplit(comb_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
+      comb_db2 = comb_db2[comb_db2$Obs == 1, ]
 
       #Get HR
       if(coxph_mod == "GLMM"){cox_comp = coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID),
-                                                      data = droplevels(Comb_DB2[Comb_DB2$Trt.ID %in% c(ref_id, Comp_HR),]))}
+                                                      data = comb_db2)}
       if(coxph_mod == "GEE"){cox_comp = survival::coxph(survival::Surv(TTE, Status) ~ Trt.ID, cluster = Tank.ID,
-                                                        data = droplevels(Comb_DB2[Comb_DB2$Trt.ID %in% c(ref_id, Comp_HR),]))}
+                                                        data = comb_db2)}
       pred_HR = exp(coef(cox_comp))
 
       #Get SR
-      ref_bshaz_t = ref_bshaz[ref_bshaz$time < predsr_tte,]
+      ref_bshaz_t = data.frame(hazard = ref_bshaz$hazard[ref_bshaz$time < predsr_tte],
+                               time = ref_bshaz$time[ref_bshaz$time < predsr_tte])
 
       if(method == 1) {
-        Cumhaz1 = DescTools::AUC(x = c(ref_bshaz_t$time[1]-0.5, ref_bshaz_t$time, max(ref_bshaz_t$time + 0.5)),
+        cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time[1]-0.5, ref_bshaz_t$time, max(ref_bshaz_t$time + 0.5)),
                                  y = c(ref_bshaz_t$hazard[1], ref_bshaz_t$hazard, dplyr::last(ref_bshaz_t$hazard)) * pred_HR)
-        pred_SR = 100 * exp(Cumhaz1)
+        pred_SR = 100 * exp(cumhaz)
       }
 
       if(method == 2) {
         pred_db2 = survival::survSplit(pred_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
         pred_db2 = pred_db2[pred_db2$Obs == 1, ]
-        Comp_bshaz = bshazard::bshazard(data = droplevels(pred_db2[pred_db2$Trt.ID == Comp_HR,]),
-                                        survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, nbin = SR_Day)
+        pred_bshaz = bshazard::bshazard(data = droplevels(pred_db2[pred_db2$Trt.ID == pred_trt,]),
+                                        survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, nbin = SR_Day, lambda = 10)
 
-        Cumhaz1 = DescTools::AUC(x = c(Comp_bshaz_t$time[1]-0.5, Comp_bshaz$time, max(Comp_bshaz_t$time + 0.5)),
-                                 y = c(Comp_bshaz$hazard[1], Comp_bshaz$hazard, dplyr::last(Comp_bshaz$hazard)))
-        ref_bshaz_t2 = ref_bshaz_t[Ref_bshaz_t$time > SR_Day,]
-        Cumhaz2 = DescTools::AUC(x = c(ref_bshaz_t2$time[1]-0.5, ref_bshaz_t2$time, max(ref_bshaz_t2$time + 0.5)),
+        cumhaz_precut = DescTools::AUC(x = c(pred_bshaz$time[1]-0.5, pred_bshaz$time, max(pred_bshaz$time + 0.5)),
+                                 y = c(pred_bshaz$hazard[1], pred_bshaz$hazard, dplyr::last(pred_bshaz$hazard)))
+        ref_bshaz_t2 = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]
+        cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time[1]-0.5, ref_bshaz_t2$time, max(ref_bshaz_t2$time + 0.5)),
                                  y = c(ref_bshaz_t2$hazard[1], ref_bshaz_t2$hazard, dplyr::last(ref_bshaz_t2$hazard)) * pred_HR)
 
-        if(is.na(Cumhaz2)) {Cumhaz2 <- 0}
-        pred_SR = 100 * exp(-(Cumhaz1 + Cumhaz2))
+        if(is.na(cumhaz_postcut)) {cumhaz_postcut <- 0}
+        pred_SR = 100 * exp(-(cumhaz_precut + cumhaz_postcut))
       }
       #compile survival prediction database
-      pred_SR_DB = rbind(pred_SR_DB, data.frame(Trt.ID = Comp_HR, Observable_SR_Day = SR_Day, pred_SR, pred_HR))
+      pred_SR_DB = rbind(pred_SR_DB, data.frame(Trt.ID = pred_trt, Observable_SR_Day = SR_Day, pred_SR, pred_HR))
     }
   }
   row.names(pred_SR_DB) = NULL
@@ -601,8 +604,8 @@ Surv_Plots = function(surv_db,
                                      Time = Haz_bs$time)
   }
 
-  Haz_DB = dplyr::bind_rows(Haz_list, .id = "Trt.ID")
-  Hazard_Plot = ggplot(data = Haz_DB, aes(x = Time, y = Hazard, color = Trt.ID)) +
+  haz_db = dplyr::bind_rows(Haz_list, .id = "Trt.ID")
+  Hazard_Plot = ggplot(data = haz_db, aes(x = Time, y = Hazard, color = Trt.ID)) +
     geom_line(linewidth = 1) +
     geom_point() +
     xlab(xlab) +
