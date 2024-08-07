@@ -576,8 +576,8 @@ Surv_Plots = function(surv_db,
   ggplot2::ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Survival_Plot)
   }
 
-  if(dailybin == TRUE) {dbin <- NULL}
-  if(dailybin == FALSE) {dbin <- max(surv_db$TTE)}
+  if(dailybin == TRUE) {dbin <- max(surv_db$TTE)}
+  if(dailybin == FALSE) {dbin <- NULL}
 
   #Create Haz_list
 
