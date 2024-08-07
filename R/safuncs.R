@@ -572,7 +572,7 @@ Surv_Plots = function(surv_db,
                                     ylim = ylim,
                                     xlab = xlab,
                                     surv.scale = "percent")
-  Survival_Plot = surv_plot$plot + ggplot2::theme(legend.position = "right") + ggplot2::guides(color = guide_legend("Trt."))
+  Survival_Plot = surv_plot$plot + ggplot2::theme(legend.position = "right") + ggplot2::guides(color = guide_legend("Trt.ID"))
   ggplot2::ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Survival_Plot)
   }
 
