@@ -367,10 +367,11 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
                      predsr_tte, #The day at which SR is to be predicted. Minimum is Day 5 post challenge.
                      method = 2, #SR prediction method. See \bold{Details} for more info.
                      coxph_mod = "GLMM", #Model used to estimate HR. Can be either "GLMM" or "GEE". See \bold{Details} for more info.
-                     lambda_pred_db = NULL) #Lambda parameter for the bshazard curve of the predicted dataset.
+                     lambda_pred = NULL) #Lambda parameter for the bshazard curve of the predicted dataset.
 {
 
   pred_db = pred_db[pred_db$TTE > 0, ] #ensure positive TTE
+  ref_db = ref_db[ref_db$TTE > 0, ] #ensure positive TTE
 
   #Generate reference level bshazard curve
   ref_id = levels(as.factor(ref_db$Trt.ID))
@@ -413,7 +414,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
         pred_db2 = survival::survSplit(pred_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
         pred_db2 = pred_db2[pred_db2$Obs == 1, ]
         pred_bshaz = bshazard::bshazard(data = droplevels(pred_db2[pred_db2$Trt.ID == pred_trt,]),
-                                        survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, nbin = SR_Day, lambda = 10)
+                                        survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, nbin = SR_Day, lambda = lambda_pred)
 
         cumhaz_precut = DescTools::AUC(x = c(pred_bshaz$time[1]-0.5, pred_bshaz$time, max(pred_bshaz$time + 0.5)),
                                  y = c(pred_bshaz$hazard[1], pred_bshaz$hazard, dplyr::last(pred_bshaz$hazard)))
@@ -434,6 +435,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
   library(ggplot2)
   Pred_SR_Plot = ggplot(data = pred_SR_DB, aes(x = Observable_SR_Day, y = pred_SR, color = Trt.ID)) +
     geom_point() +
+    geom_line()
     facet_wrap(~Trt.ID) +
     scale_y_continuous(name = paste("Predicted Survival (%) on ", predsr_tte), breaks = seq(0, 100, 10), limits = c(0, 100)) +
     scale_x_continuous(name = "TTEs used in Prediction", breaks = seq(0, 100, 1))
