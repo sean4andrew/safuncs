@@ -451,7 +451,9 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #' * "TTE" = Time to Event. Event could be fish death or being sampled and removed depending on "Status".
 #' * "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for those sampled and removed.
 #'
-#' Each row should represent one fish. For an example dataset, view \code{data(mort_db_ex)}.
+#' Each row should represent one fish.
+#'
+#' For an example dataset, view \code{data(mort_db_ex)}.
 #' @md
 #'
 #' @param mort_db A mort dataframe as described in \bold{Details}.

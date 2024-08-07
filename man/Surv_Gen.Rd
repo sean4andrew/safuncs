@@ -38,7 +38,9 @@ The mort dataframe supplied as input should consist of the following 4 columns a
 \item "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for those sampled and removed.
 }
 
-Each row should represent one fish. For an example dataset, view \code{data(mort_db_ex)}.
+Each row should represent one fish.
+
+For an example dataset, view \code{data(mort_db_ex)}.
 }
 \examples{
 Surv_Gen(mort_db = mort_db_ex,
