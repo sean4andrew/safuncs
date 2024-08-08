@@ -375,6 +375,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 
   #Generate reference level bshazard curve
   ref_id = levels(as.factor(ref_db$Trt.ID))
+  ref_db$Trt.ID = paste("ref", ref_id)
   ref_bshaz = bshazard::bshazard(data = ref_db, survival::Surv(TTE, Status) ~ Tank.ID,
                                  verbose = FALSE, nbin = max(ref_db$TTE))
 
@@ -386,10 +387,10 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
   for(pred_trt in levels(as.factor(pred_db$Trt.ID))) {
 
     comb_db = rbind(ref_db, pred_db[pred_db$Trt.ID == pred_trt,])
-    comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = ref_id)
+    comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = paste("ref", ref_id))
 
     #loop for every predictable day
-    for(SR_Day in 5:(predsr_tte - 1)) {
+    for(SR_Day in 5:(predsr_tte-1)) {
       comb_db2 = survival::survSplit(comb_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
       comb_db2 = comb_db2[comb_db2$Obs == 1, ]
 
@@ -405,9 +406,9 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
                                time = ref_bshaz$time[ref_bshaz$time < predsr_tte])
 
       if(method == 1) {
-        cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time[1]-0.5, ref_bshaz_t$time, max(ref_bshaz_t$time + 0.5)),
-                                 y = c(ref_bshaz_t$hazard[1], ref_bshaz_t$hazard, dplyr::last(ref_bshaz_t$hazard)) * pred_HR)
-        pred_SR = 100 * exp(cumhaz)
+        cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time[1]-0.5, ref_bshaz_t$time, max(ref_bshaz_t$time) + 0.5),
+                                y = c(ref_bshaz_t$hazard[1], ref_bshaz_t$hazard, dplyr::last(ref_bshaz_t$hazard)) * pred_HR)
+        pred_SR = 100 * exp(-cumhaz)
       }
 
       if(method == 2) {
@@ -417,10 +418,10 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
                                         survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, nbin = SR_Day, lambda = lambda_pred)
 
         cumhaz_precut = DescTools::AUC(x = c(pred_bshaz$time[1]-0.5, pred_bshaz$time, max(pred_bshaz$time) + 0.5),
-                                 y = c(pred_bshaz$hazard[1], pred_bshaz$hazard, dplyr::last(pred_bshaz$hazard)))
+                                       y = c(pred_bshaz$hazard[1], pred_bshaz$hazard, dplyr::last(pred_bshaz$hazard)))
         ref_bshaz_t2 = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]
         cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time[1]-0.5, ref_bshaz_t2$time, max(ref_bshaz_t2$time) + 0.5),
-                                 y = c(ref_bshaz_t2$hazard[1], ref_bshaz_t2$hazard, dplyr::last(ref_bshaz_t2$hazard)) * pred_HR)
+                                        y = c(ref_bshaz_t2$hazard[1], ref_bshaz_t2$hazard, dplyr::last(ref_bshaz_t2$hazard)) * pred_HR)
 
         if(is.na(cumhaz_postcut)) {cumhaz_postcut <- 0}
         pred_SR = 100 * exp(-(cumhaz_precut + cumhaz_postcut))
@@ -435,12 +436,19 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
   library(ggplot2)
   Pred_SR_Plot = ggplot(data = pred_SR_DB, aes(x = Observable_SR_Day, y = pred_SR, color = Trt.ID)) +
     geom_point() +
-    geom_line()
+    geom_line() +
     facet_wrap(~Trt.ID) +
-    scale_y_continuous(name = paste("Predicted Survival (%) on ", predsr_tte), breaks = seq(0, 100, 10), limits = c(0, 100)) +
-    scale_x_continuous(name = "TTEs used in Prediction", breaks = seq(0, 100, 1))
+    scale_y_continuous(name = paste("Predicted Survival (%) on TTE = ", predsr_tte), breaks = seq(0, 100, 10), limits = c(0, 100)) +
+    scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, 1))
 
-  return(list(pred_SR_DB, Pred_SR_Plot))
+  Pred_HR_Plot = ggplot(data = pred_SR_DB, aes(x = Observable_SR_Day, y = pred_HR, color = Trt.ID)) +
+    geom_point() +
+    geom_line() +
+    facet_wrap(~Trt.ID) +
+    scale_y_continuous(name = paste("Predicted HR ", predsr_tte)) +
+    scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, 1))
+
+  return(list(pred_SR_DB, Pred_SR_Plot, Pred_HR_Plot))
 }
 
 ###################################################################################################################################
