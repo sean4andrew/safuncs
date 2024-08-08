@@ -389,7 +389,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
     comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = ref_id)
 
     #loop for every predictable day
-    for(SR_Day in 5:predsr_tte) {
+    for(SR_Day in 5:(predsr_tte - 1)) {
       comb_db2 = survival::survSplit(comb_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
       comb_db2 = comb_db2[comb_db2$Obs == 1, ]
 
@@ -416,10 +416,10 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
         pred_bshaz = bshazard::bshazard(data = droplevels(pred_db2[pred_db2$Trt.ID == pred_trt,]),
                                         survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, nbin = SR_Day, lambda = lambda_pred)
 
-        cumhaz_precut = DescTools::AUC(x = c(pred_bshaz$time[1]-0.5, pred_bshaz$time, max(pred_bshaz$time + 0.5)),
+        cumhaz_precut = DescTools::AUC(x = c(pred_bshaz$time[1]-0.5, pred_bshaz$time, max(pred_bshaz$time) + 0.5),
                                  y = c(pred_bshaz$hazard[1], pred_bshaz$hazard, dplyr::last(pred_bshaz$hazard)))
         ref_bshaz_t2 = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]
-        cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time[1]-0.5, ref_bshaz_t2$time, max(ref_bshaz_t2$time + 0.5)),
+        cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time[1]-0.5, ref_bshaz_t2$time, max(ref_bshaz_t2$time) + 0.5),
                                  y = c(ref_bshaz_t2$hazard[1], ref_bshaz_t2$hazard, dplyr::last(ref_bshaz_t2$hazard)) * pred_HR)
 
         if(is.na(cumhaz_postcut)) {cumhaz_postcut <- 0}
