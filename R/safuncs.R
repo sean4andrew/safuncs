@@ -362,12 +362,29 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 ###################################################################################################################################
 ################################################## Function 5 - Surv_Pred() #######################################################
 
+#' Predict Survival Rate
+#' @description Predict survival rate at a specified date given the..
+#'
+#' @details P
+#'
+#' @param pred_db
+#' @param ref_db
+#' @param predsr_tte
+#' @param method
+#' @param coxph_mod
+#' @param lambda_pred
+#'
+#' @return
+#' @export
+#'
+#' @examples
 Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted. See \bold{Details} for specifics.
                      ref_db, #Reference survival data from to create the reference hazard function.
                      predsr_tte, #The day at which SR is to be predicted. Minimum is Day 5 post challenge.
                      method = 2, #SR prediction method. See \bold{Details} for more info.
                      coxph_mod = "GLMM", #Model used to estimate HR. Can be either "GLMM" or "GEE". See \bold{Details} for more info.
-                     lambda_pred = NULL) #Lambda parameter for the bshazard curve of the predicted dataset.
+                     lambda_pred = NULL, #Lambda parameter for the bshazard curve of the predicted dataset.
+                     phi_pred = NULL)
 {
 
   pred_db = pred_db[pred_db$TTE > 0, ] #ensure positive TTE
@@ -377,7 +394,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
   ref_id = levels(as.factor(ref_db$Trt.ID))
   ref_db$Trt.ID = paste("ref", ref_id)
   ref_bshaz = bshazard::bshazard(data = ref_db, survival::Surv(TTE, Status) ~ Tank.ID,
-                                 verbose = FALSE, nbin = max(ref_db$TTE))
+                                 verbose = FALSE)
 
   #initialize dataframes
   pred_SR_DB = data.frame()
@@ -406,8 +423,8 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
                                time = ref_bshaz$time[ref_bshaz$time < predsr_tte])
 
       if(method == 1) {
-        cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time[1]-0.5, ref_bshaz_t$time, max(ref_bshaz_t$time) + 0.5),
-                                y = c(ref_bshaz_t$hazard[1], ref_bshaz_t$hazard, dplyr::last(ref_bshaz_t$hazard)) * pred_HR)
+        cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time),
+                                y = c(ref_bshaz_t$hazard) * pred_HR)
         pred_SR = 100 * exp(-cumhaz)
       }
 
@@ -415,13 +432,13 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
         pred_db2 = survival::survSplit(pred_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
         pred_db2 = pred_db2[pred_db2$Obs == 1, ]
         pred_bshaz = bshazard::bshazard(data = droplevels(pred_db2[pred_db2$Trt.ID == pred_trt,]),
-                                        survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, nbin = SR_Day, lambda = lambda_pred)
+                                        survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, lambda = lambda_pred)
 
-        cumhaz_precut = DescTools::AUC(x = c(pred_bshaz$time[1]-0.5, pred_bshaz$time, max(pred_bshaz$time) + 0.5),
-                                       y = c(pred_bshaz$hazard[1], pred_bshaz$hazard, dplyr::last(pred_bshaz$hazard)))
+        cumhaz_precut = DescTools::AUC(x = c(pred_bshaz$time),
+                                       y = c(pred_bshaz$hazard))
         ref_bshaz_t2 = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]
-        cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time[1]-0.5, ref_bshaz_t2$time, max(ref_bshaz_t2$time) + 0.5),
-                                        y = c(ref_bshaz_t2$hazard[1], ref_bshaz_t2$hazard, dplyr::last(ref_bshaz_t2$hazard)) * pred_HR)
+        cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time),
+                                        y = c(ref_bshaz_t2$hazard) * pred_HR)
 
         if(is.na(cumhaz_postcut)) {cumhaz_postcut <- 0}
         pred_SR = 100 * exp(-(cumhaz_precut + cumhaz_postcut))
@@ -541,8 +558,11 @@ Surv_Gen = function(mort_db,
 #' @param phi Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate phi; recommended for large sample size situations. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (phi ~ 0.8-1.4) in Onda where there are large sample sizes with tank-replication. The value of 1 indicates counts (deaths) vary as "expected" (Poisson) according to the different hazard values along the hazard curve, and are not overdispersed (phi > 1).
 #' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE at large sample sizes with tank-replication. Defaults to TRUE.
 #' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
+#' @param colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
 #'
-#' @return Returns the Kaplan-Meier Survival Curve or Hazard Curve or both in a list depending on the \code{plot} argument.
+#' @return If \code{plot == "surv"}, returns a ggplot2 object reflecting the Kaplan-Meier Survival Curve.
+#' If \code{plot == "haz"}, returns a ggplot2 object reflecting the Hazard Curve.
+#' If \code{plot == "both"}, returns both ggplot2 objects in a list.
 #'
 #' @export
 #'
@@ -563,7 +583,8 @@ Surv_Plots = function(surv_db,
                       lambda = NULL,
                       phi = NULL,
                       dailybin = TRUE,
-                      plot = "both") {
+                      plot = "both",
+                      colours = NULL) {
 
   library(ggplot2)
 
@@ -582,8 +603,11 @@ Surv_Plots = function(surv_db,
                                     ylim = ylim,
                                     xlab = xlab,
                                     surv.scale = "percent")
-  Survival_Plot = surv_plot$plot + ggplot2::theme(legend.position = "right") + ggplot2::guides(color = guide_legend("Trt.ID"))
-  ggplot2::ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Survival_Plot)
+  Survival_Plot = surv_plot$plot + theme(legend.position = "right") + guides(color = guide_legend("Trt.ID"))
+
+  if(!is.null(colours)) {Survival_Plot = Survival_Plot + scale_color_manual(values = colours)}
+  ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Survival_Plot)
+
   }
 
   if(dailybin == TRUE) {dbin <- max(surv_db$TTE)}
@@ -624,7 +648,8 @@ Surv_Plots = function(surv_db,
                                     by = max(round(max(xlim) / 15), 1)),
                        limits = xlim)
 
-  ggplot2::ggsave(paste(plot_prefix, "Hazard Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Hazard_Plot)
+  if(!is.null(colours)) {Hazard_Plot = Hazard_Plot + scale_color_manual(values = colours)}
+  ggsave(paste(plot_prefix, "Hazard Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Hazard_Plot)
 
   }
 

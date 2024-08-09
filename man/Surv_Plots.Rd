@@ -13,7 +13,8 @@ Surv_Plots(
   lambda = NULL,
   phi = NULL,
   dailybin = TRUE,
-  plot = "both"
+  plot = "both",
+  colours = NULL
 )
 }
 \arguments{
@@ -34,9 +35,13 @@ Surv_Plots(
 \item{dailybin}{Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE at large sample sizes with tank-replication. Defaults to TRUE.}
 
 \item{plot}{Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".}
+
+\item{colours}{Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.}
 }
 \value{
-Returns the Kaplan-Meier Survival Curve or Hazard Curve or both in a list depending on the \code{plot} argument.
+If \code{plot == "surv"}, returns a ggplot2 object reflecting the Kaplan-Meier Survival Curve.
+If \code{plot == "haz"}, returns a ggplot2 object reflecting the Hazard Curve.
+If \code{plot == "both"}, returns both ggplot2 objects in a list.
 }
 \description{
 Uses survival data to produce a Kaplan-Meier Survival Plot and/or Hazard Time Plot. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.
