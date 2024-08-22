@@ -363,21 +363,21 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 ################################################## Function 5 - Surv_Pred() #######################################################
 
 #' Predict Survival Rate
-#' @description Predict survival rate at a specified date given the..
+#' @description Predict survival rate for a given survival dataset provided a reference survival database used to estimate a reference hazard curve. Prediction done seperately by treatment group.
 #'
 #' @details P
 #'
-#' @param pred_db
-#' @param ref_db
-#' @param predsr_tte
-#' @param method
-#' @param coxph_mod
-#' @param lambda_pred
+#' @param pred_db Placeholder
+#' @param ref_db Placeholder
+#' @param predsr_tte Placeholder
+#' @param method Placeholder
+#' @param coxph_mod Placeholder
+#' @param lambda_pred Placeholder
 #'
-#' @return
+#' @return Placeholder
 #' @export
 #'
-#' @examples
+#' @examples Placeholder
 Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted. See \bold{Details} for specifics.
                      ref_db, #Reference survival data from to create the reference hazard function.
                      predsr_tte, #The day at which SR is to be predicted. Minimum is Day 5 post challenge.
