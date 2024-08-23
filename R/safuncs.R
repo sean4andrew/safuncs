@@ -520,11 +520,15 @@ Surv_Gen = function(mort_db,
     DB_Mort_Gensum = rbind(DB_Mort_Gensum, WM_DB)
   }
 
-  DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead
+  if(!is.null(mort_db$starting_fish_count)) {
+    DB_Mort_Gensum = merge(DB_Mort_Gensum, unique(mort_db[, c("Trt.ID", "Tank.ID", "starting_fish_count")]))
+  } else {DB_Mort_Gensum$starting_fish_count = starting_fish_count}
+
+  DB_Mort_Gensum$Num_alive = DB_Mort_Gensum$starting_fish_count - DB_Mort_Gensum$Num_dead
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
   DB_Mort_Genalive$Status = 0
   DB_Mort_Genalive$TTE = today_tte
-  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[,-c(3:4)])
+  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, -which(names(DB_Mort_Genalive) %in% c("Num_dead", "Num_alive")))
 
   return(DB_Mort_Gencomb)
 }
