@@ -493,6 +493,8 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep the order the same.
 #'
 #' @return A dataframe produced by combining the input mort data and generated rows of survivor data.
+#'
+#' @import dplyr
 #' @export
 #'
 #' @examples
@@ -508,7 +510,6 @@ Surv_Gen = function(mort_db,
                     tank_without_mort = NULL,
                     trt_without_mort = NULL) {
 
-  library(dplyr)
   DB_Mort_Gensum = data.frame(mort_db %>%
                                 dplyr::group_by(Trt.ID, Tank.ID) %>%
                                 dplyr::summarise(Num_dead = n()))
@@ -520,15 +521,15 @@ Surv_Gen = function(mort_db,
     DB_Mort_Gensum = rbind(DB_Mort_Gensum, WM_DB)
   }
 
-  if(!is.null(mort_db$starting_fish_count)) {
-    DB_Mort_Gensum = merge(DB_Mort_Gensum, unique(mort_db[, c("Trt.ID", "Tank.ID", "starting_fish_count")]))
+  if(is.data.frame(starting_fish_count)) {
+    DB_Mort_Gensum = merge(DB_Mort_Gensum, starting_fish_count)
   } else {DB_Mort_Gensum$starting_fish_count = starting_fish_count}
 
   DB_Mort_Gensum$Num_alive = DB_Mort_Gensum$starting_fish_count - DB_Mort_Gensum$Num_dead
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
   DB_Mort_Genalive$Status = 0
   DB_Mort_Genalive$TTE = today_tte
-  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, -which(names(DB_Mort_Genalive) %in% c("Num_dead", "Num_alive")))
+  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[, -c(3:5)])
 
   return(DB_Mort_Gencomb)
 }
@@ -568,6 +569,7 @@ Surv_Gen = function(mort_db,
 #' If \code{plot == "haz"}, returns a ggplot2 object reflecting the Hazard Curve.
 #' If \code{plot == "both"}, returns both ggplot2 objects in a list.
 #'
+#' @import ggplot2
 #' @export
 #'
 #' @examples
@@ -589,8 +591,6 @@ Surv_Plots = function(surv_db,
                       dailybin = TRUE,
                       plot = "both",
                       colours = NULL) {
-
-  library(ggplot2)
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
 
