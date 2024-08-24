@@ -8,8 +8,8 @@ Description: Functions for simulations, power calculations, prediction, plot and
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/sean4andrew/safuncs2
-BugReports: https://github.com/sean4andrew/safuncs2/issues
+URL: https://github.com/sean4andrew/safuncs
+BugReports: https://github.com/sean4andrew/safuncs/issues
 Depends: 
     R (>= 2.10)
 RoxygenNote: 7.3.2
