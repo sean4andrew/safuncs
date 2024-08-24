@@ -495,6 +495,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #' @return A dataframe produced by combining the input mort data and generated rows of survivor data.
 #'
 #' @import dplyr
+#' @importFrom dplyr %>%
 #' @export
 #'
 #' @examples
