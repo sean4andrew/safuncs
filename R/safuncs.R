@@ -473,7 +473,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 
 #' @title Generate Survivor Data
 #'
-#' @description Returns a survival dataframe that includes rows representing every surviving fish based on the starting number of fish provided and the mortality count provided in a dataframe. To generate survivor data for tanks absent in the input dataframe, specify the arguments \code{tank_without_mort} and \code{trt_without_mort}.
+#' @description Produces a survival dataframe that includes rows representing every surviving fish based on the starting number of fish provided and the mortality count provided in a dataframe. Also able to generate rows of data for sampled fish. To generate survivor data for tanks absent in the input dataframe, specify the arguments \code{tank_without_mort} and \code{trt_without_mort}.
 #'
 #' @details The mort dataframe supplied as input should consist of the following 4 columns at minimum:
 #' * "Trt.ID" = Labels for treatment groups in the study.
@@ -483,25 +483,25 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #'
 #' Each row should represent one fish.
 #'
-#' For an example dataset, view \code{data(mort_db_ex)}.
+#' For an example dataframe, execute \code{data(mort_db_ex)} and view.
 #' @md
 #'
 #' @param mort_db A mort dataframe as described in \bold{Details}.
-#' @param starting_fish_count Value representing the starting number of fish per tank.
-#' @param today_tte Value representing the day or time-to-event the fish survived to. Value assigned to every row of survivor data generated.
-#' @param tank_without_mort A vector of strings specifying the tanks absent from \code{mort_db} for which to generate survivor data.
-#' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep the order the same.
+#' @param starting_fish_count Value representing the starting number of fish for every tank, OR, dataframe containing tank-specific starting fish counts (example: \code{data(starting_fish_count_ex)})
+#' @param today_tte Value representing the day or time-to-event the fish survived to, assigned to every row of survivor data generated.
+#' @param tank_without_mort A vector of strings specifying the tanks absent from \code{mort_db} for which to generate survivor/sampled data. Defaults to NULL.
+#' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep the order the same. Defaults to NULL.
 #'
 #' @return A dataframe produced by combining the input mort data and generated rows of survivor data.
 #'
-#' @import dplyr
-#' @importFrom dplyr %>%
+#' @import magrittr
 #' @export
 #'
 #' @examples
+#' data(mort_db_ex)
 #' Surv_Gen(mort_db = mort_db_ex,
-#'          today_tte = 54,
 #'          starting_fish_count = 100,
+#'          today_tte = 54,
 #'          tank_without_mort = c("C99", "C100"),
 #'          trt_without_mort = c("A", "B"))
 #'
@@ -513,7 +513,7 @@ Surv_Gen = function(mort_db,
 
   DB_Mort_Gensum = data.frame(mort_db %>%
                                 dplyr::group_by(Trt.ID, Tank.ID) %>%
-                                dplyr::summarise(Num_dead = n()))
+                                dplyr::summarise(Num_dead = dplyr::n()))
 
   if(!is.null(tank_without_mort) && !is.null(trt_without_mort)) {
     WM_DB = data.frame(Trt.ID = trt_without_mort,
@@ -522,11 +522,7 @@ Surv_Gen = function(mort_db,
     DB_Mort_Gensum = rbind(DB_Mort_Gensum, WM_DB)
   }
 
-  if(is.data.frame(starting_fish_count)) {
-    DB_Mort_Gensum = merge(DB_Mort_Gensum, starting_fish_count)
-  } else {DB_Mort_Gensum$starting_fish_count = starting_fish_count}
-
-  DB_Mort_Gensum$Num_alive = DB_Mort_Gensum$starting_fish_count - DB_Mort_Gensum$Num_dead
+  DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
   DB_Mort_Genalive$Status = 0
   DB_Mort_Genalive$TTE = today_tte
@@ -540,7 +536,7 @@ Surv_Gen = function(mort_db,
 
 #' Generate Survival Plots
 #'
-#' @description Uses survival data to produce a Kaplan-Meier Survival Plot and/or Hazard Time Plot. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.
+#' @description Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.
 #'
 #' @details The survival dataset should be a dataframe containing at least 4 different columns:
 #' * "Trt.ID" = Labels for treatment groups in the study.
@@ -548,11 +544,11 @@ Surv_Gen = function(mort_db,
 #' * "TTE" = Time to Event. Event depends on "Status".
 #' * "Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for survivors or those sampled and removed.
 #'
-#' Each row should represent one fish. For an example dataset, view \code{data(surv_db_ex)}.
+#' Each row should represent one fish. For an example dataframe, execute \code{data(surv_db_ex)} and view.
 #'
 #' For details on the statistical methodology used by \code{bshazard()}, refer to: \url{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}.
 #'
-#' General concept: the author first considers h(t) the hazard function in an event-count model: count(t) = h(t) * P(t) where P(t) is the number alive as a function of time. h(t) is modeled over time using basis splines. By assuming the basis spline curvatures have a normal distribution with mean 0 (a random effect), the author found that the curvature's variance can be estimated as a function of the degree of over-dispersion (phi) of counts. The author determined that the variance of curvatures (smoothness) is equal to phi divided by a denominator lambda representing the smoothness parameter. The user can specify phi or lambda which affects the variance of curvatures (smoothness) or can allow them to be estimated from the data.
+#' General concept: h(t) the hazard function is considered in an count model with the number of deaths as the response variable. I.e, death_count(t) = h(t) * P(t) where P(t) is the number alive as a function of time and h(t) is modeled over time using basis splines. The basis spline curvatures is assumed to have a normal distribution with mean 0 (a random effect). Based on this assumption, the author found that the variance of curvatures (i.e. smoothness) can be estimated as a function of over-dispersion (phi) of the death counts. Specifically, variance of curvatures = phi / lambda(smoothness parameter). Phi and lambda can be estimated from the data or specified by the user. Specification can be helpful in low sample size cases where estimates can be unreliable.
 #' @md
 #'
 #' @param surv_db A survival dataframe as described in \bold{Details}.
@@ -560,11 +556,12 @@ Surv_Gen = function(mort_db,
 #' @param xlim A vector specifying the plots x-axis lower and upper limits, respectively.
 #' @param ylim A vector specifying the Survival Plot y-axis lower and upper limits, respectively.
 #' @param xlab A string specifying the plot x-axis label.
-#' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
-#' @param phi Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate phi; recommended for large sample size situations. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (phi ~ 0.8-1.4) in Onda where there are large sample sizes with tank-replication. The value of 1 indicates counts (deaths) vary as "expected" (Poisson) according to the different hazard values along the hazard curve, and are not overdispersed (phi > 1).
+#' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
+#' @param phi Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate phi; NULL specification is recommended for large sample size situations. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (QCATC997; phi ~ 0.8-1.4) where there are large sample sizes with tank-replication. The phi value of 1 indicates the set of counts (deaths) over time have a Poisson distribution, following the different hazard rates along the curve and are not overdispersed (phi > 1).
 #' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE at large sample sizes with tank-replication. Defaults to TRUE.
 #' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
 #' @param colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
+#' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
 #'
 #' @return If \code{plot == "surv"}, returns a ggplot2 object reflecting the Kaplan-Meier Survival Curve.
 #' If \code{plot == "haz"}, returns a ggplot2 object reflecting the Hazard Curve.
@@ -574,6 +571,7 @@ Surv_Gen = function(mort_db,
 #' @export
 #'
 #' @examples
+#' data(surv_db_ex)
 #' Surv_Plots(surv_db = surv_db_ex,
 #'            plot_prefix = "QCATC777",
 #'            xlim = c(0, 50),
@@ -591,7 +589,8 @@ Surv_Plots = function(surv_db,
                       phi = NULL,
                       dailybin = TRUE,
                       plot = "both",
-                      colours = NULL) {
+                      colours = NULL,
+                      theme = "ggplot") {
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
 
@@ -609,8 +608,10 @@ Surv_Plots = function(surv_db,
                                     xlab = xlab,
                                     surv.scale = "percent")
   Survival_Plot = surv_plot$plot + theme(legend.position = "right") + guides(color = guide_legend("Trt.ID"))
+  #eoffice::topptx(figure = Survival_Plot, filename = paste(plot_prefix, "Survival Curve.pptx", width = 6, height = 4))
 
   if(!is.null(colours)) {Survival_Plot = Survival_Plot + scale_color_manual(values = colours)}
+  if(theme == "prism") {Survival_Plot = Survival_Plot + ggprism::theme_prism()}
   ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Survival_Plot)
 
   }
@@ -619,7 +620,6 @@ Surv_Plots = function(surv_db,
   if(dailybin == FALSE) {dbin <- NULL}
 
   #Create Haz_list
-
   if(plot == "haz" | plot == "both") {
   Haz_list = list()
   for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
@@ -654,8 +654,9 @@ Surv_Plots = function(surv_db,
                        limits = xlim)
 
   if(!is.null(colours)) {Hazard_Plot = Hazard_Plot + scale_color_manual(values = colours)}
+  if(theme == "prism") {Hazard_Plot = Hazard_Plot + ggprism::theme_prism()}
   ggsave(paste(plot_prefix, "Hazard Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Hazard_Plot)
-
+  #eoffice::topptx(figure = Hazard_Plot, filename = paste(plot_prefix, "Hazard Curve.pptx", width = 6, height = 4))
   }
 
   if(plot == "surv") {return(Survival_Plot)}

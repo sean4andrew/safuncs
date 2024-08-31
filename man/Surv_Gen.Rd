@@ -15,19 +15,19 @@ Surv_Gen(
 \arguments{
 \item{mort_db}{A mort dataframe as described in \bold{Details}.}
 
-\item{starting_fish_count}{Value representing the starting number of fish per tank.}
+\item{starting_fish_count}{Value representing the starting number of fish for every tank, OR, dataframe containing tank-specific starting fish counts (example: \code{data(starting_fish_count_ex)})}
 
-\item{today_tte}{Value representing the day or time-to-event the fish survived to. Value assigned to every row of survivor data generated.}
+\item{today_tte}{Value representing the day or time-to-event the fish survived to, assigned to every row of survivor data generated.}
 
-\item{tank_without_mort}{A vector of strings specifying the tanks absent from \code{mort_db} for which to generate survivor data.}
+\item{tank_without_mort}{A vector of strings specifying the tanks absent from \code{mort_db} for which to generate survivor/sampled data. Defaults to NULL.}
 
-\item{trt_without_mort}{A vector of strings corresponding to \code{tank_without_mort}. Keep the order the same.}
+\item{trt_without_mort}{A vector of strings corresponding to \code{tank_without_mort}. Keep the order the same. Defaults to NULL.}
 }
 \value{
 A dataframe produced by combining the input mort data and generated rows of survivor data.
 }
 \description{
-Returns a survival dataframe that includes rows representing every surviving fish based on the starting number of fish provided and the mortality count provided in a dataframe. To generate survivor data for tanks absent in the input dataframe, specify the arguments \code{tank_without_mort} and \code{trt_without_mort}.
+Produces a survival dataframe that includes rows representing every surviving fish based on the starting number of fish provided and the mortality count provided in a dataframe. Also able to generate rows of data for sampled fish. To generate survivor data for tanks absent in the input dataframe, specify the arguments \code{tank_without_mort} and \code{trt_without_mort}.
 }
 \details{
 The mort dataframe supplied as input should consist of the following 4 columns at minimum:
@@ -40,12 +40,13 @@ The mort dataframe supplied as input should consist of the following 4 columns a
 
 Each row should represent one fish.
 
-For an example dataset, view \code{data(mort_db_ex)}.
+For an example dataframe, execute \code{data(mort_db_ex)} and view.
 }
 \examples{
+data(mort_db_ex)
 Surv_Gen(mort_db = mort_db_ex,
-         today_tte = 54,
          starting_fish_count = 100,
+         today_tte = 54,
          tank_without_mort = c("C99", "C100"),
          trt_without_mort = c("A", "B"))
 
