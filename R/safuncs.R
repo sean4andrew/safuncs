@@ -487,7 +487,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #' @md
 #'
 #' @param mort_db A mort dataframe as described in \bold{Details}.
-#' @param starting_fish_count Value representing the starting number of fish for every tank, OR, dataframe containing tank-specific starting fish counts (example: \code{data(starting_fish_count_ex)})
+#' @param starting_fish_count Value representing the starting number of fish for every tank.
 #' @param today_tte Value representing the day or time-to-event the fish survived to, assigned to every row of survivor data generated.
 #' @param tank_without_mort A vector of strings specifying the tanks absent from \code{mort_db} for which to generate survivor/sampled data. Defaults to NULL.
 #' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep the order the same. Defaults to NULL.
@@ -526,7 +526,7 @@ Surv_Gen = function(mort_db,
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
   DB_Mort_Genalive$Status = 0
   DB_Mort_Genalive$TTE = today_tte
-  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[, -c(3:5)])
+  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[, -c(3:4)])
 
   return(DB_Mort_Gencomb)
 }
@@ -608,7 +608,7 @@ Surv_Plots = function(surv_db,
                                     xlab = xlab,
                                     surv.scale = "percent")
   Survival_Plot = surv_plot$plot + theme(legend.position = "right") + guides(color = guide_legend("Trt.ID"))
-  #eoffice::topptx(figure = Survival_Plot, filename = paste(plot_prefix, "Survival Curve.pptx", width = 6, height = 4))
+  eoffice::topptx(figure = Survival_Plot, filename = paste(plot_prefix, "Survival Curve.pptx"), width = 6, height = 4)
 
   if(!is.null(colours)) {Survival_Plot = Survival_Plot + scale_color_manual(values = colours)}
   if(theme == "prism") {Survival_Plot = Survival_Plot + ggprism::theme_prism()}
@@ -656,7 +656,7 @@ Surv_Plots = function(surv_db,
   if(!is.null(colours)) {Hazard_Plot = Hazard_Plot + scale_color_manual(values = colours)}
   if(theme == "prism") {Hazard_Plot = Hazard_Plot + ggprism::theme_prism()}
   ggsave(paste(plot_prefix, "Hazard Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Hazard_Plot)
-  #eoffice::topptx(figure = Hazard_Plot, filename = paste(plot_prefix, "Hazard Curve.pptx", width = 6, height = 4))
+  eoffice::topptx(figure = Hazard_Plot, filename = paste(plot_prefix, "Hazard Curve.pptx"), width = 6, height = 4)
   }
 
   if(plot == "surv") {return(Survival_Plot)}

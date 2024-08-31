@@ -15,7 +15,7 @@ Surv_Gen(
 \arguments{
 \item{mort_db}{A mort dataframe as described in \bold{Details}.}
 
-\item{starting_fish_count}{Value representing the starting number of fish for every tank, OR, dataframe containing tank-specific starting fish counts (example: \code{data(starting_fish_count_ex)})}
+\item{starting_fish_count}{Value representing the starting number of fish for every tank.}
 
 \item{today_tte}{Value representing the day or time-to-event the fish survived to, assigned to every row of survivor data generated.}
 
