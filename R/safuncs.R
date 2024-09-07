@@ -473,7 +473,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 
 #' @title Generate Survivor Data
 #'
-#' @description Produces a survival dataframe that includes rows representing every surviving fish based on the starting number of fish and mortality data. To generate survivor data for tanks absent in the input dataframe, specify arguments \code{tank_without_mort} and \code{trt_without_mort}.
+#' @description Produces a survival dataframe that includes rows representing every surviving fish based on the starting number of fish and mortality data.
 #'
 #' @details The mort dataframe supplied as input should consist of the following 4 columns at minimum:
 #' * "Trt.ID" = Labels for treatment groups in the study.
@@ -487,10 +487,10 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #' @md
 #'
 #' @param mort_db A mort dataframe as described in \bold{Details}.
-#' @param starting_fish_count Value representing the starting number of fish for every tank.
+#' @param starting_fish_count Value representing the starting number of fish for every tank. Alternatively, a dataframe containing the columns "Trt.ID", "Tank.ID", and "starting_fish_count" to allow for different fish starting numbers per tank.
 #' @param today_tte Value representing the day or time-to-event the fish survived to, assigned to every row of survivor data generated.
-#' @param tank_without_mort A vector of strings specifying the tanks absent from \code{mort_db} for which to generate survivor/sampled data. Defaults to NULL.
-#' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep the order the same. Defaults to NULL.
+#' @param tank_without_mort A vector of strings specifying the tanks absent from \code{mort_db}; used to generate survivor data for those tanks. Argument ignored if \code{starting_fish_count} is a dataframe.
+#' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep their order the same. Argument ignored if \code{starting_fish_count} is a dataframe.
 #'
 #' @return A dataframe produced by combining the input mort data and generated rows of survivor data.
 #'
@@ -522,7 +522,12 @@ Surv_Gen = function(mort_db,
     DB_Mort_Gensum = rbind(DB_Mort_Gensum, WM_DB)
   }
 
-  DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead
+  if(is.data.frame(starting_fish_count)) {
+    DB_Mort_Gensum = merge(DB_Mort_Gensum, starting_fish_count)
+    DB_Mort_Gensum$Num_alive = DB_Mort_Gensum$starting_fish_count - DB_Mort_Gensum$Num_dead
+    DB_Mort_Gensum = DB_Mort_Gensum[, -3]
+  } else {DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead}
+
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
   DB_Mort_Genalive$Status = 0
   DB_Mort_Genalive$TTE = today_tte

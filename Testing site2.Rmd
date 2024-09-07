@@ -15,29 +15,43 @@ use_package()
 ```
 
 ```{r}
-Surv_Gen = function(mort_db = db_mort_ex, 
-                    today_tte,
-                    tank_without_mort,
-                    trt_without_mort,
-                    starting_fish_count) {
+mort_db = mort_db_ex 
+today_tte = 76
+starting_fish_count = 100
+tank_without_mort = c("C99", "C100")
+trt_without_mort = c("A", "B")
 
-  DB_Mort_Gensum = data.frame(mort_db %>%
+starting_fish_count = data.frame(Trt.ID = rep(c("A", "B", "C", "D"), each = 3), 
+                                 Tank.ID = c("C2", "C14", "C9", "C1", "C11", "C6", "C12", "C15", "C3", "C4", "C5", "C8"),
+                                 starting_fish_count = c(99, rep(100, 11)))
+
+ DB_Mort_Gensum = data.frame(mort_db %>%
                                 dplyr::group_by(Trt.ID, Tank.ID) %>%
-                                dplyr::summarise(Num_dead = n()))
-  
-  WM_DB = data.frame(Trt.ID = trt_without_mort,
-                     Tank.ID = tank_without_mort,
-                     Num_dead = 0)
-  DB_Mort_Gensum = rbind(DB_Mort_Gensum, WM_DB)
-  
-  DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead
+                                dplyr::summarise(Num_dead = dplyr::n()))
+
+  if(!is.null(tank_without_mort) && !is.null(trt_without_mort)) {
+    WM_DB = data.frame(Trt.ID = trt_without_mort,
+                       Tank.ID = tank_without_mort,
+                       Num_dead = 0)
+    DB_Mort_Gensum = rbind(DB_Mort_Gensum, WM_DB)
+  }
+
+  if(is.data.frame(starting_fish_count)) {
+    DB_Mort_Gensum = merge(starting_fish_count, DB_Mort_Gensum)
+    DB_Mort_Gensum$Num_alive = DB_Mort_Gensum$starting_fish_count - DB_Mort_Gensum$Num_dead
+    DB_Mort_Gensum = DB_Mort_Gensum[, -3]
+  } else {DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead}
+
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
   DB_Mort_Genalive$Status = 0
   DB_Mort_Genalive$TTE = today_tte
-  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[,-c(3:4)])
+  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[, -c(3:4)])
 
-  return(DB_Mort_Gencomb)
-}
+View(DB_Mort_Gencomb)
+
+Surv_Gen(mort_db = mort_db_ex, 
+today_tte = 76,
+starting_fish_count = 100)
 ```
 
 ## Heading 2

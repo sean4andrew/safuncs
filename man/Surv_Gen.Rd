@@ -15,19 +15,19 @@ Surv_Gen(
 \arguments{
 \item{mort_db}{A mort dataframe as described in \bold{Details}.}
 
-\item{starting_fish_count}{Value representing the starting number of fish for every tank.}
+\item{starting_fish_count}{Value representing the starting number of fish for every tank. Alternatively, a dataframe containing the columns "Trt.ID", "Tank.ID", and "starting_fish_count" to allow for different fish starting numbers per tank.}
 
 \item{today_tte}{Value representing the day or time-to-event the fish survived to, assigned to every row of survivor data generated.}
 
-\item{tank_without_mort}{A vector of strings specifying the tanks absent from \code{mort_db} for which to generate survivor/sampled data. Defaults to NULL.}
+\item{tank_without_mort}{A vector of strings specifying the tanks absent from \code{mort_db}; used to generate survivor data for those tanks. Argument ignored if \code{starting_fish_count} is a dataframe.}
 
-\item{trt_without_mort}{A vector of strings corresponding to \code{tank_without_mort}. Keep the order the same. Defaults to NULL.}
+\item{trt_without_mort}{A vector of strings corresponding to \code{tank_without_mort}. Keep their order the same. Argument ignored if \code{starting_fish_count} is a dataframe.}
 }
 \value{
 A dataframe produced by combining the input mort data and generated rows of survivor data.
 }
 \description{
-Produces a survival dataframe that includes rows representing every surviving fish based on the starting number of fish and mortality data. To generate survivor data for tanks absent in the input dataframe, specify arguments \code{tank_without_mort} and \code{trt_without_mort}.
+Produces a survival dataframe that includes rows representing every surviving fish based on the starting number of fish and mortality data.
 }
 \details{
 The mort dataframe supplied as input should consist of the following 4 columns at minimum:
