@@ -379,7 +379,7 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 #' Predict Survival Rate
 #' @description Predict survival rate for a given survival dataset provided a reference survival database used to estimate a reference hazard curve. Prediction done seperately by treatment group.
 #'
-#' @details P
+#' @details Test changes version 1.0.1
 #'
 #' @param pred_db Placeholder
 #' @param ref_db Placeholder

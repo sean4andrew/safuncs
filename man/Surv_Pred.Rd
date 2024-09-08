@@ -34,7 +34,7 @@ Placeholder
 Predict survival rate for a given survival dataset provided a reference survival database used to estimate a reference hazard curve. Prediction done seperately by treatment group.
 }
 \details{
-P
+Test changes version 1.0.1
 }
 \examples{
 Placeholder
