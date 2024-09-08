@@ -581,6 +581,7 @@ Surv_Gen = function(mort_db,
 #' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
 #' @param colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
 #' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
+#' @param skip_error Whether to skip the plotting of treatment groups with errors in hazard curve estimation from \code{bshazard()}. Defaults to FALSE.
 #'
 #' @return If \code{plot == "surv"}, returns a ggplot2 object reflecting the Kaplan-Meier Survival Curve.
 #' If \code{plot == "haz"}, returns a ggplot2 object reflecting the Hazard Curve.
@@ -609,7 +610,8 @@ Surv_Plots = function(surv_db,
                       dailybin = TRUE,
                       plot = "both",
                       colours = NULL,
-                      theme = "ggplot") {
+                      theme = "ggplot",
+                      skip_error = FALSE) {
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
 
@@ -644,21 +646,39 @@ Surv_Plots = function(surv_db,
   for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
     surv_db_trt = surv_db[surv_db$Trt.ID == Haz_Trt,]
     if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
-      Haz_bs = tryCatch(suppressWarnings(bshazard::bshazard(nbin = dbin,
-                                                            data = surv_db_trt,
-                                                            survival::Surv(TTE, Status) ~ Tank.ID,
-                                                            verbose = FALSE,
-                                                            lambda = lambda,
-                                                            phi = phi)),
-                        error = function(e) {Haz_bs = data.frame(time = NA, hazard = NA)})
+      if(skip_error == TRUE) {
+        Haz_bs = tryCatch(suppressWarnings(bshazard::bshazard(nbin = dbin,
+                                                              data = surv_db_trt,
+                                                              survival::Surv(TTE, Status) ~ Tank.ID,
+                                                              verbose = FALSE,
+                                                              lambda = lambda,
+                                                              phi = phi)),
+                          error = function(e) {Haz_bs = data.frame(time = NA, hazard = NA)})
+      } else {
+        Haz_bs = bshazard::bshazard(nbin = dbin,
+                                    data = surv_db_trt,
+                                    survival::Surv(TTE, Status) ~ Tank.ID,
+                                    verbose = FALSE,
+                                    lambda = lambda,
+                                    phi = phi)
+      }
     } else {
-      Haz_bs = tryCatch(suppressWarnings(bshazard::bshazard(nbin = dbin,
-                                                            data = surv_db_trt,
-                                                            survival::Surv(TTE, Status) ~ 1,
-                                                            verbose = FALSE,
-                                                            lambda = lambda,
-                                                            phi = phi)),
-                        error = function(e) {Haz_bs = data.frame(time = NA, hazard = NA)})
+      if(skip_error == TRUE) {
+        Haz_bs = tryCatch(suppressWarnings(bshazard::bshazard(nbin = dbin,
+                                                              data = surv_db_trt,
+                                                              survival::Surv(TTE, Status) ~ 1,
+                                                              verbose = FALSE,
+                                                              lambda = lambda,
+                                                              phi = phi)),
+                          error = function(e) {Haz_bs = data.frame(time = NA, hazard = NA)})
+      } else {
+        Haz_bs = bshazard::bshazard(nbin = dbin,
+                                    data = surv_db_trt,
+                                    survival::Surv(TTE, Status) ~ 1,
+                                    verbose = FALSE,
+                                    lambda = lambda,
+                                    phi = phi)
+      }
     }
     Haz_list[[Haz_Trt]] = data.frame(Hazard = Haz_bs$hazard,
                                      Time = Haz_bs$time)

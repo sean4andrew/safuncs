@@ -15,7 +15,8 @@ Surv_Plots(
   dailybin = TRUE,
   plot = "both",
   colours = NULL,
-  theme = "ggplot"
+  theme = "ggplot",
+  skip_error = FALSE
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ Surv_Plots(
 \item{colours}{Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.}
 
 \item{theme}{Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".}
+
+\item{skip_error}{Whether to skip the plotting of treatment groups with errors in hazard curve estimation from \code{bshazard()}. Defaults to FALSE.}
 }
 \value{
 If \code{plot == "surv"}, returns a ggplot2 object reflecting the Kaplan-Meier Survival Curve.
