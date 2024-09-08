@@ -1,7 +1,7 @@
 Package: safuncs
 Type: Package
 Title: Functions for Biological Research
-Version: 1.0.1
+Version: 1.0.2
 Author: Sean Andrew
 Maintainer: Sean Andrew <sean4andrew@gmail.com>
 Description: Functions for simulations, power calculations, prediction, plot and data generation.

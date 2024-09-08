@@ -377,7 +377,7 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 ################################################## Function 5 - Surv_Pred() #######################################################
 
 #' Predict Survival Rate
-#' @description Predict survival rate for a given survival dataset provided a reference survival database used to estimate a reference hazard curve. Prediction done seperately by treatment group.
+#' @description Predict survival rate for a given survival dataset. Prediction based of comparison of hazard curves in present vs past dataset.
 #'
 #' @details Test changes version 1.0.1
 #'
@@ -487,7 +487,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 
 #' @title Generate Survivor Data
 #'
-#' @description Produces a survival dataframe that includes rows representing every surviving fish based on the starting number of fish and mortality data.
+#' @description Produces survivor data with rows representing surviving fish. Based on a given starting number of fish per tank and mortality data.
 #'
 #' @details The mort dataframe supplied as input should consist of the following 4 columns at minimum:
 #' * "Trt.ID" = Labels for treatment groups in the study.
@@ -555,7 +555,7 @@ Surv_Gen = function(mort_db,
 
 #' Generate Survival Plots
 #'
-#' @description Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.
+#' @description Produces a Kaplan-Meier Survival Plot and/or Hazard Plot from the supplied survival data. Each plot contains multiple curves for different treatment groups. Saves plots in the working directory.
 #'
 #' @details The survival dataset should be a dataframe containing at least 4 different columns:
 #' * "Trt.ID" = Labels for treatment groups in the study.

@@ -31,7 +31,7 @@ Surv_Pred(
 Placeholder
 }
 \description{
-Predict survival rate for a given survival dataset provided a reference survival database used to estimate a reference hazard curve. Prediction done seperately by treatment group.
+Predict survival rate for a given survival dataset. Prediction based of comparison of hazard curves in present vs past dataset.
 }
 \details{
 Test changes version 1.0.1
