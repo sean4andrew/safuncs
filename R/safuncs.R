@@ -285,15 +285,29 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @export
 
 ###################################################################################################################################
-################################################### Function 3 - Simul_SURV() #####################################################
+################################################### Function 3 - Surv_Simul() #####################################################
 
-Simul_SURV = function(Haz_DB = Simul_SURV_Haz_DB, #object from bshazard() as reference hazard function. See data(Simul_SURV_Haz_DB)
+#' @title Simulate Survival Data
+#'
+#' @description Not yet available
+#'
+#' @param Haz_DB Description not yet available
+#' @param fish_num_per_tank Description not yet available
+#' @param tank_num_per_trt Description not yet available
+#' @param Treatments_HR Description not yet available
+#' @param logHR_sd_intertank Description not yet available
+#' @param integer_days Description not yet available
+#'
+#' @return A simulated survival dataset.
+#' @export
+#'
+#' @examples Not yet available
+Surv_Simul = function(Haz_DB,
                       fish_num_per_tank = 100,
-                      tank_num_per_trt = 4,
-                      Treatments_HR = c(1, 1, 1, 1), #HR for treatment groups, starting from control (1)
-                      logHR_sd_intertank = 0.35, #inter-tank variation (sd) in HR in the log-scale
-                      round_digits_days = 0) { #Time is rounded to Days (i.e. fish cannot die at Day 1.4 or any other decimal)
-  require(devtools)
+                      tank_num_per_trt = 3,
+                      Treatments_HR = c(1, 1, 1, 1),
+                      logHR_sd_intertank = 0,
+                      integer_days = TRUE) {
   CDF_Yval = c()
 
   for(Treatment_Term in Treatments_HR) {
@@ -302,6 +316,7 @@ Simul_SURV = function(Haz_DB = Simul_SURV_Haz_DB, #object from bshazard() as ref
 
       Tank_eff = rnorm(n = 1, mean = 0, sd = logHR_sd_intertank)
 
+      #Inverse CDF method for simulations
       U = runif(n = fish_num_per_tank, min = 0, max = 1)
 
       CDF_Yval_temp = -log(U) * exp(-(log(Treatment_Term) + Tank_eff))
@@ -311,17 +326,16 @@ Simul_SURV = function(Haz_DB = Simul_SURV_Haz_DB, #object from bshazard() as ref
 
   #Get Time to Event
   TTE = approx(x = cumsum(Haz_DB$hazard), y = Haz_DB$time, xout = CDF_Yval, method = "linear")$y
-  TTE = round(TTE, digits = round_digits_days)
+  if(integer_days == TRUE) {TTE <- round(TTE, digits = 0)}
 
   #Turn NA (from out of bound CDF_Yval) to the last follow up time
   TTE = ifelse(is.na(TTE), max(Haz_DB$time), TTE)
 
   #Label Status (1 - dead, or 0 - survived) given TTE
-  Surv_simul_DB = data.frame(TimetoEvent = TTE,
-                             CDF_Yval = CDF_Yval,
-                             Status = ifelse(TTE == max(Haz_DB$time), 0, 1),
-                             Treatment_G = as.factor(rep(LETTERS[1:length(Treatments_HR)], each = fish_num_per_tank * tank_num_per_trt)),
-                             Tank_num = as.factor(rep(1:(length(Treatments_HR) * tank_num_per_trt), each = fish_num_per_tank)))
+  Surv_simul_DB = data.frame(Tank.ID = as.factor(rep(1:(length(Treatments_HR) * tank_num_per_trt), each = fish_num_per_tank)),
+                             Trt.ID = as.factor(rep(LETTERS[1:length(Treatments_HR)], each = fish_num_per_tank * tank_num_per_trt)),
+                             TTE = TTE,
+                             Status = ifelse(TTE == max(Haz_DB$time), 0, 1))
 
   return(Surv_simul_DB)
 }
