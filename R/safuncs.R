@@ -487,7 +487,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 
 #' @title Generate Survivor Data
 #'
-#' @description Produces survivor data with rows representing surviving fish. Based on a given starting number of fish per tank and mortality data.
+#' @description Produces a survivor dataframe that includes rows representing surviving fish. Number of rows generated depends on the given starting number of fish and mortality data.
 #'
 #' @details The mort dataframe supplied as input should consist of the following 4 columns at minimum:
 #' * "Trt.ID" = Labels for treatment groups in the study.
@@ -555,7 +555,7 @@ Surv_Gen = function(mort_db,
 
 #' Generate Survival Plots
 #'
-#' @description Produces a Kaplan-Meier Survival Plot and/or Hazard Plot from the supplied survival data. Each plot contains multiple curves for different treatment groups. Saves plots in the working directory.
+#' @description Produces a Kaplan-Meier Survival Plot and/or Hazard Plot from the given survival data. Each plot contains multiple curves for the different treatment groups. Saves plots automatically in the working directory.
 #'
 #' @details The survival dataset should be a dataframe containing at least 4 different columns:
 #' * "Trt.ID" = Labels for treatment groups in the study.

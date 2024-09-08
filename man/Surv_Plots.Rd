@@ -50,7 +50,7 @@ If \code{plot == "haz"}, returns a ggplot2 object reflecting the Hazard Curve.
 If \code{plot == "both"}, returns both ggplot2 objects in a list.
 }
 \description{
-Produces a Kaplan-Meier Survival Plot and/or Hazard Plot from the supplied survival data. Each plot contains multiple curves for different treatment groups. Saves plots in the working directory.
+Produces a Kaplan-Meier Survival Plot and/or Hazard Plot from the given survival data. Each plot contains multiple curves for the different treatment groups. Saves plots automatically in the working directory.
 }
 \details{
 The survival dataset should be a dataframe containing at least 4 different columns:
