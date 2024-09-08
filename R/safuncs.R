@@ -644,19 +644,21 @@ Surv_Plots = function(surv_db,
   for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
     surv_db_trt = surv_db[surv_db$Trt.ID == Haz_Trt,]
     if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
-      Haz_bs = bshazard::bshazard(nbin = dbin,
-                                  data = surv_db_trt,
-                                  survival::Surv(TTE, Status) ~ Tank.ID,
-                                  verbose = FALSE,
-                                  lambda = lambda,
-                                  phi = phi)
+      Haz_bs = tryCatch(suppressWarnings(bshazard::bshazard(nbin = dbin,
+                                                            data = surv_db_trt,
+                                                            survival::Surv(TTE, Status) ~ Tank.ID,
+                                                            verbose = FALSE,
+                                                            lambda = lambda,
+                                                            phi = phi)),
+                        error = function(e) {Haz_bs = data.frame(time = NA, hazard = NA)})
     } else {
-      Haz_bs = bshazard::bshazard(nbin = dbin,
-                                  data = surv_db_trt,
-                                  survival::Surv(TTE, Status) ~ 1,
-                                  verbose = FALSE,
-                                  lambda = lambda,
-                                  phi = phi)
+      Haz_bs = tryCatch(suppressWarnings(bshazard::bshazard(nbin = dbin,
+                                                            data = surv_db_trt,
+                                                            survival::Surv(TTE, Status) ~ 1,
+                                                            verbose = FALSE,
+                                                            lambda = lambda,
+                                                            phi = phi)),
+                        error = function(e) {Haz_bs = data.frame(time = NA, hazard = NA)})
     }
     Haz_list[[Haz_Trt]] = data.frame(Hazard = Haz_bs$hazard,
                                      Time = Haz_bs$time)
