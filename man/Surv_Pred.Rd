@@ -2,40 +2,51 @@
 % Please edit documentation in R/safuncs.R
 \name{Surv_Pred}
 \alias{Surv_Pred}
-\title{Predict Survival Rate}
+\title{Predict End Survival}
 \usage{
 Surv_Pred(
   pred_db,
+  pred_tte,
   ref_db,
-  predsr_tte,
+  coxph_mod = "GEE",
+  simul = FALSE,
   method = 2,
-  coxph_mod = "GLMM",
-  lambda_pred = NULL,
-  phi_pred = NULL
+  lambda = NULL,
+  phi = NULL,
+  pred_history = FALSE
 )
 }
 \arguments{
-\item{pred_db}{Placeholder}
+\item{pred_db}{The dataframe with end survival to be predicted. The survival dataframe should contains columns as described in \code{Surv_Plots()}, and can be the output of \code{Surv_Gen()}}
 
-\item{ref_db}{Placeholder}
+\item{pred_tte}{The TTE for the predicted end survival.}
 
-\item{predsr_tte}{Placeholder}
+\item{ref_db}{The reference survival dataframe. The survival dataframe should contains columns as described in \code{Surv_Plots()}, and can be the output of \code{Surv_Gen()}}
 
-\item{method}{Placeholder}
+\item{coxph_mod}{Method/model to estimate the hazard ratio between the provided survival data (\code{pred_db}) and the reference (\code{ref_db}). Options "GLMM" and "GEE" (default) are available.}
 
-\item{coxph_mod}{Placeholder}
+\item{simul}{Whether to use raw data from ref_db as the reference or regenerated data from ref_db. Regenerated data is less susceptible to noise present in ref_db. Defaults to TRUE.}
 
-\item{lambda_pred}{Placeholder}
+\item{method}{Method used to estimate cumulative hazard for predicting end survival rate. Detailed description not yet available. Methods 1 and 2 (default) are available.}
+
+\item{lambda}{lambda parameter for estimation of hazard curve of pred_db. Only applicable for \code{method = 2}. Defaults to NULL (estimated from the data).}
+
+\item{phi}{phi parameter for estimation of hazard curve of pred_db. Only applicable for \code{method = 2}. Defaults to NULL (estimated from the data).}
+
+\item{pred_history}{Whether to show the prediction history, i.e. the predictions when different sets of TTEs are in \code{pred_db} as the survival study progresses. Defaults to FALSE, meaning only one prediction (per treatment) is produced based on all TTEs in \code{pred_db}.}
 }
 \value{
-Placeholder
+If \code{pred_history = FALSE}, a dataframe containing predicted end survival rate for each treatment group and their hazard ratios compared to the reference in \code{ref_db}. If \code{pred_history = TRUE}, additionally returns a plot containing the predicted end survival rate and hazard ratios across available TTEs in \code{pred_db}; returned as a list comprising of a dataframe and two ggplot objects.
 }
 \description{
-Predict survival rate for a given survival dataset. Prediction based of comparison of hazard curves in present vs past dataset.
-}
-\details{
-Test changes version 1.0.1
+Predict end survival rate for a dataset given a reference survival data.
 }
 \examples{
-Placeholder
+Surv_Pred(pred_db = Ten_Surv_DB, #example dataset currently not available
+          pred_tte = 59,
+          ref_db = Ref_Ten_DBControl2, #example dataset currently not available
+          coxph_mod = "GEE",
+          simul = TRUE,
+          method = 2)
+
 }

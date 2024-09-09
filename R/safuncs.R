@@ -376,39 +376,59 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 ###################################################################################################################################
 ################################################## Function 5 - Surv_Pred() #######################################################
 
-#' Predict Survival Rate
-#' @description Predict survival rate for a given survival dataset. Prediction based of comparison of hazard curves in present vs past dataset.
+#' @title Predict End Survival
 #'
-#' @details Test changes version 1.0.1
+#' @description Predict end survival rate for a dataset given a reference survival data.
 #'
-#' @param pred_db Placeholder
-#' @param ref_db Placeholder
-#' @param predsr_tte Placeholder
-#' @param method Placeholder
-#' @param coxph_mod Placeholder
-#' @param lambda_pred Placeholder
+#' @param pred_db The dataframe with end survival to be predicted. The survival dataframe should contains columns as described in \code{Surv_Plots()}, and can be the output of \code{Surv_Gen()}
+#' @param pred_tte The TTE for the predicted end survival.
+#' @param ref_db The reference survival dataframe. The survival dataframe should contains columns as described in \code{Surv_Plots()}, and can be the output of \code{Surv_Gen()}
+#' @param coxph_mod Method/model to estimate the hazard ratio between the provided survival data (\code{pred_db}) and the reference (\code{ref_db}). Options "GLMM" and "GEE" (default) are available.
+#' @param simul Whether to use raw data from ref_db as the reference or regenerated data from ref_db. Regenerated data is less susceptible to noise present in ref_db. Defaults to TRUE.
+#' @param method Method used to estimate cumulative hazard for predicting end survival rate. Detailed description not yet available. Methods 1 and 2 (default) are available.
+#' @param lambda lambda parameter for estimation of hazard curve of pred_db. Only applicable for \code{method = 2}. Defaults to NULL (estimated from the data).
+#' @param phi phi parameter for estimation of hazard curve of pred_db. Only applicable for \code{method = 2}. Defaults to NULL (estimated from the data).
+#' @param pred_history Whether to show the prediction history, i.e. the predictions when different sets of TTEs are in \code{pred_db} as the survival study progresses. Defaults to FALSE, meaning only one prediction (per treatment) is produced based on all TTEs in \code{pred_db}.
 #'
-#' @return Placeholder
+#' @return If \code{pred_history = FALSE}, a dataframe containing predicted end survival rate for each treatment group and their hazard ratios compared to the reference in \code{ref_db}. If \code{pred_history = TRUE}, additionally returns a plot containing the predicted end survival rate and hazard ratios across available TTEs in \code{pred_db}; returned as a list comprising of a dataframe and two ggplot objects.
+#'
+#' @import ggplot2
 #' @export
 #'
-#' @examples Placeholder
-Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted. See \bold{Details} for specifics.
-                     ref_db, #Reference survival data from to create the reference hazard function.
-                     predsr_tte, #The day at which SR is to be predicted. Minimum is Day 5 post challenge.
-                     method = 2, #SR prediction method. See \bold{Details} for more info.
-                     coxph_mod = "GLMM", #Model used to estimate HR. Can be either "GLMM" or "GEE". See \bold{Details} for more info.
-                     lambda_pred = NULL, #Lambda parameter for the bshazard curve of the predicted dataset.
-                     phi_pred = NULL)
-{
+#' @examples
+#' Surv_Pred(pred_db = Ten_Surv_DB, #example dataset currently not available
+#'           pred_tte = 59,
+#'           ref_db = Ref_Ten_DBControl2, #example dataset currently not available
+#'           coxph_mod = "GEE",
+#'           simul = TRUE,
+#'           method = 2)
+#'
+Surv_Pred = function(pred_db,
+                     pred_tte,
+                     ref_db,
+                     coxph_mod = "GEE",
+                     simul = FALSE,
+                     method = 2,
+                     lambda = NULL,
+                     phi = NULL,
+                     pred_history = FALSE) {
 
   pred_db = pred_db[pred_db$TTE > 0, ] #ensure positive TTE
   ref_db = ref_db[ref_db$TTE > 0, ] #ensure positive TTE
 
   #Generate reference level bshazard curve
   ref_id = levels(as.factor(ref_db$Trt.ID))
-  ref_db$Trt.ID = paste("ref", ref_id)
   ref_bshaz = bshazard::bshazard(data = ref_db, survival::Surv(TTE, Status) ~ Tank.ID,
                                  verbose = FALSE)
+
+  #Regenerate ref_db using simulations
+  if(simul == TRUE) {
+    ref_db = Surv_Simul(Haz_DB = ref_bshaz, fish_num_per_tank = 10000, tank_num_per_trt = 5,
+                        Treatments_HR = 1, logHR_sd_intertank = 1e-8, integer_days = TRUE)
+  }
+
+  #add label to reference level
+  ref_db$Trt.ID = paste("ref", ref_id)
 
   #initialize dataframes
   pred_SR_DB = data.frame()
@@ -420,39 +440,43 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
     comb_db = rbind(ref_db, pred_db[pred_db$Trt.ID == pred_trt,])
     comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = paste("ref", ref_id))
 
-    #loop for every predictable day
-    for(SR_Day in 5:(predsr_tte-1)) {
+    #loop for every TTE in pred_db if pred_history == TRUE
+    for(SR_Day in if(pred_history == TRUE) {every_tte <- 1:max(pred_db$TTE)} else {every_tte <- max(pred_db$TTE)}) {
       comb_db2 = survival::survSplit(comb_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
       comb_db2 = comb_db2[comb_db2$Obs == 1, ]
 
       #Get HR
-      if(coxph_mod == "GLMM"){cox_comp = coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID),
-                                                      data = comb_db2)}
-      if(coxph_mod == "GEE"){cox_comp = survival::coxph(survival::Surv(TTE, Status) ~ Trt.ID, cluster = Tank.ID,
-                                                        data = comb_db2)}
-      pred_HR = exp(coef(cox_comp))
+      options(contrasts = c("contr.treatment", "contr.poly"))
+      if(coxph_mod == "GLMM"){cox_comp = tryCatch(coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID),
+                                                               data = comb_db2),
+                                                  warning = function(w){cox_comp = TRUE})}
+      if(coxph_mod == "GEE"){cox_comp = tryCatch(survival::coxph(survival::Surv(TTE, Status) ~ Trt.ID,
+                                                                 cluster = Tank.ID, data = comb_db2),
+                                                 warning = function(w){cox_comp = TRUE})}
+      ifelse(!is.list(cox_comp), pred_HR <- NA, pred_HR <- exp(coef(cox_comp)))
 
       #Get SR
-      ref_bshaz_t = data.frame(hazard = ref_bshaz$hazard[ref_bshaz$time < predsr_tte],
-                               time = ref_bshaz$time[ref_bshaz$time < predsr_tte])
+      ref_bshaz_t = data.frame(hazard = ref_bshaz$hazard[ref_bshaz$time < pred_tte],
+                               time = ref_bshaz$time[ref_bshaz$time < pred_tte])
 
       if(method == 1) {
         cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time),
-                                y = c(ref_bshaz_t$hazard) * pred_HR)
+                                y = c(ref_bshaz_t$hazard)) * pred_HR
         pred_SR = 100 * exp(-cumhaz)
       }
 
       if(method == 2) {
         pred_db2 = survival::survSplit(pred_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
         pred_db2 = pred_db2[pred_db2$Obs == 1, ]
-        pred_bshaz = bshazard::bshazard(data = droplevels(pred_db2[pred_db2$Trt.ID == pred_trt,]),
-                                        survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, lambda = lambda_pred)
+        pred_bshaz = tryCatch(suppressWarnings(bshazard::bshazard(data = droplevels(pred_db2[pred_db2$Trt.ID == pred_trt,]),
+                                                                  survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, lambda = lambda, phi = phi)),
+                              error = function(e) {pred_bshaz = data.frame(time = 0, hazard = 0)})
 
         cumhaz_precut = DescTools::AUC(x = c(pred_bshaz$time),
                                        y = c(pred_bshaz$hazard))
         ref_bshaz_t2 = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]
         cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time),
-                                        y = c(ref_bshaz_t2$hazard) * pred_HR)
+                                        y = c(ref_bshaz_t2$hazard)) * pred_HR
 
         if(is.na(cumhaz_postcut)) {cumhaz_postcut <- 0}
         pred_SR = 100 * exp(-(cumhaz_precut + cumhaz_postcut))
@@ -461,7 +485,11 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
       pred_SR_DB = rbind(pred_SR_DB, data.frame(Trt.ID = pred_trt, Observable_SR_Day = SR_Day, pred_SR, pred_HR))
     }
   }
+
+  #remove unreliable HRs or SRs
   row.names(pred_SR_DB) = NULL
+  pred_SR_DB$pred_HR[is.na(pred_SR_DB$pred_SR)] = NA
+  pred_SR_DB$pred_SR[is.na(pred_SR_DB$pred_HR)] = NA
 
   #create survival prediction plot
   library(ggplot2)
@@ -469,17 +497,17 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
     geom_point() +
     geom_line() +
     facet_wrap(~Trt.ID) +
-    scale_y_continuous(name = paste("Predicted Survival (%) on TTE = ", predsr_tte), breaks = seq(0, 100, 10), limits = c(0, 100)) +
-    scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, 1))
+    scale_y_continuous(name = paste("Predicted Survival (%) on TTE = ", pred_tte), breaks = seq(0, 100, 10), limits = c(0, 100)) +
+    scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, max(round(max(pred_db$TTE) / 15), 1)))
 
   Pred_HR_Plot = ggplot(data = pred_SR_DB, aes(x = Observable_SR_Day, y = pred_HR, color = Trt.ID)) +
     geom_point() +
     geom_line() +
     facet_wrap(~Trt.ID) +
-    scale_y_continuous(name = paste("Predicted HR ", predsr_tte)) +
-    scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, 1))
+    scale_y_continuous(name = paste("Predicted HR ", pred_tte)) +
+    scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, max(round(max(pred_db$TTE) / 15), 1)))
 
-  return(list(pred_SR_DB, Pred_SR_Plot, Pred_HR_Plot))
+  if(pred_history == TRUE) {return(list(pred_SR_DB, Pred_SR_Plot, Pred_HR_Plot))} else {return(pred_SR_DB)}
 }
 
 ###################################################################################################################################
