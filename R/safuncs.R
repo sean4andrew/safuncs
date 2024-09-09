@@ -384,7 +384,7 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 #' @param pred_tte The TTE for the predicted end survival.
 #' @param ref_db The reference survival dataframe. The survival dataframe should contains columns as described in \code{Surv_Plots()}, and can be the output of \code{Surv_Gen()}
 #' @param coxph_mod Method/model to estimate the hazard ratio between the provided survival data (\code{pred_db}) and the reference (\code{ref_db}). Options "GLMM" and "GEE" (default) are available.
-#' @param simul Whether to use raw data from ref_db as the reference or regenerated data from ref_db. Regenerated data is less susceptible to noise present in ref_db. Defaults to TRUE.
+#' @param simul Whether to use raw data from ref_db as the reference or regenerated data from \code{ref_db}. Regenerated data is less susceptible to noise present in \code{ref_db}. Defaults to TRUE.
 #' @param method Method used to estimate cumulative hazard for predicting end survival rate. Detailed description not yet available. Methods 1 and 2 (default) are available.
 #' @param lambda lambda parameter for estimation of hazard curve of pred_db. Only applicable for \code{method = 2}. Defaults to NULL (estimated from the data).
 #' @param phi phi parameter for estimation of hazard curve of pred_db. Only applicable for \code{method = 2}. Defaults to NULL (estimated from the data).

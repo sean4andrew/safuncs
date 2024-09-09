@@ -25,7 +25,7 @@ Surv_Pred(
 
 \item{coxph_mod}{Method/model to estimate the hazard ratio between the provided survival data (\code{pred_db}) and the reference (\code{ref_db}). Options "GLMM" and "GEE" (default) are available.}
 
-\item{simul}{Whether to use raw data from ref_db as the reference or regenerated data from ref_db. Regenerated data is less susceptible to noise present in ref_db. Defaults to TRUE.}
+\item{simul}{Whether to use raw data from ref_db as the reference or regenerated data from \code{ref_db}. Regenerated data is less susceptible to noise present in \code{ref_db}. Defaults to TRUE.}
 
 \item{method}{Method used to estimate cumulative hazard for predicting end survival rate. Detailed description not yet available. Methods 1 and 2 (default) are available.}
 
