@@ -433,6 +433,7 @@ Surv_Pred = function(pred_db,
   #initialize dataframes
   pred_SR_DB = data.frame()
   haz_db = data.frame()
+  sr_proj = data.frame()
 
   #loop for every treatment
   for(pred_trt in levels(as.factor(pred_db$Trt.ID))) {
@@ -484,6 +485,12 @@ Surv_Pred = function(pred_db,
       #compile survival prediction database
       pred_SR_DB = rbind(pred_SR_DB, data.frame(Trt.ID = pred_trt, Observable_SR_Day = SR_Day, pred_SR, pred_HR))
     }
+    pred_survfit = survfit(Surv(TTE, Status) ~ Trt.ID, data = pred_db[pred_db$Trt.ID == pred_trt,])
+    sr_proj = rbind(sr_proj, data.frame(Trt.ID = pred_trt,
+                                        time = c(pred_survfit$time, ref_bshaz_t2$time),
+                                        cumhaz = c(pred_survfit$cumhaz, data.table::last(pred_survfit$cumhaz) + cumsum(ref_bshaz_t2$hazard * pred_HR)),
+                                        projsr = exp(-c(pred_survfit$cumhaz, data.table::last(pred_survfit$cumhaz) + cumsum(ref_bshaz_t2$hazard * pred_HR))),
+                                        type = c(rep("observed", length(pred_survfit$time)), rep("projected", length(ref_bshaz_t2$time)))))
   }
 
   #remove unreliable HRs or SRs
@@ -507,7 +514,16 @@ Surv_Pred = function(pred_db,
     scale_y_continuous(name = paste("Predicted HR ", pred_tte)) +
     scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, max(round(max(pred_db$TTE) / 15), 1)))
 
-  if(pred_history == TRUE) {return(list(pred_SR_DB, Pred_SR_Plot, Pred_HR_Plot))} else {return(pred_SR_DB)}
+  Proj_KM_Plot = ggplot(mapping = aes(x = time, y = projsr, color = Trt.ID)) +
+    geom_step(data = sr_proj[sr_proj$type == "observed",], linewidth = 1.2) +
+    geom_step(data = sr_proj[sr_proj$type == "projected",], linewidth = 1.2, alpha = 0.5) +
+    scale_y_continuous(name = "Survival Probability", breaks = seq(0, 1, 0.1), labels = scales::percent, limits = c(0, 1)) +
+    scale_x_continuous(name = "Standard Time", breaks = seq(0, 100, max(round(max(sr_proj$time) / 15), 1)), limits = c(0, max(sr_proj$time)))
+
+  if(pred_history == TRUE & project == TRUE) {return(list(pred_SR_DB, Pred_SR_Plot, Pred_HR_Plot, Proj_KM_Plot))}
+  if(pred_history == TRUE & project == FALSE) {return(list(pred_SR_DB, Pred_SR_Plot, Pred_HR_Plot))}
+  if(pred_history == FALSE & project == TRUE) {return(list(pred_SR_DB, Proj_KM_Plot))}
+  if(pred_history == FALSE & project == FALSE) {return(list(pred_SR_DB))}
 }
 
 ###################################################################################################################################
@@ -565,11 +581,12 @@ Surv_Gen = function(mort_db,
   }
 
   if(is.data.frame(starting_fish_count)) {
-    DB_Mort_Gensum = merge(DB_Mort_Gensum, starting_fish_count)
+    DB_Mort_Gensum = base::merge(DB_Mort_Gensum, starting_fish_count, all.y = TRUE)
     DB_Mort_Gensum$Num_alive = DB_Mort_Gensum$starting_fish_count - DB_Mort_Gensum$Num_dead
     DB_Mort_Gensum = DB_Mort_Gensum[, -3]
   } else {DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead}
 
+  DB_Mort_Gensum$Num_alive[is.na(DB_Mort_Gensum$Num_alive)] = DB_Mort_Gensum$starting_fish_count[is.na(DB_Mort_Gensum$Num_alive)]
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
   DB_Mort_Genalive$Status = 0
   DB_Mort_Genalive$TTE = today_tte
