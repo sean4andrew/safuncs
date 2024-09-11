@@ -411,7 +411,8 @@ Surv_Pred = function(pred_db,
                      method = 2,
                      lambda = NULL,
                      phi = NULL,
-                     pred_history = FALSE) {
+                     pred_history = FALSE,
+                     project = FALSE) {
 
   pred_db = pred_db[pred_db$TTE > 0, ] #ensure positive TTE
   ref_db = ref_db[ref_db$TTE > 0, ] #ensure positive TTE
@@ -475,7 +476,11 @@ Surv_Pred = function(pred_db,
 
         cumhaz_precut = DescTools::AUC(x = c(pred_bshaz$time),
                                        y = c(pred_bshaz$hazard))
-        ref_bshaz_t2 = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]
+        ref_bshaz_t2 = data.frame(time = seq(max(pred_db$TTE), pred_tte, by = 1),
+                                  hazard = approx(xout = seq(max(pred_db$TTE), pred_tte, by = 1),
+                                                  y = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]$hazard,
+                                                  x = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]$time,
+                                                  rule = 2)$y)
         cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time),
                                         y = c(ref_bshaz_t2$hazard)) * pred_HR
 
@@ -485,12 +490,17 @@ Surv_Pred = function(pred_db,
       #compile survival prediction database
       pred_SR_DB = rbind(pred_SR_DB, data.frame(Trt.ID = pred_trt, Observable_SR_Day = SR_Day, pred_SR, pred_HR))
     }
-    pred_survfit = survfit(Surv(TTE, Status) ~ Trt.ID, data = pred_db[pred_db$Trt.ID == pred_trt,])
+
+    if(project == TRUE) {
+    pred_survfit = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = pred_db[pred_db$Trt.ID == pred_trt,])
     sr_proj = rbind(sr_proj, data.frame(Trt.ID = pred_trt,
-                                        time = c(pred_survfit$time, ref_bshaz_t2$time),
-                                        cumhaz = c(pred_survfit$cumhaz, data.table::last(pred_survfit$cumhaz) + cumsum(ref_bshaz_t2$hazard * pred_HR)),
-                                        projsr = exp(-c(pred_survfit$cumhaz, data.table::last(pred_survfit$cumhaz) + cumsum(ref_bshaz_t2$hazard * pred_HR))),
-                                        type = c(rep("observed", length(pred_survfit$time)), rep("projected", length(ref_bshaz_t2$time)))))
+                                        time = c(pred_survfit$time, ref_bshaz_t2$time[-1]),
+                                        cumhaz = c(pred_survfit$cumhaz,
+                                                   data.table::last(pred_survfit$cumhaz) + cumsum(ref_bshaz_t2$hazard[-1] * pred_HR)),
+                                        projsr = exp(-c(pred_survfit$cumhaz,
+                                                        data.table::last(pred_survfit$cumhaz) + cumsum(ref_bshaz_t2$hazard[-1] * pred_HR))),
+                                        type = c(rep("observed", length(pred_survfit$time)), rep("projected", length(ref_bshaz_t2$time[-1])))))
+    }
   }
 
   #remove unreliable HRs or SRs
@@ -514,16 +524,21 @@ Surv_Pred = function(pred_db,
     scale_y_continuous(name = paste("Predicted HR ", pred_tte)) +
     scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, max(round(max(pred_db$TTE) / 15), 1)))
 
-  Proj_KM_Plot = ggplot(mapping = aes(x = time, y = projsr, color = Trt.ID)) +
-    geom_step(data = sr_proj[sr_proj$type == "observed",], linewidth = 1.2) +
-    geom_step(data = sr_proj[sr_proj$type == "projected",], linewidth = 1.2, alpha = 0.5) +
-    scale_y_continuous(name = "Survival Probability", breaks = seq(0, 1, 0.1), labels = scales::percent, limits = c(0, 1)) +
-    scale_x_continuous(name = "Standard Time", breaks = seq(0, 100, max(round(max(sr_proj$time) / 15), 1)), limits = c(0, max(sr_proj$time)))
+  sr_proj_obs = sr_proj[sr_proj$type == "observed",]
+  sr_proj_obs_last = sr_proj_obs[sr_proj_obs$time == max(sr_proj_obs$time),]
+  sr_proj_obs_last$time = sr_proj_obs_last$time + 0.65
 
-  if(pred_history == TRUE & project == TRUE) {return(list(pred_SR_DB, Pred_SR_Plot, Pred_HR_Plot, Proj_KM_Plot))}
-  if(pred_history == TRUE & project == FALSE) {return(list(pred_SR_DB, Pred_SR_Plot, Pred_HR_Plot))}
-  if(pred_history == FALSE & project == TRUE) {return(list(pred_SR_DB, Proj_KM_Plot))}
-  if(pred_history == FALSE & project == FALSE) {return(list(pred_SR_DB))}
+  Proj_KM_Plot = ggplot(mapping = aes(x = time, y = projsr, color = Trt.ID)) +
+    geom_step(data = sr_proj_obs, linewidth = 1.2) +
+    geom_step(data = rbind(sr_proj_obs_last, sr_proj[sr_proj$type == "projected",]), linewidth = 1.2, alpha = 0.45) +
+    scale_y_continuous(name = "Survival Probability", breaks = seq(0, 1, 0.1), labels = scales::percent, limits = c(0, 1)) +
+    scale_x_continuous(name = "Standardized Time", breaks = seq(0, 100, max(round(max(sr_proj$time) / 15), 1)), limits = c(0, max(sr_proj$time)))
+
+  if(pred_history == TRUE & project == TRUE) {return(list(pred_db = pred_SR_DB, pred_SR_plot = Pred_SR_Plot,
+                                                          pred_HR_plot = Pred_HR_Plot, proj_surv_plot = Proj_KM_Plot, proj_db = sr_proj))}
+  if(pred_history == TRUE & project == FALSE) {return(list(pred_db = pred_SR_DB, pred_SR_plot = Pred_SR_Plot, pred_HR_plot = Pred_HR_Plot))}
+  if(pred_history == FALSE & project == TRUE) {return(list(pred_db = pred_SR_DB, proj_surv_plot = Proj_KM_Plot, proj_db = sr_proj))}
+  if(pred_history == FALSE & project == FALSE) {return(list(pred_db = pred_SR_DB))}
 }
 
 ###################################################################################################################################

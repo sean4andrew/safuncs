@@ -13,7 +13,8 @@ Surv_Pred(
   method = 2,
   lambda = NULL,
   phi = NULL,
-  pred_history = FALSE
+  pred_history = FALSE,
+  project = FALSE
 )
 }
 \arguments{
