@@ -584,6 +584,7 @@ Surv_Gen = function(mort_db,
                     tank_without_mort = NULL,
                     trt_without_mort = NULL) {
 
+  library(dplyr)
   DB_Mort_Gensum = data.frame(mort_db %>%
                                 dplyr::group_by(Trt.ID, Tank.ID) %>%
                                 dplyr::summarise(Num_dead = dplyr::n()))

@@ -11,7 +11,6 @@ date: '`r format(Sys.time(), "%d %B, %Y")`'
 ```{r}
 remotes::install_github("sean4andrew/safuncs")
 use_package() 
-
 ```
 
 ```{r}
