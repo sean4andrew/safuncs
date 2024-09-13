@@ -462,9 +462,11 @@ Surv_Pred = function(pred_db,
                                time = ref_bshaz$time[ref_bshaz$time < pred_tte])
 
       if(method == 1) {
-        cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time),
-                                y = c(ref_bshaz_t$hazard)) * pred_HR
-        pred_SR = 100 * exp(-cumhaz)
+        if(!is.na(pred_HR)) {
+          cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time),
+                                  y = c(ref_bshaz_t$hazard) * pred_HR)
+          pred_SR = 100 * exp(-cumhaz)
+        } else {pred_SR <- NA}
       }
 
       if(method == 2) {
@@ -476,30 +478,30 @@ Surv_Pred = function(pred_db,
 
         cumhaz_precut = DescTools::AUC(x = c(pred_bshaz$time),
                                        y = c(pred_bshaz$hazard))
-        ref_bshaz_t2 = data.frame(time = seq(max(pred_db$TTE), pred_tte, by = 1),
-                                  hazard = approx(xout = seq(max(pred_db$TTE), pred_tte, by = 1),
+        ref_bshaz_t2 = data.frame(time = seq(SR_Day, pred_tte, by = 1),
+                                  hazard = approx(xout = seq(SR_Day, pred_tte, by = 1),
                                                   y = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]$hazard,
                                                   x = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]$time,
                                                   rule = 2)$y)
-        cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time),
-                                        y = c(ref_bshaz_t2$hazard)) * pred_HR
-
-        if(is.na(cumhaz_postcut)) {cumhaz_postcut <- 0}
-        pred_SR = 100 * exp(-(cumhaz_precut + cumhaz_postcut))
+        if(!is.na(pred_HR)) {
+          cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time),
+                                          y = c(ref_bshaz_t2$hazard) * pred_HR)
+          pred_SR = 100 * exp(-(cumhaz_precut + cumhaz_postcut))
+        } else {pred_SR = 0}
       }
       #compile survival prediction database
       pred_SR_DB = rbind(pred_SR_DB, data.frame(Trt.ID = pred_trt, Observable_SR_Day = SR_Day, pred_SR, pred_HR))
     }
 
     if(project == TRUE) {
-    pred_survfit = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = pred_db[pred_db$Trt.ID == pred_trt,])
-    sr_proj = rbind(sr_proj, data.frame(Trt.ID = pred_trt,
-                                        time = c(pred_survfit$time, ref_bshaz_t2$time[-1]),
-                                        cumhaz = c(pred_survfit$cumhaz,
-                                                   data.table::last(pred_survfit$cumhaz) + cumsum(ref_bshaz_t2$hazard[-1] * pred_HR)),
-                                        projsr = exp(-c(pred_survfit$cumhaz,
-                                                        data.table::last(pred_survfit$cumhaz) + cumsum(ref_bshaz_t2$hazard[-1] * pred_HR))),
-                                        type = c(rep("observed", length(pred_survfit$time)), rep("projected", length(ref_bshaz_t2$time[-1])))))
+      pred_survfit = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = pred_db[pred_db$Trt.ID == pred_trt,])
+      sr_proj = rbind(sr_proj, data.frame(Trt.ID = pred_trt,
+                                          time = c(pred_survfit$time, ref_bshaz_t2$time[-1]),
+                                          cumhaz = c(pred_survfit$cumhaz,
+                                                     data.table::last(pred_survfit$cumhaz) + cumsum(ref_bshaz_t2$hazard[-1] * pred_HR)),
+                                          projsr = exp(-c(pred_survfit$cumhaz,
+                                                          data.table::last(pred_survfit$cumhaz) + cumsum(ref_bshaz_t2$hazard[-1] * pred_HR))),
+                                          type = c(rep("observed", length(pred_survfit$time)), rep("projected", length(ref_bshaz_t2$time[-1])))))
     }
   }
 
