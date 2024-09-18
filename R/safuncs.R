@@ -645,6 +645,7 @@ Surv_Gen = function(mort_db,
 #' @param colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
 #' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
 #' @param skip_error Whether to skip the plotting of treatment groups with errors in hazard curve estimation from \code{bshazard()}. Defaults to FALSE.
+#' @param db Whether to retun the hazard database. Defaults to FALSE.
 #'
 #' @return If \code{plot == "surv"}, returns a ggplot2 object reflecting the Kaplan-Meier Survival Curve.
 #' If \code{plot == "haz"}, returns a ggplot2 object reflecting the Hazard Curve.
@@ -674,7 +675,8 @@ Surv_Plots = function(surv_db,
                       plot = "both",
                       colours = NULL,
                       theme = "ggplot",
-                      skip_error = FALSE) {
+                      skip_error = FALSE,
+                      db = FALSE) {
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
 
@@ -766,4 +768,5 @@ Surv_Plots = function(surv_db,
   if(plot == "surv") {return(Survival_Plot)}
   if(plot == "haz") {return(Hazard_Plot)}
   if(plot == "both") {return(list(Survival_Plot, Hazard_Plot))}
+  if(db == TRUE) {return(haz_db)}
 }
