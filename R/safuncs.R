@@ -569,8 +569,8 @@ Surv_Gen = function(mort_db,
 #' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
 #'
 #' @return If \code{plot == "surv"}, returns a ggplot2 object representing the Kaplan-Meier Survival Curve and the associated dataframe containing survival probability values over time.
-#' If \code{plot == "haz"}, returns a ggplot2 object representing the Hazard Curve and the associated dataframe containing the hazard values over time.
-#' If \code{plot == "both"}, returns both ggplot2 objects and associated dataframes in a list.
+#' If \code{plot == "haz"}, returns a ggplot2 object representing the Hazard Curve and the associated dataframe containing hazard values over time.
+#' If \code{plot == "both"}, returns both ggplot2 objects and associated dataframes.
 #'
 #' @import ggplot2
 #' @export
@@ -633,23 +633,28 @@ Surv_Plots = function(surv_db,
   Haz_list = list()
   for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
     surv_db_trt = surv_db[surv_db$Trt.ID == Haz_Trt,]
-    if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
-      Haz_bs = bshazard::bshazard(nbin = dbin,
-                                  data = surv_db_trt,
-                                  survival::Surv(TTE, Status) ~ Tank.ID,
-                                  verbose = FALSE,
-                                  lambda = lambda,
-                                  phi = phi)
+    if(sum(surv_db_trt$Status) == 0){
+      Haz_list[[Haz_Trt]] = data.frame(Hazard = 0,
+                                       Time = rep(0, max(surv_db$TTE), 1))
     } else {
-      Haz_bs = bshazard::bshazard(nbin = dbin,
-                                  data = surv_db_trt,
-                                  survival::Surv(TTE, Status) ~ 1,
-                                  verbose = FALSE,
-                                  lambda = lambda,
-                                  phi = phi)
+      if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
+        Haz_bs = bshazard::bshazard(nbin = dbin,
+                                    data = surv_db_trt,
+                                    survival::Surv(TTE, Status) ~ Tank.ID,
+                                    verbose = FALSE,
+                                    lambda = lambda,
+                                    phi = phi)
+      } else {
+        Haz_bs = bshazard::bshazard(nbin = dbin,
+                                    data = surv_db_trt,
+                                    survival::Surv(TTE, Status) ~ 1,
+                                    verbose = FALSE,
+                                    lambda = lambda,
+                                    phi = phi)
+      }
+      Haz_list[[Haz_Trt]] = data.frame(Hazard = Haz_bs$hazard,
+                                       Time = Haz_bs$time)
     }
-    Haz_list[[Haz_Trt]] = data.frame(Hazard = Haz_bs$hazard,
-                                     Time = Haz_bs$time)
   }
 
   haz_db = dplyr::bind_rows(Haz_list, .id = "Trt.ID")

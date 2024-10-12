@@ -43,8 +43,8 @@ Surv_Plots(
 }
 \value{
 If \code{plot == "surv"}, returns a ggplot2 object representing the Kaplan-Meier Survival Curve and the associated dataframe containing survival probability values over time.
-If \code{plot == "haz"}, returns a ggplot2 object representing the Hazard Curve and the associated dataframe containing the hazard values over time.
-If \code{plot == "both"}, returns both ggplot2 objects and associated dataframes in a list.
+If \code{plot == "haz"}, returns a ggplot2 object representing the Hazard Curve and the associated dataframe containing hazard values over time.
+If \code{plot == "both"}, returns both ggplot2 objects and associated dataframes.
 }
 \description{
 Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.
