@@ -2,6 +2,7 @@
 
 export(Con_Simul)
 export(Con_Simul_PR)
+export(GG_Colour_Hue)
 export(Simul_SURV)
 export(Surv_Gen)
 export(Surv_Plots)

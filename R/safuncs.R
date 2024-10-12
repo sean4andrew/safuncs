@@ -5,6 +5,7 @@
 # 1b. Con_Simul_PR() -- calculates positive rates for statistical tests on contingency tables.
 # 6. Surv_Gen() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
 # 7. Surv_Plots() -- generate Kaplan-Meier survival curve and hazard curve from survival data.
+# 8. GG_Color_Hue() -- returns the default colour codes assigned by ggplot to a given number of categorical groups (n)
 
 # Available functions without documentation:
 # 2. Simul_Con_MULT.FISH.ORD() -- simulates ordinal-distributed data across treatments and lesions with inter-fish variation in the PO.
@@ -676,4 +677,24 @@ Surv_Plots = function(surv_db,
   if(plot == "surv") {return(Survival_Plot = Survival_Plot, Survival_DB = surv_dat)}
   if(plot == "haz") {return(list(Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
   if(plot == "both") {return(list(Survival_Plot = Survival_Plot, Hazard_Plot = Hazard_Plot))}
+}
+
+###################################################################################################################################
+################################################# Function 8 - GG_Colour_Hue() #######################################################
+
+#' Get Default Colours by ggplot
+#'
+#' @description Not my function but it is useful so here it is! Origin: https://stackoverflow.com/questions/8197559/emulate-ggplot2-default-color-palette.
+#'
+#' @param n Number of colour groups
+#'
+#' @return Returns a vector of codes representing the default colours assigned by ggplot to the given number of categorical groups (n)
+#' @export
+#'
+#' @examples
+#' GG_Colour_Hue(6)
+#'
+GG_Colour_Hue = function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
 }
