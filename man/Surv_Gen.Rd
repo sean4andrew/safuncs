@@ -27,7 +27,7 @@ Surv_Gen(
 A dataframe produced by combining the input mort data and generated rows of survivor data.
 }
 \description{
-Produces a survivor dataframe that includes rows representing surviving fish. Number of rows generated depends on the given starting number of fish and mortality data.
+Produces a survival dataframe that includes rows representing every surviving fish based on the starting number of fish and mortality data. To generate survivor data for tanks absent in the input dataframe, specify arguments \code{tank_without_mort} and \code{trt_without_mort}.
 }
 \details{
 The mort dataframe supplied as input should consist of the following 4 columns at minimum:

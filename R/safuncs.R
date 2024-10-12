@@ -285,29 +285,15 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @export
 
 ###################################################################################################################################
-################################################### Function 3 - Surv_Simul() #####################################################
+################################################### Function 3 - Simul_SURV() #####################################################
 
-#' @title Simulate Survival Data
-#'
-#' @description Not yet available
-#'
-#' @param Haz_DB Description not yet available
-#' @param fish_num_per_tank Description not yet available
-#' @param tank_num_per_trt Description not yet available
-#' @param Treatments_HR Description not yet available
-#' @param logHR_sd_intertank Description not yet available
-#' @param integer_days Description not yet available
-#'
-#' @return A simulated survival dataset.
-#' @export
-#'
-#' @examples Not yet available
-Surv_Simul = function(Haz_DB,
+Simul_SURV = function(Haz_DB = Simul_SURV_Haz_DB, #object from bshazard() as reference hazard function. See data(Simul_SURV_Haz_DB)
                       fish_num_per_tank = 100,
-                      tank_num_per_trt = 3,
-                      Treatments_HR = c(1, 1, 1, 1),
-                      logHR_sd_intertank = 0,
-                      integer_days = TRUE) {
+                      tank_num_per_trt = 4,
+                      Treatments_HR = c(1, 1, 1, 1), #HR for treatment groups, starting from control (1)
+                      logHR_sd_intertank = 0.35, #inter-tank variation (sd) in HR in the log-scale
+                      round_digits_days = 0) { #Time is rounded to Days (i.e. fish cannot die at Day 1.4 or any other decimal)
+  require(devtools)
   CDF_Yval = c()
 
   for(Treatment_Term in Treatments_HR) {
@@ -316,7 +302,6 @@ Surv_Simul = function(Haz_DB,
 
       Tank_eff = rnorm(n = 1, mean = 0, sd = logHR_sd_intertank)
 
-      #Inverse CDF method for simulations
       U = runif(n = fish_num_per_tank, min = 0, max = 1)
 
       CDF_Yval_temp = -log(U) * exp(-(log(Treatment_Term) + Tank_eff))
@@ -326,16 +311,17 @@ Surv_Simul = function(Haz_DB,
 
   #Get Time to Event
   TTE = approx(x = cumsum(Haz_DB$hazard), y = Haz_DB$time, xout = CDF_Yval, method = "linear")$y
-  if(integer_days == TRUE) {TTE <- round(TTE, digits = 0)}
+  TTE = round(TTE, digits = round_digits_days)
 
   #Turn NA (from out of bound CDF_Yval) to the last follow up time
   TTE = ifelse(is.na(TTE), max(Haz_DB$time), TTE)
 
   #Label Status (1 - dead, or 0 - survived) given TTE
-  Surv_simul_DB = data.frame(Tank.ID = as.factor(rep(1:(length(Treatments_HR) * tank_num_per_trt), each = fish_num_per_tank)),
-                             Trt.ID = as.factor(rep(LETTERS[1:length(Treatments_HR)], each = fish_num_per_tank * tank_num_per_trt)),
-                             TTE = TTE,
-                             Status = ifelse(TTE == max(Haz_DB$time), 0, 1))
+  Surv_simul_DB = data.frame(TimetoEvent = TTE,
+                             CDF_Yval = CDF_Yval,
+                             Status = ifelse(TTE == max(Haz_DB$time), 0, 1),
+                             Treatment_G = as.factor(rep(LETTERS[1:length(Treatments_HR)], each = fish_num_per_tank * tank_num_per_trt)),
+                             Tank_num = as.factor(rep(1:(length(Treatments_HR) * tank_num_per_trt), each = fish_num_per_tank)))
 
   return(Surv_simul_DB)
 }
@@ -376,65 +362,43 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 ###################################################################################################################################
 ################################################## Function 5 - Surv_Pred() #######################################################
 
-#' @title Predict End Survival
+#' Predict Survival Rate
+#' @description Predict survival rate for a given survival dataset provided a reference survival database used to estimate a reference hazard curve. Prediction done seperately by treatment group.
 #'
-#' @description Predict end survival rate for a dataset given a reference survival data.
+#' @details P
 #'
-#' @param pred_db The dataframe with end survival to be predicted. The survival dataframe should contains columns as described in \code{Surv_Plots()}, and can be the output of \code{Surv_Gen()}
-#' @param pred_tte The TTE for the predicted end survival.
-#' @param ref_db The reference survival dataframe. The survival dataframe should contains columns as described in \code{Surv_Plots()}, and can be the output of \code{Surv_Gen()}
-#' @param coxph_mod Method/model to estimate the hazard ratio between the provided survival data (\code{pred_db}) and the reference (\code{ref_db}). Options "GLMM" and "GEE" (default) are available.
-#' @param simul Whether to use raw data from ref_db as the reference or regenerated data from \code{ref_db}. Regenerated data is less susceptible to noise present in \code{ref_db}. Defaults to TRUE.
-#' @param method Method used to estimate cumulative hazard for predicting end survival rate. Detailed description not yet available. Methods 1 and 2 (default) are available.
-#' @param lambda lambda parameter for estimation of hazard curve of pred_db. Only applicable for \code{method = 2}. Defaults to NULL (estimated from the data).
-#' @param phi phi parameter for estimation of hazard curve of pred_db. Only applicable for \code{method = 2}. Defaults to NULL (estimated from the data).
-#' @param pred_history Whether to show the prediction history, i.e. the predictions when different sets of TTEs are in \code{pred_db} as the survival study progresses. Defaults to FALSE, meaning only one prediction (per treatment) is produced based on all TTEs in \code{pred_db}.
+#' @param pred_db Placeholder
+#' @param ref_db Placeholder
+#' @param predsr_tte Placeholder
+#' @param method Placeholder
+#' @param coxph_mod Placeholder
+#' @param lambda_pred Placeholder
 #'
-#' @return If \code{pred_history = FALSE}, a dataframe containing predicted end survival rate for each treatment group and their hazard ratios compared to the reference in \code{ref_db}. If \code{pred_history = TRUE}, additionally returns a plot containing the predicted end survival rate and hazard ratios across available TTEs in \code{pred_db}; returned as a list comprising of a dataframe and two ggplot objects.
-#'
-#' @import ggplot2
+#' @return Placeholder
 #' @export
 #'
-#' @examples
-#' Surv_Pred(pred_db = Ten_Surv_DB, #example dataset currently not available
-#'           pred_tte = 59,
-#'           ref_db = Ref_Ten_DBControl2, #example dataset currently not available
-#'           coxph_mod = "GEE",
-#'           simul = TRUE,
-#'           method = 2)
-#'
-Surv_Pred = function(pred_db,
-                     pred_tte,
-                     ref_db,
-                     coxph_mod = "GEE",
-                     simul = FALSE,
-                     method = 2,
-                     lambda = NULL,
-                     phi = NULL,
-                     pred_history = FALSE,
-                     project = FALSE) {
+#' @examples Placeholder
+Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted. See \bold{Details} for specifics.
+                     ref_db, #Reference survival data from to create the reference hazard function.
+                     predsr_tte, #The day at which SR is to be predicted. Minimum is Day 5 post challenge.
+                     method = 2, #SR prediction method. See \bold{Details} for more info.
+                     coxph_mod = "GLMM", #Model used to estimate HR. Can be either "GLMM" or "GEE". See \bold{Details} for more info.
+                     lambda_pred = NULL, #Lambda parameter for the bshazard curve of the predicted dataset.
+                     phi_pred = NULL)
+{
 
   pred_db = pred_db[pred_db$TTE > 0, ] #ensure positive TTE
   ref_db = ref_db[ref_db$TTE > 0, ] #ensure positive TTE
 
   #Generate reference level bshazard curve
   ref_id = levels(as.factor(ref_db$Trt.ID))
+  ref_db$Trt.ID = paste("ref", ref_id)
   ref_bshaz = bshazard::bshazard(data = ref_db, survival::Surv(TTE, Status) ~ Tank.ID,
                                  verbose = FALSE)
-
-  #Regenerate ref_db using simulations
-  if(simul == TRUE) {
-    ref_db = Surv_Simul(Haz_DB = ref_bshaz, fish_num_per_tank = 10000, tank_num_per_trt = 5,
-                        Treatments_HR = 1, logHR_sd_intertank = 1e-8, integer_days = TRUE)
-  }
-
-  #add label to reference level
-  ref_db$Trt.ID = paste("ref", ref_id)
 
   #initialize dataframes
   pred_SR_DB = data.frame()
   haz_db = data.frame()
-  sr_proj = data.frame()
 
   #loop for every treatment
   for(pred_trt in levels(as.factor(pred_db$Trt.ID))) {
@@ -442,73 +406,48 @@ Surv_Pred = function(pred_db,
     comb_db = rbind(ref_db, pred_db[pred_db$Trt.ID == pred_trt,])
     comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = paste("ref", ref_id))
 
-    #loop for every TTE in pred_db if pred_history == TRUE
-    for(SR_Day in if(pred_history == TRUE) {every_tte <- 1:max(pred_db$TTE)} else {every_tte <- max(pred_db$TTE)}) {
+    #loop for every predictable day
+    for(SR_Day in 5:(predsr_tte-1)) {
       comb_db2 = survival::survSplit(comb_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
       comb_db2 = comb_db2[comb_db2$Obs == 1, ]
 
       #Get HR
-      options(contrasts = c("contr.treatment", "contr.poly"))
-      if(coxph_mod == "GLMM"){cox_comp = tryCatch(coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID),
-                                                               data = comb_db2),
-                                                  warning = function(w){cox_comp = TRUE})}
-      if(coxph_mod == "GEE"){cox_comp = tryCatch(survival::coxph(survival::Surv(TTE, Status) ~ Trt.ID,
-                                                                 cluster = Tank.ID, data = comb_db2),
-                                                 warning = function(w){cox_comp = TRUE})}
-      ifelse(!is.list(cox_comp), pred_HR <- NA, pred_HR <- exp(coef(cox_comp)))
+      if(coxph_mod == "GLMM"){cox_comp = coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID),
+                                                      data = comb_db2)}
+      if(coxph_mod == "GEE"){cox_comp = survival::coxph(survival::Surv(TTE, Status) ~ Trt.ID, cluster = Tank.ID,
+                                                        data = comb_db2)}
+      pred_HR = exp(coef(cox_comp))
 
       #Get SR
-      ref_bshaz_t = data.frame(hazard = ref_bshaz$hazard[ref_bshaz$time < pred_tte],
-                               time = ref_bshaz$time[ref_bshaz$time < pred_tte])
+      ref_bshaz_t = data.frame(hazard = ref_bshaz$hazard[ref_bshaz$time < predsr_tte],
+                               time = ref_bshaz$time[ref_bshaz$time < predsr_tte])
 
       if(method == 1) {
-        if(!is.na(pred_HR)) {
-          cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time),
-                                  y = c(ref_bshaz_t$hazard) * pred_HR)
-          pred_SR = 100 * exp(-cumhaz)
-        } else {pred_SR <- NA}
+        cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time),
+                                y = c(ref_bshaz_t$hazard) * pred_HR)
+        pred_SR = 100 * exp(-cumhaz)
       }
 
       if(method == 2) {
         pred_db2 = survival::survSplit(pred_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
         pred_db2 = pred_db2[pred_db2$Obs == 1, ]
-        pred_bshaz = tryCatch(suppressWarnings(bshazard::bshazard(data = droplevels(pred_db2[pred_db2$Trt.ID == pred_trt,]),
-                                                                  survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, lambda = lambda, phi = phi)),
-                              error = function(e) {pred_bshaz = data.frame(time = 0, hazard = 0)})
+        pred_bshaz = bshazard::bshazard(data = droplevels(pred_db2[pred_db2$Trt.ID == pred_trt,]),
+                                        survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, lambda = lambda_pred)
 
         cumhaz_precut = DescTools::AUC(x = c(pred_bshaz$time),
                                        y = c(pred_bshaz$hazard))
-        ref_bshaz_t2 = data.frame(time = seq(SR_Day, pred_tte, by = 1),
-                                  hazard = approx(xout = seq(SR_Day, pred_tte, by = 1),
-                                                  y = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]$hazard,
-                                                  x = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]$time,
-                                                  rule = 2)$y)
-        if(!is.na(pred_HR)) {
-          cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time),
-                                          y = c(ref_bshaz_t2$hazard) * pred_HR)
-          pred_SR = 100 * exp(-(cumhaz_precut + cumhaz_postcut))
-        } else {pred_SR = 0}
+        ref_bshaz_t2 = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]
+        cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time),
+                                        y = c(ref_bshaz_t2$hazard) * pred_HR)
+
+        if(is.na(cumhaz_postcut)) {cumhaz_postcut <- 0}
+        pred_SR = 100 * exp(-(cumhaz_precut + cumhaz_postcut))
       }
       #compile survival prediction database
       pred_SR_DB = rbind(pred_SR_DB, data.frame(Trt.ID = pred_trt, Observable_SR_Day = SR_Day, pred_SR, pred_HR))
     }
-
-    if(project == TRUE) {
-      pred_survfit = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = pred_db[pred_db$Trt.ID == pred_trt,])
-      sr_proj = rbind(sr_proj, data.frame(Trt.ID = pred_trt,
-                                          time = c(pred_survfit$time, ref_bshaz_t2$time[-1]),
-                                          cumhaz = c(pred_survfit$cumhaz,
-                                                     data.table::last(pred_survfit$cumhaz) + cumsum(ref_bshaz_t2$hazard[-1] * pred_HR)),
-                                          projsr = exp(-c(pred_survfit$cumhaz,
-                                                          data.table::last(pred_survfit$cumhaz) + cumsum(ref_bshaz_t2$hazard[-1] * pred_HR))),
-                                          type = c(rep("observed", length(pred_survfit$time)), rep("projected", length(ref_bshaz_t2$time[-1])))))
-    }
   }
-
-  #remove unreliable HRs or SRs
   row.names(pred_SR_DB) = NULL
-  pred_SR_DB$pred_HR[is.na(pred_SR_DB$pred_SR)] = NA
-  pred_SR_DB$pred_SR[is.na(pred_SR_DB$pred_HR)] = NA
 
   #create survival prediction plot
   library(ggplot2)
@@ -516,31 +455,17 @@ Surv_Pred = function(pred_db,
     geom_point() +
     geom_line() +
     facet_wrap(~Trt.ID) +
-    scale_y_continuous(name = paste("Predicted Survival (%) on TTE = ", pred_tte), breaks = seq(0, 100, 10), limits = c(0, 100)) +
-    scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, max(round(max(pred_db$TTE) / 15), 1)))
+    scale_y_continuous(name = paste("Predicted Survival (%) on TTE = ", predsr_tte), breaks = seq(0, 100, 10), limits = c(0, 100)) +
+    scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, 1))
 
   Pred_HR_Plot = ggplot(data = pred_SR_DB, aes(x = Observable_SR_Day, y = pred_HR, color = Trt.ID)) +
     geom_point() +
     geom_line() +
     facet_wrap(~Trt.ID) +
-    scale_y_continuous(name = paste("Predicted HR ", pred_tte)) +
-    scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, max(round(max(pred_db$TTE) / 15), 1)))
+    scale_y_continuous(name = paste("Predicted HR ", predsr_tte)) +
+    scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, 1))
 
-  sr_proj_obs = sr_proj[sr_proj$type == "observed",]
-  sr_proj_obs_last = sr_proj_obs[sr_proj_obs$time == max(sr_proj_obs$time),]
-  sr_proj_obs_last$time = sr_proj_obs_last$time + 0.65
-
-  Proj_KM_Plot = ggplot(mapping = aes(x = time, y = projsr, color = Trt.ID)) +
-    geom_step(data = sr_proj_obs, linewidth = 1.2) +
-    geom_step(data = rbind(sr_proj_obs_last, sr_proj[sr_proj$type == "projected",]), linewidth = 1.2, alpha = 0.45) +
-    scale_y_continuous(name = "Survival Probability", breaks = seq(0, 1, 0.1), labels = scales::percent, limits = c(0, 1)) +
-    scale_x_continuous(name = "Standardized Time", breaks = seq(0, 100, max(round(max(sr_proj$time) / 15), 1)), limits = c(0, max(sr_proj$time)))
-
-  if(pred_history == TRUE & project == TRUE) {return(list(pred_db = pred_SR_DB, pred_SR_plot = Pred_SR_Plot,
-                                                          pred_HR_plot = Pred_HR_Plot, proj_surv_plot = Proj_KM_Plot, proj_db = sr_proj))}
-  if(pred_history == TRUE & project == FALSE) {return(list(pred_db = pred_SR_DB, pred_SR_plot = Pred_SR_Plot, pred_HR_plot = Pred_HR_Plot))}
-  if(pred_history == FALSE & project == TRUE) {return(list(pred_db = pred_SR_DB, proj_surv_plot = Proj_KM_Plot, proj_db = sr_proj))}
-  if(pred_history == FALSE & project == FALSE) {return(list(pred_db = pred_SR_DB))}
+  return(list(pred_SR_DB, Pred_SR_Plot, Pred_HR_Plot))
 }
 
 ###################################################################################################################################
@@ -548,7 +473,7 @@ Surv_Pred = function(pred_db,
 
 #' @title Generate Survivor Data
 #'
-#' @description Produces a survivor dataframe that includes rows representing surviving fish. Number of rows generated depends on the given starting number of fish and mortality data.
+#' @description Produces a survival dataframe that includes rows representing every surviving fish based on the starting number of fish and mortality data. To generate survivor data for tanks absent in the input dataframe, specify arguments \code{tank_without_mort} and \code{trt_without_mort}.
 #'
 #' @details The mort dataframe supplied as input should consist of the following 4 columns at minimum:
 #' * "Trt.ID" = Labels for treatment groups in the study.
@@ -586,7 +511,6 @@ Surv_Gen = function(mort_db,
                     tank_without_mort = NULL,
                     trt_without_mort = NULL) {
 
-  library(dplyr)
   DB_Mort_Gensum = data.frame(mort_db %>%
                                 dplyr::group_by(Trt.ID, Tank.ID) %>%
                                 dplyr::summarise(Num_dead = dplyr::n()))
@@ -599,12 +523,11 @@ Surv_Gen = function(mort_db,
   }
 
   if(is.data.frame(starting_fish_count)) {
-    DB_Mort_Gensum = base::merge(DB_Mort_Gensum, starting_fish_count, all.y = TRUE)
+    DB_Mort_Gensum = merge(DB_Mort_Gensum, starting_fish_count)
     DB_Mort_Gensum$Num_alive = DB_Mort_Gensum$starting_fish_count - DB_Mort_Gensum$Num_dead
     DB_Mort_Gensum = DB_Mort_Gensum[, -3]
   } else {DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead}
 
-  DB_Mort_Gensum$Num_alive[is.na(DB_Mort_Gensum$Num_alive)] = DB_Mort_Gensum$starting_fish_count[is.na(DB_Mort_Gensum$Num_alive)]
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
   DB_Mort_Genalive$Status = 0
   DB_Mort_Genalive$TTE = today_tte
@@ -618,7 +541,7 @@ Surv_Gen = function(mort_db,
 
 #' Generate Survival Plots
 #'
-#' @description Produces a Kaplan-Meier Survival Plot and/or Hazard Plot from the given survival data. Each plot contains multiple curves for the different treatment groups. Saves plots automatically in the working directory.
+#' @description Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.
 #'
 #' @details The survival dataset should be a dataframe containing at least 4 different columns:
 #' * "Trt.ID" = Labels for treatment groups in the study.
@@ -644,12 +567,10 @@ Surv_Gen = function(mort_db,
 #' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
 #' @param colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
 #' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
-#' @param skip_error Whether to skip the plotting of treatment groups with errors in hazard curve estimation from \code{bshazard()}. Defaults to FALSE.
-#' @param db Whether to retun the hazard database. Defaults to FALSE.
 #'
-#' @return If \code{plot == "surv"}, returns a ggplot2 object reflecting the Kaplan-Meier Survival Curve.
-#' If \code{plot == "haz"}, returns a ggplot2 object reflecting the Hazard Curve.
-#' If \code{plot == "both"}, returns both ggplot2 objects in a list.
+#' @return If \code{plot == "surv"}, returns a ggplot2 object representing the Kaplan-Meier Survival Curve and the associated dataframe containing survival probability values over time.
+#' If \code{plot == "haz"}, returns a ggplot2 object representing the Hazard Curve and the associated dataframe containing the hazard values over time.
+#' If \code{plot == "both"}, returns both ggplot2 objects and associated dataframes in a list.
 #'
 #' @import ggplot2
 #' @export
@@ -674,15 +595,17 @@ Surv_Plots = function(surv_db,
                       dailybin = TRUE,
                       plot = "both",
                       colours = NULL,
-                      theme = "ggplot",
-                      skip_error = FALSE,
-                      db = FALSE) {
+                      theme = "ggplot") {
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
 
   if(plot == "surv" | plot == "both") {
   surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
   attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
+
+  surv_dat = data.frame(Trt.ID = summary(surv_obj)$strata,
+                        Survprob = summary(surv_obj)$surv,
+                        Time = summary(surv_obj)$time)
 
   surv_plot = survminer::ggsurvplot(surv_obj,
                                     conf.int = FALSE,
@@ -711,39 +634,19 @@ Surv_Plots = function(surv_db,
   for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
     surv_db_trt = surv_db[surv_db$Trt.ID == Haz_Trt,]
     if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
-      if(skip_error == TRUE) {
-        Haz_bs = tryCatch(suppressWarnings(bshazard::bshazard(nbin = dbin,
-                                                              data = surv_db_trt,
-                                                              survival::Surv(TTE, Status) ~ Tank.ID,
-                                                              verbose = FALSE,
-                                                              lambda = lambda,
-                                                              phi = phi)),
-                          error = function(e) {Haz_bs = data.frame(time = NA, hazard = NA)})
-      } else {
-        Haz_bs = bshazard::bshazard(nbin = dbin,
-                                    data = surv_db_trt,
-                                    survival::Surv(TTE, Status) ~ Tank.ID,
-                                    verbose = FALSE,
-                                    lambda = lambda,
-                                    phi = phi)
-      }
+      Haz_bs = bshazard::bshazard(nbin = dbin,
+                                  data = surv_db_trt,
+                                  survival::Surv(TTE, Status) ~ Tank.ID,
+                                  verbose = FALSE,
+                                  lambda = lambda,
+                                  phi = phi)
     } else {
-      if(skip_error == TRUE) {
-        Haz_bs = tryCatch(suppressWarnings(bshazard::bshazard(nbin = dbin,
-                                                              data = surv_db_trt,
-                                                              survival::Surv(TTE, Status) ~ 1,
-                                                              verbose = FALSE,
-                                                              lambda = lambda,
-                                                              phi = phi)),
-                          error = function(e) {Haz_bs = data.frame(time = NA, hazard = NA)})
-      } else {
-        Haz_bs = bshazard::bshazard(nbin = dbin,
-                                    data = surv_db_trt,
-                                    survival::Surv(TTE, Status) ~ 1,
-                                    verbose = FALSE,
-                                    lambda = lambda,
-                                    phi = phi)
-      }
+      Haz_bs = bshazard::bshazard(nbin = dbin,
+                                  data = surv_db_trt,
+                                  survival::Surv(TTE, Status) ~ 1,
+                                  verbose = FALSE,
+                                  lambda = lambda,
+                                  phi = phi)
     }
     Haz_list[[Haz_Trt]] = data.frame(Hazard = Haz_bs$hazard,
                                      Time = Haz_bs$time)
@@ -765,8 +668,7 @@ Surv_Plots = function(surv_db,
   eoffice::topptx(figure = Hazard_Plot, filename = paste(plot_prefix, "Hazard Curve.pptx"), width = 6, height = 4)
   }
 
-  if(plot == "surv") {return(Survival_Plot)}
-  if(plot == "haz") {return(Hazard_Plot)}
-  if(plot == "both") {return(list(Survival_Plot, Hazard_Plot))}
-  if(db == TRUE) {return(haz_db)}
+  if(plot == "surv") {return(Survival_Plot = Survival_Plot, Survival_DB = surv_dat)}
+  if(plot == "haz") {return(list(Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
+  if(plot == "both") {return(list(Survival_Plot = Survival_Plot, Hazard_Plot = Hazard_Plot))}
 }
