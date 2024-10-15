@@ -316,6 +316,9 @@ Surv_Simul = function(haz_db, #object from bshazard() as reference hazard functi
                       sample_set = NULL,
                       n_simul = 1,
                       power = FALSE) {
+  require(ggplot2)
+  require(dplyr)
+
   CDF_Yval = c()
   surv_samps = data.frame()
 
@@ -394,7 +397,6 @@ Surv_Simul = function(haz_db, #object from bshazard() as reference hazard functi
                             dplyr::group_by(type, Trt.ID) %>%
                             dplyr::summarise(end_sr = mean(end_sr), max_tte = max(max_tte)))
 
-  library(ggplot2)
   if(n_simul == 1) {
     surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = n_simul)) +
       facet_wrap(~ type) +
@@ -405,8 +407,6 @@ Surv_Simul = function(haz_db, #object from bshazard() as reference hazard functi
       xlab("Time to Event")
 
   } else {
-    library(dplyr)
-
     surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = n_simul)) +
       facet_wrap(~ type) +
       geom_step(aes(alpha = alpha)) +
@@ -472,6 +472,8 @@ theme_Publication = function(base_size = 14, base_family = "helvetica") {
 #'
 #' @return Placeholder
 #'
+#' @import ggplot2
+#'
 #' @export
 #'
 #' @examples Placeholder
@@ -483,6 +485,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
                      lambda_pred = NULL, #Lambda parameter for the bshazard curve of the predicted dataset.
                      phi_pred = NULL)
 {
+  require(ggplot2)
 
   pred_db = pred_db[pred_db$TTE > 0, ] #ensure positive TTE
   ref_db = ref_db[ref_db$TTE > 0, ] #ensure positive TTE
@@ -560,7 +563,6 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
   row.names(pred_SR_DB) = NULL
 
   #Create plots representing survival and hazard predictions over time
-  require(ggplot2)
   Pred_SR_Plot = ggplot(data = pred_SR_DB, aes(x = Observable_SR_Day, y = pred_SR, color = Trt.ID)) +
     geom_point() +
     geom_line() +
@@ -624,6 +626,7 @@ Surv_Gen = function(mort_db,
                     tank_without_mort = NULL,
                     trt_without_mort = NULL) {
   require(devtools)
+  require(dplyr)
 
   #Count the number of rows in mort_db, for each combination of treatment and tank ID
   DB_Mort_Gensum = data.frame(mort_db %>%
