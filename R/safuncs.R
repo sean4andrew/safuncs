@@ -796,7 +796,7 @@ Surv_Plots = function(surv_db,
   eoffice::topptx(figure = Hazard_Plot, filename = paste(plot_prefix, "Hazard Curve.pptx"), width = 6, height = 4)
   }
 
-  if(plot == "surv") {return(Survival_Plot = Survival_Plot, Survival_DB = surv_dat)}
+  if(plot == "surv") {return(list(Survival_Plot = Survival_Plot, Survival_DB = surv_dat))}
   if(plot == "haz") {return(list(Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
   if(plot == "both") {return(list(Survival_Plot = Survival_Plot, Hazard_Plot = Hazard_Plot))}
 }
