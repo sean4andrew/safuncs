@@ -643,7 +643,7 @@ Surv_Gen = function(mort_db,
 
   #Use tank-specific starting fish count if information provided
   if(is.data.frame(starting_fish_count)) {
-    DB_Mort_Gensum = base::merge(DB_Mort_Gensum, starting_fish_count, by.y = TRUE)
+    DB_Mort_Gensum = base::merge(DB_Mort_Gensum, starting_fish_count, all.y = TRUE)
     DB_Mort_Gensum$Num_dead[is.na(DB_Mort_Gensum$Num_dead)] = 0
     DB_Mort_Gensum$Num_alive = DB_Mort_Gensum$starting_fish_count - DB_Mort_Gensum$Num_dead
     DB_Mort_Gensum = DB_Mort_Gensum[, -3]
