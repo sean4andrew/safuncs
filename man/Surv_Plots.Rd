@@ -15,7 +15,9 @@ Surv_Plots(
   dailybin = TRUE,
   plot = "both",
   colours = NULL,
-  theme = "ggplot"
+  theme = "ggplot",
+  trt_order = NULL,
+  data_out = FALSE
 )
 }
 \arguments{
@@ -40,11 +42,15 @@ Surv_Plots(
 \item{colours}{Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.}
 
 \item{theme}{Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".}
+
+\item{trt_order}{Vector representing order of treatment groups in plots. Defaults to NULL (alphabetical order)}
+
+\item{data_out}{Whether to print out survival and/or hazard database. Defaults to FALSE.}
 }
 \value{
-If \code{plot == "surv"}, returns a ggplot2 object representing the Kaplan-Meier Survival Curve and the associated dataframe containing survival probability values over time.
-If \code{plot == "haz"}, returns a ggplot2 object representing the Hazard Curve and the associated dataframe containing hazard values over time.
-If \code{plot == "both"}, returns both ggplot2 objects and associated dataframes.
+If \code{plot = "surv"}, returns a ggplot2 object representing the Kaplan-Meier Survival Curve.
+If \code{plot = "haz"}, returns a ggplot2 object representing the Hazard Curve.
+If \code{plot = "both"}, returns both ggplot2 objects. Output becomes a list of ggplot(s) with the associated dataframe(s) if \code{data_out = TRUE}.
 }
 \description{
 Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.

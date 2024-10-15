@@ -689,10 +689,12 @@ Surv_Gen = function(mort_db,
 #' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
 #' @param colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
 #' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
+#' @param trt_order Vector representing order of treatment groups in plots. Defaults to NULL (alphabetical order)
+#' @param data_out Whether to print out survival and/or hazard database. Defaults to FALSE.
 #'
-#' @return If \code{plot == "surv"}, returns a ggplot2 object representing the Kaplan-Meier Survival Curve and the associated dataframe containing survival probability values over time.
-#' If \code{plot == "haz"}, returns a ggplot2 object representing the Hazard Curve and the associated dataframe containing hazard values over time.
-#' If \code{plot == "both"}, returns both ggplot2 objects and associated dataframes.
+#' @return If \code{plot = "surv"}, returns a ggplot2 object representing the Kaplan-Meier Survival Curve.
+#' If \code{plot = "haz"}, returns a ggplot2 object representing the Hazard Curve.
+#' If \code{plot = "both"}, returns both ggplot2 objects. Output becomes a list of ggplot(s) with the associated dataframe(s) if \code{data_out = TRUE}.
 #'
 #' @import ggplot2
 #' @export
@@ -717,7 +719,9 @@ Surv_Plots = function(surv_db,
                       dailybin = TRUE,
                       plot = "both",
                       colours = NULL,
-                      theme = "ggplot") {
+                      theme = "ggplot",
+                      trt_order = NULL,
+                      data_out = FALSE) {
   library(ggplot2)
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
@@ -781,6 +785,7 @@ Surv_Plots = function(surv_db,
   }
 
   haz_db = dplyr::bind_rows(Haz_list, .id = "Trt.ID")
+  if(!is.null(trt_order)){haz_db$Trt.ID = factor(haz_db$Trt.ID, levels = trt_order)}
   Hazard_Plot = ggplot(data = haz_db, aes(x = Time, y = Hazard, color = Trt.ID)) +
     geom_line(linewidth = 1) +
     geom_point() +
@@ -796,9 +801,15 @@ Surv_Plots = function(surv_db,
   eoffice::topptx(figure = Hazard_Plot, filename = paste(plot_prefix, "Hazard Curve.pptx"), width = 6, height = 4)
   }
 
-  if(plot == "surv") {return(list(Survival_Plot = Survival_Plot, Survival_DB = surv_dat))}
-  if(plot == "haz") {return(list(Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
-  if(plot == "both") {return(list(Survival_Plot = Survival_Plot, Hazard_Plot = Hazard_Plot))}
+  if(data_out == TRUE) {
+    if(plot == "surv") {return(list(Survival_Plot = Survival_Plot, Survival_DB = surv_dat))}
+    if(plot == "haz") {return(list(Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
+    if(plot == "both") {return(list(Survival_Plot = Survival_Plot, Survival_DB = surv_dat, Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
+  } else {
+    if(plot == "surv") {return(Survival_Plot = Survival_Plot)}
+    if(plot == "haz") {return(Hazard_Plot = Hazard_Plot)}
+    if(plot == "both") {return(list(Survival_Plot = Survival_Plot, Hazard_Plot = Hazard_Plot))}
+  }
 }
 
 ###################################################################################################################################
