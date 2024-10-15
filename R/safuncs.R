@@ -394,7 +394,7 @@ Surv_Simul = function(haz_db, #object from bshazard() as reference hazard functi
                             dplyr::group_by(type, Trt.ID) %>%
                             dplyr::summarise(end_sr = mean(end_sr), max_tte = max(max_tte)))
 
-  require(ggplot2)
+  library(ggplot2)
   if(n_simul == 1) {
     surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = n_simul)) +
       facet_wrap(~ type) +
@@ -640,7 +640,8 @@ Surv_Gen = function(mort_db,
 
   #Use tank-specific starting fish count if information provided
   if(is.data.frame(starting_fish_count)) {
-    DB_Mort_Gensum = merge(DB_Mort_Gensum, starting_fish_count)
+    DB_Mort_Gensum = base::merge(DB_Mort_Gensum, starting_fish_count, by.y = TRUE)
+    DB_Mort_Gensum$Num_dead[is.na(DB_Mort_Gensum$Num_dead)] = 0
     DB_Mort_Gensum$Num_alive = DB_Mort_Gensum$starting_fish_count - DB_Mort_Gensum$Num_dead
     DB_Mort_Gensum = DB_Mort_Gensum[, -3]
   } else {DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead}
@@ -714,8 +715,8 @@ Surv_Plots = function(surv_db,
                       plot = "both",
                       colours = NULL,
                       theme = "ggplot") {
-
   require(ggplot2)
+
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
 
   if(plot == "surv" | plot == "both") {

@@ -11,7 +11,6 @@ Surv_Simul(
   treatments_hr = c(1, 1, 1, 1),
   logHR_sd_intertank = 0.35,
   sample_set = NULL,
-  plot = TRUE,
   n_simul = 1,
   power = FALSE
 )
@@ -28,8 +27,6 @@ Surv_Simul(
 \item{logHR_sd_intertank}{placeholder}
 
 \item{sample_set}{placeholder}
-
-\item{plot}{placeholder}
 
 \item{n_simul}{placeholder}
 
