@@ -316,8 +316,8 @@ Surv_Simul = function(haz_db, #object from bshazard() as reference hazard functi
                       sample_set = NULL,
                       n_simul = 1,
                       power = FALSE) {
-  require(ggplot2)
-  require(dplyr)
+  library(ggplot2)
+  library(dplyr)
 
   CDF_Yval = c()
   surv_samps = data.frame()
@@ -425,8 +425,8 @@ Surv_Simul = function(haz_db, #object from bshazard() as reference hazard functi
 ############################################### Function 4 - theme_Publication() ##################################################
 
 theme_Publication = function(base_size = 14, base_family = "helvetica") {
-  require(grid)
-  require(ggthemes)
+  library(grid)
+  library(dplyr)(ggthemes)
   (theme_foundation(base_size=base_size, base_family=base_family)
     + theme(plot.title = element_text(face = "bold",
                                       size = rel(1.2), hjust = 0.5),
@@ -485,7 +485,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
                      lambda_pred = NULL, #Lambda parameter for the bshazard curve of the predicted dataset.
                      phi_pred = NULL)
 {
-  require(ggplot2)
+  library(dplyr)(ggplot2)
 
   pred_db = pred_db[pred_db$TTE > 0, ] #ensure positive TTE
   ref_db = ref_db[ref_db$TTE > 0, ] #ensure positive TTE
@@ -625,8 +625,8 @@ Surv_Gen = function(mort_db,
                     today_tte,
                     tank_without_mort = NULL,
                     trt_without_mort = NULL) {
-  require(devtools)
-  require(dplyr)
+  library(devtools)
+  library(magrittr)
 
   #Count the number of rows in mort_db, for each combination of treatment and tank ID
   DB_Mort_Gensum = data.frame(mort_db %>%
@@ -718,7 +718,7 @@ Surv_Plots = function(surv_db,
                       plot = "both",
                       colours = NULL,
                       theme = "ggplot") {
-  require(ggplot2)
+  library(ggplot2)
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
 
