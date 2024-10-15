@@ -13,6 +13,7 @@ remotes::install_github("sean4andrew/safuncs")
 use_package() 
 ```
 
+Test
 ```{r}
 mort_db = mort_db_ex 
 today_tte = 76
@@ -144,5 +145,181 @@ QCATC1070_Surv_DB = Surv_Gen(mort_db = QCATC1070_Mort,
 
 #Generate plots
 Surv_Plots(surv_db = QCATC1070_Surv_DB, figure_name_prefix = "QCATC1070-2")
+```
+
+```{r}
+haz_db = bshazard::bshazard(Surv(TTE, Status) ~ 1, surv_db_ex[surv_db_ex$Trt.ID == "A",], verbose = FALSE) #object from bshazard() as reference hazard function. See data(Simul_SURV_Haz_DB)
+fish_num_per_tank = 100
+tank_num_per_trt = 1
+treatments_hr = c(1, 0.8, 0.5) #HR for treatment groups, starting from control (1)
+logHR_sd_intertank = 0.1 #inter-tank variation (sd) in HR in the log-scale
+# sample_specs = NULL
+sample_specs = data.frame(Amount = 50,
+                          Time = 40)
+n_simul = 1
+plot_name = "QCATC2000 Simul Test"
+
+  surv_samps = data.frame()
+  Surv_simul_outDB = data.frame()
+  pvalues = c()
+
+  for(loopnum in 1:n_simul) {
+      CDF_Yval = c()
+
+    for(Treatment_Term in treatments_hr) {
+
+      for(Tank_num in 1:tank_num_per_trt) {
+
+        Tank_eff = rnorm(n = 1, mean = 0, sd = logHR_sd_intertank)
+
+        U = runif(n = fish_num_per_tank, min = 0, max = 1)
+
+        CDF_Yval_temp = -log(U) * exp(-(log(Treatment_Term) + Tank_eff))
+        CDF_Yval = append(CDF_Yval, CDF_Yval_temp)
+      }
+    }
+
+    #Get Time to Event
+    TTE = approx(x = cumsum(haz_db$hazard), y = haz_db$time, xout = CDF_Yval, method = "linear")$y
+    TTE = round(TTE, digits = 0)
+
+    #Turn NA (from out of bound CDF_Yval) to the last follow up time
+    TTE = ifelse(is.na(TTE), max(haz_db$time), TTE)
+
+    #Label Status (1 - dead, or 0 - survived) given TTE, and create survival dataframe
+    Surv_simul_DB = data.frame(TTE = TTE,
+                               CDF_Yval = CDF_Yval,
+                               Status = ifelse(TTE == max(haz_db$time), 0, 1),
+                               Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]), 
+                                                      each = fish_num_per_tank * tank_num_per_trt, times = n_simul)),
+                               Tank.ID = as.factor(rep(1:(length(treatments_hr) * tank_num_per_trt), 
+                                                       each = fish_num_per_tank, times = n_simul)),
+                               n_simul = loopnum)
+
+    #Transform TTE and Status in certain rows due to sampling
+    if(!is.null(sample_specs)) {
+
+      #Repeat for each specified sampling time and each tank
+      for(samp_time in 1:length(sample_specs$Time)) {
+        for(tank_num in levels(Surv_simul_DB$Tank.ID)) {
+          
+          rows_sel = sample(x = which(Surv_simul_DB[Surv_simul_DB$Tank.ID == tank_num, "TTE"] > sample_set$Time[samp_time]),
+                            size = sample_set$Amount[samp_time],
+                            replace = FALSE)
+  
+          Surv_simul_DB$TTE[rows_sel] = sample_set$Time[samp_time]
+          Surv_simul_DB$Status[rows_sel] = 0
+        }
+      }
+    }
+    
+    #Get p-value for plots
+    pvalues = append(pvalues, survival::survdiff(survival::Surv(TTE, Status) ~ Trt.ID, Surv_simul_DB)$pvalue)
+    
+    #Simulated survival data to be provided as output
+    Surv_simul_outDB = rbind(Surv_simul_outDB, Surv_simul_DB)
+    
+    #Transform simulated survival data for plotting purposes
+    surv_obj = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = Surv_simul_DB)
+    attributes(surv_obj$strata)$names <- levels(as.factor(Surv_simul_DB$Trt.ID))
+    
+    surv_samps_temp = data.frame(Trt.ID = summary(surv_obj)$strata,
+                                 surv_prob = summary(surv_obj)$surv,
+                                 time = summary(surv_obj)$time,
+                                 type = paste("Sample (n = ", n_simul, ")", sep = ""),
+                                 n_simul = loopnum,
+                                 alpha = 1 - (0.0001 ^ (1/n_simul)))
+    
+    surv_samps_ends = data.frame(surv_samps_temp %>%
+                                   dplyr::group_by(Trt.ID) %>%
+                                   dplyr::reframe(surv_prob = c(min(1, max(surv_prob)), min(surv_prob)), 
+                                                  time = c(min(haz_db$time), max(haz_db$time)),
+                                                  n_simul = loopnum,
+                                                  alpha = 1 - (0.0001 ^ (1/n_simul))))
+    surv_samps_ends$type = paste("Sample (n = ", n_simul, ")", sep = "")
+
+    surv_samps = rbind(surv_samps, surv_samps_temp, surv_samps_ends)
+  }
+
+  #Get "population" survival dataset by exponentiating the negative cumulative hazard
+  surv_pop = data.frame(Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]), each = length(haz_db$hazard))),
+                        surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum))),
+                        time = rep(haz_db$time, times = length(treatments_hr)),
+                        type = "Population / truth",
+                        n_simul = 1,
+                        alpha = 1)
+
+  #Create surv_plots
+  surv_comb = rbind(surv_samps, surv_pop)
+  surv_comb$type = factor(surv_comb$type, levels = c(paste("Sample (n = ", n_simul, ")", sep = ""), "Population / truth"))
+  surv_comb$Trt.ID = factor(surv_comb$Trt.ID, levels = rep(c("Control", LETTERS[2:length(treatments_hr)])))
+
+    #Get end_sr for population plots and sample plots
+    end_db = data.frame(surv_comb %>%
+                          dplyr::group_by(type, Trt.ID, n_simul) %>%
+                          dplyr::summarise(surv_prob = min(surv_prob), time = max(TTE), .groups = "drop") %>%
+                            dplyr::group_by(type, Trt.ID) %>%
+                            dplyr::summarise(surv_prob = mean(surv_prob), time = max(time), .groups = "drop"))
+    
+    #Get % significance (i.e. power) for plotting
+    perc_sf = paste(round(100 * sum(pvalues < 0.05) / length(pvalues), digits = 0), "%", sep = "")
+
+  library(ggplot2)
+  if(n_simul == 1) {
+    surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = interaction(n_simul, Trt.ID))) +
+      facet_wrap(~ type) +
+      geom_step() +
+      scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
+      scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 15), 1))) +
+      ylab("Survival Probability (%)") +
+      xlab("Time to Event") +
+      scale_alpha(range = c(min(surv_comb$alpha), 1))+
+      guides(alpha = "none") +
+      geom_text(data = end_db, aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)), 
+                vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) + 
+      annotation_custom(grob = grid::textGrob(paste(c(paste("The sample has a", sep = ""), 
+                                                      paste("p-value = ", signif(pvalues2, digits = 2), sep = ""),
+                                                      "(global test of Trt.)"), collapse = "\n"), 
+                                              x = grid::unit(1.05, "npc"),
+                                              y = grid::unit(0.08, "npc"),
+                                              hjust = 0,
+                                              gp = grid::gpar(fontsize = 9))) +
+      coord_cartesian(clip = "off") +
+      theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
+
+  } else {
+    surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = interaction(n_simul, Trt.ID))) +
+      facet_wrap(~ type) +
+      geom_step(aes(alpha = alpha)) +
+      scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
+      scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 15), 1))) +
+      ylab("Survival Probability (%)") +
+      xlab("Time to Event") +
+      scale_alpha(range = c(min(surv_comb$alpha), 1)) +
+      guides(alpha = "none") +
+      geom_text(data = end_db[end_db$type == "Population / truth",], 
+                aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)), 
+                vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) + 
+      annotation_custom(grob = grid::textGrob(paste(c(paste(perc_sf, " of the sample", sep = ""), 
+                                                      paste("sets (n) has p < 0.05", sep = ""),
+                                                      "(global test of Trt.)"), collapse = "\n"), 
+                                              x = grid::unit(1.05, "npc"),
+                                              y = grid::unit(0.08, "npc"),
+                                              hjust = 0,
+                                              gp = grid::gpar(fontsize = 9))) +
+      coord_cartesian(clip = "off") +
+      theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
+      
+  }
+    
+  if(!is.null(plot_name)) {
+    eoffice::topptx(figure = surv_plots, filename = paste(plot_name, ".pptx", sep = ""), width = 6, height = 4)
+    ggsave(paste(plot_name, ".tiff", sep = ""), dpi = 900, width = 6.3, height = 4, plot = surv_plots)
+  } 
+
+  # return(list(simul_surv_db = Surv_simul_outDB,
+  #             surv_plots = surv_plots,
+  #             surv_plots_db = surv_comb))
+surv_plots
 ```
 
