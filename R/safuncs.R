@@ -725,6 +725,7 @@ Surv_Plots = function(surv_db,
   library(ggplot2)
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
+  if(!is.null(trt_order)){surv_db$Trt.ID = factor(surv_db$Trt.ID, levels = trt_order)}
 
   if(plot == "surv" | plot == "both") {
   surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
