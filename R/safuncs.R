@@ -426,7 +426,8 @@ Surv_Simul = function(haz_db, #object from bshazard() as reference hazard functi
 
 theme_Publication = function(base_size = 14, base_family = "helvetica") {
   library(grid)
-  library(dplyr)(ggthemes)
+  library(dplyr)
+  library(ggthemes)
   (theme_foundation(base_size=base_size, base_family=base_family)
     + theme(plot.title = element_text(face = "bold",
                                       size = rel(1.2), hjust = 0.5),
@@ -739,16 +740,16 @@ Surv_Plots = function(surv_db,
                                     conf.int = FALSE,
                                     ggtheme = theme(plot.background = element_rect(fill = "white")),
                                     break.y.by = 0.1,
-                                    break.x.by = max(round(max(xlim) / 15), 1),
+                                    break.x.by = max(round(max(xlim) / 13), 1),
                                     xlim = xlim,
                                     ylim = ylim,
                                     xlab = xlab,
                                     surv.scale = "percent")
   Survival_Plot = surv_plot$plot + theme(legend.position = "right") + guides(color = guide_legend("Trt.ID"))
+  if(theme == "prism") {Survival_Plot = Survival_Plot + ggprism::theme_prism()}
   eoffice::topptx(figure = Survival_Plot, filename = paste(plot_prefix, "Survival Curve.pptx"), width = 6, height = 4)
 
   if(!is.null(colours)) {Survival_Plot = Survival_Plot + scale_color_manual(values = colours)}
-  if(theme == "prism") {Survival_Plot = Survival_Plot + ggprism::theme_prism()}
   ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = 6, height = 4, plot = Survival_Plot)
 
   }
@@ -793,7 +794,7 @@ Surv_Plots = function(surv_db,
     xlab(xlab) +
     scale_x_continuous(breaks = seq(from = min(xlim),
                                     to = max(xlim),
-                                    by = max(round(max(xlim) / 15), 1)),
+                                    by = max(round(max(xlim) / 13), 1)),
                        limits = xlim)
 
   if(!is.null(colours)) {Hazard_Plot = Hazard_Plot + scale_color_manual(values = colours)}
