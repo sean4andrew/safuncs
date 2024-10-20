@@ -18,7 +18,6 @@ theme function to add to a ggplot2 object
 A theme function to add to a ggplot2 object for publication style plots. Function adapted from \href{https://rdrr.io/github/HanjoStudy/quotidieR/src/R/theme_publication.R} {HanjoStudy/quotidieR}.
 }
 \examples{
-
 #Load an example dataset
 data(iris)
 
@@ -26,5 +25,4 @@ data(iris)
 ggplot(data = iris, aes(x = Species, colour = Species, y = Petal.Length)) +
    geom_boxplot() +
    theme_Publication()
-
 }

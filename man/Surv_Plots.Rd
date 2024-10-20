@@ -51,9 +51,9 @@ Surv_Plots(
 \item{plot_dim}{Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.}
 }
 \value{
-If \code{plot = "surv"}, returns a ggplot2 object representing the Kaplan-Meier Survival Curve.
-If \code{plot = "haz"}, returns a ggplot2 object representing the Hazard Curve.
-If \code{plot = "both"}, returns both ggplot2 objects. Output becomes a list of plot(s) with the associated dataframe if \code{data_out = TRUE}.
+By default, with argument {\code{plot = "both"}}, returns the Kaplan-Meier Survival Curve and the Hazard Curve. Output can be trimmed by setting \code{plot = "haz"} or \code{plot = "surv"}.
+
+If \code{data_out = TRUE}, returns a list of the plot(s) and the associated dataframes to create them.
 }
 \description{
 Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.
@@ -69,18 +69,23 @@ The survival dataset should be a dataframe containing at least 4 different colum
 
 Each row should represent one fish. For an example dataframe, execute \code{data(surv_db_ex)} and view.
 
-For details on the statistical methodology used by \code{bshazard()}, refer to: \url{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}.
+For details on the statistical methodology used by \code{bshazard()}, refer to: \href{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}{here}.
 
 General concept: h(t) the hazard function is considered in an count model with the number of deaths as the response variable. I.e, death_count(t) = h(t) * P(t) where P(t) is the number alive as a function of time and h(t) is modeled over time using basis splines. The basis spline curvature\bold{s} is assumed to have a normal distribution with mean 0 (a random effect). Based on this assumption, the author found that the variance of curvatures (i.e. smoothness) is equal to the over-dispersion (phi) of the death counts related (divided) by some smoothness parameter (lambda). Phi and lambda can be estimated from the data or specified by the user. Specification can be helpful in low sample size situations where overdispersion (phi) estimates have been found to be unreliable and clearly wrong (based on my understanding of realistic estimates and what was estimated in past data with adequate, large sample sizes).
 }
 \examples{
-data(surv_db_ex)
-Surv_Plots(surv_db = surv_db_ex,
+#Starting from an example mortality database, we first generate the complete survivor data using Surv_Gen()
+data(mort_db_ex)
+surv_dat = Surv_Gen(mort_db = mort_db_ex,
+                    starting_fish_count = 100,
+                    last_tte = 54)
+
+#Create plot by inputting surv_dat into Surv_Plots()!
+Surv_Plots(surv_db = surv_dat,
            plot_prefix = "QCATC777",
            xlim = c(0, 50),
            ylim = c(0, 1),
            xlab = "TTE",
            phi = 1,
            plot = "both")
-
 }

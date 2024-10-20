@@ -43,7 +43,6 @@ Each row should represent one fish.
 For an example dataframe, execute \code{data(mort_db_ex)} and view.
 }
 \examples{
-
 #First, we load an example mortality database available from the safuncs package
 data(mort_db_ex)
 
@@ -53,5 +52,4 @@ Surv_Gen(mort_db = mort_db_ex,
          last_tte = 54,
          tank_without_mort = c("C99", "C100"),
          trt_without_mort = c("A", "B"))
-
 }

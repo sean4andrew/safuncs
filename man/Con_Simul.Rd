@@ -39,7 +39,7 @@ Simulate a contingency table with fish counts distributed across \emph{n} lesion
 \details{
 Counts are simulated from a multinomial distribution using \code{rmultinom()}. Counts may be assumed to have a fixed total in the marginals (e.g. per treatment group) or no fixed total in row or column marginals.
 
-For further discussion into the types of marginals in contingency tables, refer to: \url{https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf} and the comments on \bold{Arguments}.
+For further discussion into the types of marginals in contingency tables, refer to: \href{https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf}{here} and the comments on \bold{Arguments}.
 }
 \examples{
 Con_Tab = Con_Simul(total_count = 750, n_lesion = 3, n_Trt. = 5)
