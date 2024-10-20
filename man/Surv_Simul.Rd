@@ -9,35 +9,83 @@ Surv_Simul(
   fish_num_per_tank = 100,
   tank_num_per_trt = 4,
   treatments_hr = c(1, 1, 1, 1),
-  logHR_sd_intertank = 0.35,
-  sample_set = NULL,
-  n_simul = 1,
-  power = FALSE
+  logHR_sd_intertank = 0.1,
+  sampling_specs = NULL,
+  n_sim = 1,
+  plot_out = TRUE,
+  pop_out = TRUE,
+  plot_name = "Surv_Simul Plot Output",
+  theme = "ggplot2"
 )
 }
 \arguments{
-\item{haz_db}{A hazard dataframe representing the reference hazard curve used for simulation of survival data/curves. Can be a dataframe from \code{bshazard()} or \code{Surv_Plots()}. Further information in \bold{Details}.}
+\item{haz_db}{A dataframe representing the reference hazard curve; can be generated from \code{bshazard()} or \code{Surv_Plots()}.}
 
-\item{fish_num_per_tank}{placeholder}
+\item{fish_num_per_tank}{The number of fish to simulate per tank. Defaults to 100.}
 
-\item{tank_num_per_trt}{placeholder}
+\item{tank_num_per_trt}{The number of tanks to simulate per treatment group. Defaults to 4.}
 
-\item{treatments_hr}{placeholder}
+\item{treatments_hr}{A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1). Length of the vector represents the number of treatment groups. Defaults to \code{c(1, 1, 1, 1)}.}
 
-\item{logHR_sd_intertank}{placeholder}
+\item{logHR_sd_intertank}{The standard deviation of inter-tank variation in the log(HR) scale according to the \code{coxme} framework. Defaults to 0.1 (low inter-tank variation). For reference, 0.35 is fairly high, but can/has occurred, while 0s have frequently occurred for Trojan fish data.}
 
-\item{sample_set}{placeholder}
+\item{sampling_specs}{A dataframe representing the number of right censored data (e.g. sampled fish) per tank at different times represented by two columns "Number" and "TTE", respectively. See \bold{Examples} for example of use. Defaults to NULL (no sampling).}
 
-\item{n_simul}{placeholder}
+\item{n_sim}{Number of survival dataset to simulate. Defaults to 1.}
 
-\item{power}{placeholder}
+\item{plot_out}{Whether to output the information plot (further details in \bold{return}). Defaults to TRUE.}
+
+\item{pop_out}{Whether to output a dataframe containing the survival probability values for the population. Defaults to TRUE.}
+
+\item{plot_name}{Character string specifying the name of the saved plot. Defaults to "Surv_Simul Plot Output".}
+
+\item{theme}{Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".}
 }
 \value{
-placeholder
+Returns, at minimum, the simulated survival dataframe. The dataframe contains 5 columns: TTE (Time to Event), Status (0 / 1), Trt.ID, Tank.ID, and n_sim which represents the simulation number for the data subsets.
+
+If \code{plot_out == TRUE}, outputs a list that additionally contains the information plot. The plot illustrates the survival curve with end survival rates for the simulated dataset(s) as well as the population. If the number of simulated dataset is greater than 1, multiple curves are drawn representing each and a statement is provided regarding the power to detect the effect of Treatment -- specifically, the percent positive (p < 0.05) from a global log-rank test using \code{survival::survdiff()}.
+
+If \code{pop_out == TRUE}, outputs a list that additionally contains a dataframe representing the survival probability values for the population / truth used in sample simulation.
 }
 \description{
-placeholder
+Simulates survival data based on a set of user-specified experimental parameters and a reference hazard curve (e.g. hazard curve from the control group). Able to simulate data with inter-cluster (e.g. tank) variation based on the framework of the mixed cox proportional hazards model (\code{coxme::coxme}). Able to simulate right censored data (e.g. sampled fish) using \code{sampling_specs} argument. Optionally produces a plot illustrating the characteristics of the simulated data and that of the population / truth from which the data (sample) is simulated.
+}
+\details{
+Simulations are based on uniform-probability draws (U ~ (0, 1)) from a set of events which can be expressed through time using the cumulative density function of failures ("F(t)", i.e. cumulative mort. curve). F(t) can be transformed to the cumulative hazard function (H(t)), hence the relationship between H(t) and uniform draws (U) is also known (derivation and equation in \url{Bender et al. (2003)}{https://epub.ub.uni-muenchen.de/1716/1/paper_338.pdf}. Because H(t) is related (as the integral) to the hazard function (h(t)), and since h(t) is related to effects (e.g. treatment or tank) based on the cox proportional hazards model, such effects can now be incorporated into the simulation process as they can be interacted with U. The simulation process is as follows:
+
+First, Surv_Simul() takes a random sample from U (e.g. 0.7).
+U is then transformed into H as their relationship is known (see \url{Bender et al. (2003)}{https://epub.ub.uni-muenchen.de/1716/1/paper_338.pdf}):
+H = -log(U) * exp(-log(B)); where B represents treatment or tank effects.
+Next, the function H(t) inverse (known from the supplied reference hazard curve) is applied to H to obtain t (time to event) which represents the survival data. T beyond the last follow-up period represent survivors (Status = 0), and below it, represents mortalities (Status = 1).
+
+To verify the correct "randomness" is produced in the simulated survival data, given that adding "randomness" is the whole point of simulations (to me), 5 different validation checks have been performed (documented in a pdf to be uploaded to github). Those checks showed that the HR estimated by fitting two curves sampled from the same population, converges to a mean of 1 (as should be) over many simulations, and across simulations the HR varies as expected (SD of simulated HRs = SE of HR as supposed by the cox model). Those checks also showed that the p-value obtained by applying log-rank test to null (no-effect) simulated datasets, has a distribution that is uniform (as should be), with a false positive rate of 0.05 given the alpha used was 0.05 (as should be). Additionally, power calculated from the simulation process equal to the power calculated from an online calculator (ref). Last, the checks showed that the simulated survival curves are similar in variations (visually)as compared to curves simulated from a different, more limited, simulation method (bootstrap / re-sampling with replacement).
 }
 \examples{
-placeholder
+
+#Starting from an example mortality database, we first generate the complete survivor data using Surv_Gen()
+data(mort_db_ex)
+surv_dat = Surv_Gen(mort_db = mort_db_ex,
+                    starting_fish_count = 100,
+                    last_tte = 54)
+
+#Filter for the control group ("A") to use as a reference hazard curve for simulations
+surv_dat = surv_dat[surv_dat$Trt.ID == "A", ]
+
+#Estimate the hazard curve of the control group and get the associated dataframe using either bshazard::bshazard() or safuncs::Surv_Plots()["Hazard_DB"]
+ref_haz_route1 = bshazard::bshazard(data = surv_dat, survival::Surv(TTE, Status) ~ Tank.ID)
+ref_haz_route1 = data.frame(summary(ref_haz1)$HazardEstimates)
+
+ref_haz_route2 = safuncs::Surv_Plots(surv_db = surv_dat, data_out = TRUE)["Hazard_DB"]
+
+#Simulate!
+Surv_Simul(haz_db = ref_haz_route2,
+           sampling_specs = data.frame(Number = 10,
+                                       TTE = 45)) #sampling of 10 fish at 45 DPC, but otherwise default experimental conditions.
+
+#Simulate multiple times to better see if samples are reliable to answer the question: are my future samples likely to be good approximates of the truth / population
+Surv_Simul(haz_db = ref_haz_route2,
+           sampling_specs = data.frame(Number = 10,
+                                       TTE = 45),
+           n_sim = 3)
 }

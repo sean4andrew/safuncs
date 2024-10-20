@@ -2,7 +2,7 @@
 % Please edit documentation in R/safuncs.R
 \name{Surv_Pred}
 \alias{Surv_Pred}
-\title{Predict Survival Rate}
+\title{Predict End Survival Rate}
 \usage{
 Surv_Pred(
   pred_db,
@@ -31,7 +31,7 @@ Surv_Pred(
 Placeholder
 }
 \description{
-Predict survival rate for a given survival dataset provided a reference survival database used to estimate a reference hazard curve. Prediction done seperately by treatment group.
+Predict survival rate for a given survival dataset provided a reference survival database used to estimate a reference hazard curve. Prediction done separately by treatment group.
 }
 \details{
 P

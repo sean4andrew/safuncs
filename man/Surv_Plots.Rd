@@ -17,7 +17,8 @@ Surv_Plots(
   colours = NULL,
   theme = "ggplot",
   trt_order = NULL,
-  data_out = FALSE
+  data_out = FALSE,
+  plot_dim = c(6, 4)
 )
 }
 \arguments{
@@ -43,14 +44,16 @@ Surv_Plots(
 
 \item{theme}{Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".}
 
-\item{trt_order}{Vector representing order of treatment groups in plots. Defaults to NULL (alphabetical order)}
+\item{trt_order}{Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.}
 
-\item{data_out}{Whether to print out survival and/or hazard database. Defaults to FALSE.}
+\item{data_out}{Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.}
+
+\item{plot_dim}{Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.}
 }
 \value{
 If \code{plot = "surv"}, returns a ggplot2 object representing the Kaplan-Meier Survival Curve.
 If \code{plot = "haz"}, returns a ggplot2 object representing the Hazard Curve.
-If \code{plot = "both"}, returns both ggplot2 objects. Output becomes a list of ggplot(s) with the associated dataframe(s) if \code{data_out = TRUE}.
+If \code{plot = "both"}, returns both ggplot2 objects. Output becomes a list of plot(s) with the associated dataframe if \code{data_out = TRUE}.
 }
 \description{
 Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.
@@ -68,7 +71,7 @@ Each row should represent one fish. For an example dataframe, execute \code{data
 
 For details on the statistical methodology used by \code{bshazard()}, refer to: \url{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}.
 
-General concept: h(t) the hazard function is considered in an count model with the number of deaths as the response variable. I.e, death_count(t) = h(t) * P(t) where P(t) is the number alive as a function of time and h(t) is modeled over time using basis splines. The basis spline curvatures is assumed to have a normal distribution with mean 0 (a random effect). Based on this assumption, the author found that the variance of curvatures (i.e. smoothness) can be estimated as a function of over-dispersion (phi) of the death counts. Specifically, variance of curvatures = phi / lambda(smoothness parameter). Phi and lambda can be estimated from the data or specified by the user. Specification can be helpful in low sample size cases where estimates can be unreliable.
+General concept: h(t) the hazard function is considered in an count model with the number of deaths as the response variable. I.e, death_count(t) = h(t) * P(t) where P(t) is the number alive as a function of time and h(t) is modeled over time using basis splines. The basis spline curvature\bold{s} is assumed to have a normal distribution with mean 0 (a random effect). Based on this assumption, the author found that the variance of curvatures (i.e. smoothness) is equal to the over-dispersion (phi) of the death counts related (divided) by some smoothness parameter (lambda). Phi and lambda can be estimated from the data or specified by the user. Specification can be helpful in low sample size situations where overdispersion (phi) estimates have been found to be unreliable and clearly wrong (based on my understanding of realistic estimates and what was estimated in past data with adequate, large sample sizes).
 }
 \examples{
 data(surv_db_ex)

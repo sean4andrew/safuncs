@@ -7,7 +7,7 @@
 Surv_Gen(
   mort_db,
   starting_fish_count,
-  today_tte,
+  last_tte,
   tank_without_mort = NULL,
   trt_without_mort = NULL
 )
@@ -17,7 +17,7 @@ Surv_Gen(
 
 \item{starting_fish_count}{Value representing the starting number of fish for every tank. Alternatively, a dataframe containing the columns "Trt.ID", "Tank.ID", and "starting_fish_count" to allow for different fish starting numbers per tank.}
 
-\item{today_tte}{Value representing the day or time-to-event the fish survived to, assigned to every row of survivor data generated.}
+\item{last_tte}{Value representing the time-to-event the fish survived to, assigned to every row of survivor data generated.}
 
 \item{tank_without_mort}{A vector of strings specifying the tanks absent from \code{mort_db}; used to generate survivor data for those tanks. Argument ignored if \code{starting_fish_count} is a dataframe.}
 
@@ -27,7 +27,7 @@ Surv_Gen(
 A dataframe produced by combining the input mort data and generated rows of survivor data.
 }
 \description{
-Produces a survival dataframe that includes rows representing every surviving fish based on the starting number of fish and mortality data. To generate survivor data for tanks absent in the input dataframe, specify arguments \code{tank_without_mort} and \code{trt_without_mort}.
+Produces survival data that includes rows for every surviving fish based on the starting number of fish and mortality data. To generate survivor data for tanks absent in the input mortality dataframe, specify the arguments \code{tank_without_mort} and \code{trt_without_mort}. To generate survivor data with tank specific starting numbers of fish, input a dataframe into the argument \code{starting_fish_count} instead of a single value; details in \code{Arguments}.
 }
 \details{
 The mort dataframe supplied as input should consist of the following 4 columns at minimum:
@@ -43,10 +43,14 @@ Each row should represent one fish.
 For an example dataframe, execute \code{data(mort_db_ex)} and view.
 }
 \examples{
+
+#First, we load an example mortality database available from the safuncs package
 data(mort_db_ex)
+
+#Next, we input this data into Surv_Gen() as well as the study details to generate entries (rows) for survivors in the output - a "complete" dataframe for further survival analysis and data visualization.
 Surv_Gen(mort_db = mort_db_ex,
          starting_fish_count = 100,
-         today_tte = 54,
+         last_tte = 54,
          tank_without_mort = c("C99", "C100"),
          trt_without_mort = c("A", "B"))
 
