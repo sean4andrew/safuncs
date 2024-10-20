@@ -13,7 +13,7 @@ GG_Colour_Hue(n)
 Returns a vector representing the default colour codes assigned to each group by ggplot.
 }
 \description{
-Not my function but it is useful so here it is! \url{Origin}{https://stackoverflow.com/questions/8197559/emulate-ggplot2-default-color-palette}
+Not my function but it is useful so here it is! \href{Origin}{https://stackoverflow.com/questions/8197559/emulate-ggplot2-default-color-palette}
 }
 \examples{
 
