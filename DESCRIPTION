@@ -1,6 +1,6 @@
 Package: safuncs
 Type: Package
-Title: Accelerate the Prepration and Analysis of Biological Data
+Title: Functions to Accelerate the Preparation and Analysis of Biological Data
 Version: 2.0.0
 Author: Sean Andrew
 Maintainer: Sean Andrew <sean4andrew@gmail.com>
