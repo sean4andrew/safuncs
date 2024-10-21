@@ -122,7 +122,7 @@ Con_Simul = function(probs = "equal",
 #' ## The same power for Chi-square test can be calculated using Cohen's omega (w) method which is faster but has its own limitations;
 #' ## e.g. assumes one data generating process for the contingency table (the no fixed marginals).
 #' library(pwr)
-#' pwr.chisq.test(w = ES.w2(probs_mat), df = 2, sig.level = 0.05, N = 100)
+#' pwr::pwr.chisq.test(w = ES.w2(probs_mat), df = 2, sig.level = 0.05, N = 100)
 #' ## Results: Power is 85.6% for the Chi-square test at the total count of 100.
 Con_Simul_PR = function(Con_Simul_Object = Con_Simul(),
                         add_fisher_exact = FALSE,
@@ -322,6 +322,9 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'
 #' @import ggplot2
 #' @import magrittr
+#' @import dplyr
+#'
+#' @seealso \href{file:///C:/Users/sean4/Documents/GitHub/safuncs/docs/reference/Surv_Simul.html}{Link} for executed examples which includes the figure outputs.
 #'
 #' @export
 #'
@@ -335,22 +338,24 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' #Filter for the control group ("A") to use as a reference hazard curve for simulations
 #' surv_dat_A = surv_dat[surv_dat$Trt.ID == "A", ]
 #'
-#' #Estimate the hazard curve of the control group and get the associated hazard dataframe using either bshazard::bshazard() or safuncs::Surv_Plots()[["Hazard_DB"]]
-#' ref_haz_route_bshazard = bshazard::bshazard(data = surv_dat_A, survival::Surv(TTE, Status) ~ Tank.ID)
+#' #Estimate the hazard curve of the control group and get the associated hazard dataframe using either bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB
+#' ref_haz_route_bshazard = bshazard::bshazard(data = surv_dat_A, survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE)
 #' ref_haz_route_bshazard = data.frame(summary(ref_haz_route_bshazard)$HazardEstimates)
 #'
-#' ref_haz_route_safuncs = safuncs::Surv_Plots(surv_db = surv_dat_A, data_out = TRUE)[["Hazard_DB"]]
+#' ref_haz_route_safuncs = safuncs::Surv_Plots(surv_db = surv_dat_A, data_out = TRUE)$Hazard_DB
 #'
 #' #Simulate!
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
+#'            treatments_hr = c(1, 0.8, 0.5),
 #'            sampling_specs = data.frame(Amount = 10,
-#'                                        TTE = 45)) #sampling of 10 fish at 45 DPC, but otherwise default experimental conditions.
+#'                                        TTE = 45))$surv_plots #sampling of 10 fish at 45 DPC, but otherwise default experimental conditions.
 #'
 #' #Simulate multiple times to better see if samples are reliable to answer the question: are my future samples likely to be good approximates of the truth / population
-#' Surv_Simul(haz_db = ref_haz_route2,
+#' Surv_Simul(haz_db = ref_haz_route_safuncs,
+#'            treatments_hr = c(1, 0.8, 0.5),
 #'            sampling_specs = data.frame(Amount = 10,
 #'                                        TTE = 45),
-#'            n_sim = 3)
+#'            n_sim = 4)$surv_plots
 Surv_Simul = function(haz_db,
                       fish_num_per_tank = 100,
                       tank_num_per_trt = 4,
@@ -362,14 +367,14 @@ Surv_Simul = function(haz_db,
                       pop_out = TRUE,
                       plot_name = "Surv_Simul Plot Output",
                       theme = "ggplot2") {
-  library(ggplot2)
-  library(dplyr)
 
+  #Initialize objects to store loop results
   surv_samps = data.frame()
   Surv_simul_outDB = data.frame()
   pvalues = c()
   colnames(haz_db) = tolower(colnames(haz_db))
 
+  #Simulate survival dataframe
   for(loopnum in 1:n_sim) {
 
     CDF_Yval = c()
@@ -411,7 +416,7 @@ Surv_Simul = function(haz_db,
       for(samp_time in 1:length(sampling_specs$TTE)) {
         for(tank_num in levels(Surv_simul_DB$Tank.ID)) {
 
-          rows_sel = sample(x = which(Surv_simul_DB[Surv_simul_DB$Tank.ID == tank_num, "TTE"] > sample_set$TTE[samp_time]),
+          rows_sel = sample(x = which(Surv_simul_DB[Surv_simul_DB$Tank.ID == tank_num, "TTE"] > sampling_specs$TTE[samp_time]),
                             size = sampling_specs$Amount[samp_time],
                             replace = FALSE)
 
@@ -429,7 +434,12 @@ Surv_Simul = function(haz_db,
 
     #Transform simulated survival data for plotting purposes
     surv_obj = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = Surv_simul_DB)
-    attributes(surv_obj$strata)$names <- levels(as.factor(Surv_simul_DB$Trt.ID))
+      if(length(levels(as.factor(Surv_simul_DB$Trt.ID))) > 1) {
+        attributes(surv_obj$strata)$names <- levels(as.factor(Surv_simul_DB$Trt.ID))
+      } else {
+        surv_obj$strata = length(surv_obj$surv)
+        attributes(surv_obj$strata)$names <- levels(as.factor(Surv_simul_DB$Trt.ID))
+      }
 
     surv_samps_temp = data.frame(Trt.ID = summary(surv_obj)$strata,
                                  surv_prob = summary(surv_obj)$surv,
@@ -486,7 +496,7 @@ Surv_Simul = function(haz_db,
         geom_text(data = end_db, aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)),
                   vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) +
         annotation_custom(grob = grid::textGrob(paste(c(paste("The sample has a", sep = ""),
-                                                        paste("p-value = ", signif(pvalues2, digits = 2), sep = ""),
+                                                        paste("p-value = ", signif(pvalues, digits = 2), sep = ""),
                                                         "(global test of Trt.)"), collapse = "\n"),
                                                 x = grid::unit(1.05, "npc"),
                                                 y = grid::unit(0.08, "npc"),
@@ -525,8 +535,8 @@ Surv_Simul = function(haz_db,
 
   #Save plots and return outputs
   if(!is.null(plot_name)) {
-    eoffice::topptx(figure = surv_plots, filename = paste(plot_name, ".pptx", sep = ""), width = 6, height = 4)
-    ggsave(paste(plot_name, ".tiff", sep = ""), dpi = 900, width = 6, height = 4, plot = surv_plots)
+    eoffice::topptx(figure = surv_plots, filename = paste(plot_name, ".pptx", sep = "-"), width = 6, height = 4)
+    ggsave(paste(plot_name, ".tiff", sep = "-"), dpi = 900, width = 6, height = 4, plot = surv_plots)
   }
 
   if(plot_out == FALSE && pop_out == FALSE) {
@@ -546,12 +556,16 @@ Surv_Simul = function(haz_db,
 
 #' @title Publication theme for ggplot2
 #'
-#' @description A theme function to add to a ggplot2 object for publication style plots. Function adapted from \href{https://rdrr.io/github/HanjoStudy/quotidieR/src/R/theme_publication.R} {HanjoStudy/quotidieR}.
+#' @description A theme function to add to a ggplot2 object for publication style plots. Function adapted from \href{https://rdrr.io/github/HanjoStudy/quotidieR/src/R/theme_publication.R}{HanjoStudy/quotidieR}.
 #'
 #' @param base_size size of text in graph
-#' @param base_family font of text in graph
 #'
 #' @return theme function to add to a ggplot2 object
+#'
+#' @import grid
+#' @import dplyr
+#' @import ggthemes
+#'
 #' @export
 #'
 #' @examples
@@ -559,16 +573,13 @@ Surv_Simul = function(haz_db,
 #' data(iris)
 #'
 #' #Create a ggplot modified with theme_Publication()
+#' library(ggplot2)
 #' ggplot(data = iris, aes(x = Species, colour = Species, y = Petal.Length)) +
 #'    geom_boxplot() +
 #'    theme_Publication()
-theme_Publication = function(base_size = 14,
-                             base_family = "helvetica") {
-  library(grid)
-  library(dplyr)
-  library(ggthemes)
+theme_Publication = function(base_size = 14) {
 
-  (theme_foundation(base_size = base_size, base_family = base_family)
+  (theme_foundation(base_size = base_size)
     + theme(plot.title = element_text(face = "bold",
                                       size = rel(1.2), hjust = 0.5),
             text = element_text(),
@@ -587,7 +598,7 @@ theme_Publication = function(base_size = 14,
             legend.position = "right",
             legend.direction = "vertical",
             legend.key.size= unit(0.4, "cm"),
-            legend.margin = unit(0, "cm"),
+            legend.spacing = unit(0, "cm"),
             legend.title = element_text(size = 12),
             plot.margin = unit(c(10, 15, 5, 5),"mm"),
             strip.background = element_rect(colour = "#f0f0f0", fill = "#f0f0f0"),
@@ -609,14 +620,17 @@ theme_Publication = function(base_size = 14,
 #' @param method Placeholder
 #' @param coxph_mod Placeholder
 #' @param lambda_pred Placeholder
+#' @param phi_pred Placeholder
 #'
 #' @return Placeholder
 #'
+#' @import dplyr
 #' @import ggplot2
 #'
 #' @export
 #'
-#' @examples Placeholder
+#' @examples
+#' #Placeholder
 Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted. See \bold{Details} for specifics.
                      ref_db, #Reference survival data from to create the reference hazard function.
                      predsr_tte, #The day at which SR is to be predicted. Minimum is Day 5 post challenge.
@@ -625,10 +639,9 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
                      lambda_pred = NULL, #Lambda parameter for the bshazard curve of the predicted dataset.
                      phi_pred = NULL)
 {
-  library(dplyr)(ggplot2)
-
-  pred_db = pred_db[pred_db$TTE > 0, ] #ensure positive TTE
-  ref_db = ref_db[ref_db$TTE > 0, ] #ensure positive TTE
+  #Ensure positive TTE
+  pred_db = pred_db[pred_db$TTE > 0, ]
+  ref_db = ref_db[ref_db$TTE > 0, ]
 
   #Get reference level hazard curve
   ref_id = levels(as.factor(ref_db$Trt.ID))
@@ -748,6 +761,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #' @return A dataframe produced by combining the input mort data and generated rows of survivor data.
 #'
 #' @import magrittr
+#' @import devtools
 #'
 #' @export
 #'
@@ -766,8 +780,6 @@ Surv_Gen = function(mort_db,
                     last_tte,
                     tank_without_mort = NULL,
                     trt_without_mort = NULL) {
-  library(devtools)
-  library(magrittr)
 
   #Count the number of rows in mort_db, for each combination of treatment and tank ID
   DB_Mort_Gensum = data.frame(mort_db %>%
@@ -850,7 +862,7 @@ Surv_Gen = function(mort_db,
 #' #Create plot by inputting surv_dat into Surv_Plots()!
 #' Surv_Plots(surv_db = surv_dat,
 #'            plot_prefix = "QCATC777",
-#'            xlim = c(0, 50),
+#'            xlim = c(0, 54),
 #'            ylim = c(0, 1),
 #'            xlab = "TTE",
 #'            phi = 1,
@@ -869,14 +881,19 @@ Surv_Plots = function(surv_db,
                       trt_order = NULL,
                       data_out = FALSE,
                       plot_dim = c(6, 4)) {
-  library(ggplot2)
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
   if(!is.null(trt_order)){surv_db$Trt.ID = factor(surv_db$Trt.ID, levels = trt_order)}
 
   if(plot == "surv" | plot == "both") {
   surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
-  attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
+
+    if(length(levels(as.factor(surv_db$Trt.ID))) > 1) {
+      attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
+    } else {
+      surv_obj$strata = length(surv_obj$surv)
+      attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
+    }
 
   surv_dat = data.frame(Trt.ID = summary(surv_obj)$strata,
                         Survprob = summary(surv_obj)$surv,
@@ -893,10 +910,10 @@ Surv_Plots = function(surv_db,
                                     surv.scale = "percent")
   Survival_Plot = surv_plot$plot + theme(legend.position = "right") + guides(color = guide_legend("Trt.ID"))
   if(theme == "prism") {Survival_Plot = Survival_Plot + ggprism::theme_prism()}
-  eoffice::topptx(figure = Survival_Plot, filename = paste(plot_prefix, "Survival Curve.pptx"), width = plot_dim[1], height = plot_dim[2])
+  eoffice::topptx(figure = Survival_Plot, filename = paste(plot_prefix, "Survival-Curve.pptx", sep = "-"), width = plot_dim[1], height = plot_dim[2])
 
   if(!is.null(colours)) {Survival_Plot = Survival_Plot + scale_color_manual(values = colours)}
-  ggsave(paste(plot_prefix, "Survival Curve.tiff"), dpi = 300, width = plot_dim[1], height = plot_dim[2], plot = Survival_Plot)
+  ggsave(paste(plot_prefix, "Survival-Curve.tiff", sep = "-"), dpi = 300, width = plot_dim[1], height = plot_dim[2], plot = Survival_Plot)
 
   }
 
@@ -945,8 +962,8 @@ Surv_Plots = function(surv_db,
 
   if(!is.null(colours)) {Hazard_Plot = Hazard_Plot + scale_color_manual(values = colours)}
   if(theme == "prism") {Hazard_Plot = Hazard_Plot + ggprism::theme_prism()}
-  ggsave(paste(plot_prefix, "Hazard Curve.tiff"), dpi = 300, width = plot_dim[1], height = plot_dim[2], plot = Hazard_Plot)
-  eoffice::topptx(figure = Hazard_Plot, filename = paste(plot_prefix, "Hazard Curve.pptx"), width = plot_dim[1], height = plot_dim[2])
+  ggsave(paste(plot_prefix, "Hazard-Curve.tiff", sep = "-"), dpi = 300, width = plot_dim[1], height = plot_dim[2], plot = Hazard_Plot)
+  eoffice::topptx(figure = Hazard_Plot, filename = paste(plot_prefix, "Hazard-Curve.pptx", sep = "-"), width = plot_dim[1], height = plot_dim[2])
   }
 
   if(data_out == TRUE) {

@@ -58,6 +58,6 @@ Con_Simul_PR(sim_tab, sample_sizes = c(50, 100, 150))
 ## The same power for Chi-square test can be calculated using Cohen's omega (w) method which is faster but has its own limitations;
 ## e.g. assumes one data generating process for the contingency table (the no fixed marginals).
 library(pwr)
-pwr.chisq.test(w = ES.w2(probs_mat), df = 2, sig.level = 0.05, N = 100)
+pwr::pwr.chisq.test(w = ES.w2(probs_mat), df = 2, sig.level = 0.05, N = 100)
 ## Results: Power is 85.6\% for the Chi-square test at the total count of 100.
 }

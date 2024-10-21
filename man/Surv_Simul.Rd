@@ -78,20 +78,25 @@ surv_dat = Surv_Gen(mort_db = mort_db_ex,
 #Filter for the control group ("A") to use as a reference hazard curve for simulations
 surv_dat_A = surv_dat[surv_dat$Trt.ID == "A", ]
 
-#Estimate the hazard curve of the control group and get the associated hazard dataframe using either bshazard::bshazard() or safuncs::Surv_Plots()[["Hazard_DB"]]
-ref_haz_route_bshazard = bshazard::bshazard(data = surv_dat_A, survival::Surv(TTE, Status) ~ Tank.ID)
+#Estimate the hazard curve of the control group and get the associated hazard dataframe using either bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB
+ref_haz_route_bshazard = bshazard::bshazard(data = surv_dat_A, survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE)
 ref_haz_route_bshazard = data.frame(summary(ref_haz_route_bshazard)$HazardEstimates)
 
-ref_haz_route_safuncs = safuncs::Surv_Plots(surv_db = surv_dat_A, data_out = TRUE)[["Hazard_DB"]]
+ref_haz_route_safuncs = safuncs::Surv_Plots(surv_db = surv_dat_A, data_out = TRUE)$Hazard_DB
 
 #Simulate!
 Surv_Simul(haz_db = ref_haz_route_safuncs,
+           treatments_hr = c(1, 0.8, 0.5),
            sampling_specs = data.frame(Amount = 10,
-                                       TTE = 45)) #sampling of 10 fish at 45 DPC, but otherwise default experimental conditions.
+                                       TTE = 45))$surv_plots #sampling of 10 fish at 45 DPC, but otherwise default experimental conditions.
 
 #Simulate multiple times to better see if samples are reliable to answer the question: are my future samples likely to be good approximates of the truth / population
-Surv_Simul(haz_db = ref_haz_route2,
+Surv_Simul(haz_db = ref_haz_route_safuncs,
+           treatments_hr = c(1, 0.8, 0.5),
            sampling_specs = data.frame(Amount = 10,
                                        TTE = 45),
-           n_sim = 3)
+           n_sim = 4)$surv_plots
+}
+\seealso{
+\href{file:///C:/Users/sean4/Documents/GitHub/safuncs/docs/reference/Surv_Simul.html}{Link} for executed examples which includes the figure outputs.
 }

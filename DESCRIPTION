@@ -1,10 +1,10 @@
 Package: safuncs
 Type: Package
-Title: Functions for Biological Research
+Title: Accelerate the Prepration and Analysis of Biological Data
 Version: 2.0.0
 Author: Sean Andrew
 Maintainer: Sean Andrew <sean4andrew@gmail.com>
-Description: Functions for simulations, power calculations, prediction, plot and data generation.
+Description: Functions for simulations, power calculations, prediction, plotting and generation of biological data.
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -15,6 +15,7 @@ Depends:
 RoxygenNote: 7.3.2
 Imports: 
     bshazard,
+    devtools,
     coxme,
     DescTools,
     dplyr,
@@ -25,4 +26,8 @@ Imports:
     ordinal,
     plyr,
     survival,
-    survminer
+    survminer,
+    scales,
+    grid,
+    pwr,
+    ggthemes

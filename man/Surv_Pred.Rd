@@ -26,6 +26,8 @@ Surv_Pred(
 \item{coxph_mod}{Placeholder}
 
 \item{lambda_pred}{Placeholder}
+
+\item{phi_pred}{Placeholder}
 }
 \value{
 Placeholder
@@ -37,5 +39,5 @@ Predict survival rate for a given survival dataset provided a reference survival
 P
 }
 \examples{
-Placeholder
+#Placeholder
 }

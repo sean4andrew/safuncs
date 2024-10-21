@@ -4,24 +4,23 @@
 \alias{theme_Publication}
 \title{Publication theme for ggplot2}
 \usage{
-theme_Publication(base_size = 14, base_family = "helvetica")
+theme_Publication(base_size = 14)
 }
 \arguments{
 \item{base_size}{size of text in graph}
-
-\item{base_family}{font of text in graph}
 }
 \value{
 theme function to add to a ggplot2 object
 }
 \description{
-A theme function to add to a ggplot2 object for publication style plots. Function adapted from \href{https://rdrr.io/github/HanjoStudy/quotidieR/src/R/theme_publication.R} {HanjoStudy/quotidieR}.
+A theme function to add to a ggplot2 object for publication style plots. Function adapted from \href{https://rdrr.io/github/HanjoStudy/quotidieR/src/R/theme_publication.R}{HanjoStudy/quotidieR}.
 }
 \examples{
 #Load an example dataset
 data(iris)
 
 #Create a ggplot modified with theme_Publication()
+library(ggplot2)
 ggplot(data = iris, aes(x = Species, colour = Species, y = Petal.Length)) +
    geom_boxplot() +
    theme_Publication()

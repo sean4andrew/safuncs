@@ -83,7 +83,7 @@ surv_dat = Surv_Gen(mort_db = mort_db_ex,
 #Create plot by inputting surv_dat into Surv_Plots()!
 Surv_Plots(surv_db = surv_dat,
            plot_prefix = "QCATC777",
-           xlim = c(0, 50),
+           xlim = c(0, 54),
            ylim = c(0, 1),
            xlab = "TTE",
            phi = 1,
