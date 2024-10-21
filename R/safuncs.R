@@ -324,7 +324,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @import magrittr
 #' @import dplyr
 #'
-#' @seealso \href{file:///C:/Users/sean4/Documents/GitHub/safuncs/docs/reference/Surv_Simul.html}{Link} for executed examples which includes the figure outputs.
+#' @seealso \href{file:///C:/Users/sean4/Documents/GitHub/safuncs/docs/reference/Surv_Simul.html}{Link} for executed examples which includes any figure outputs.
 #'
 #' @export
 #'
@@ -565,6 +565,8 @@ Surv_Simul = function(haz_db,
 #' @import grid
 #' @import dplyr
 #' @import ggthemes
+#'
+#' @seealso \href{file:///C:/Users/sean4/Documents/GitHub/safuncs/docs/reference/theme_Publication.html}{Link} for executed examples which includes any figure outputs.
 #'
 #' @export
 #'
