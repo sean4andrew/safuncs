@@ -1,0 +1,38 @@
+"0","a = Surv_Plots(surv_db = IPNV_Surv_DB_Trojan[IPNV_Surv_DB_Trojan$Trt.ID %in% levels(factor(IPNV_DB_Trojan$Trt.ID)),], "
+"0","           plot_prefix = ""RD0036 Trojan"","
+"0","           plot = ""haz"","
+"0","           dailybin = TRUE,"
+"0","           phi = 1)"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"0","a[[1]]"

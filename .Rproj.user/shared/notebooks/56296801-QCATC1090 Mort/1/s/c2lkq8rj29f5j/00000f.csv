@@ -1,0 +1,9 @@
+"0","Surv_Pred(pred_db = Ten_896_Surv,"
+"0","         ref_db = Ten_997_Surv,"
+"0","         predsr_tte = 36"
+"0","         )"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"2","Error in ref_bshaz[ref_bshaz$time < predsr_tte, ] : 
+  incorrect number of dimensions
+"

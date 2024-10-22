@@ -1,0 +1,347 @@
+---
+title: "Simulation and Power Analysis for Survival Data"
+output: 
+  rmdformats::readthedown:
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+---
+
+The procedure for the simulation is based on the idea of the [inverse cdf method for simulations](https://blogs.sas.com/content/iml/2013/07/22/the-inverse-cdf-method.html) and the re-expression of F(t) as detailed in [Bender et al. (2003)](https://epub.ub.uni-muenchen.de/1716/1/paper_338.pdf). Notably, Time to event (T) can be expressed as\
+\
+T = H~o~^-1^ [-log(U) \* exp(−β'x)].\
+
+-   H~o~^-1^ is the inverse of the cumulative density function (cdf) of the baseline hazard function (h~o~)
+-   U is the Uniform distribution (min = 0, max = 1) from which random samples can be taken to generate T
+-   β'x is/are regression term(s) in the coxph (cox-proportional hazards model) reflecting the hazard ratio (e.g. a HR of 0.5 for Treatment A has a corresponding βx = log(0.5) or -0.69)\
+    \
+    The coxph model here is defined as log($\frac{h_x(t|x)}{h_o(t)}$) = β'x
+
+# Setup and Simulations
+
+First I load some essential libraries and the past dataset (QCATC997, Tenaci mortality data) to estimate my baseline hazard.
+
+```{r, warning = FALSE, message = FALSE}
+library(bshazard)
+library(survival)
+library(survminer)
+library(ggplot2)
+library(car)
+library(coxme)
+
+setwd("C:/Users/sean4/Downloads")
+Surv_DB_Tenaci = read.csv(file = "QCATC997 Mortality Tenaci.csv")
+```
+
+Estimating baseline hazard using bshazard. An estimate for hazard is produced everyday, i.e. at a 1-day time interval. This is done for easy computing of the cdf of the baseline hazard later..
+
+```{r, warning = FALSE, message = FALSE, results = FALSE}
+Haz_D = bshazard(data = Surv_DB_Tenaci[Surv_DB_Tenaci$Treatment == "D",], 
+                 Surv(Time.To.Event, Status) ~ Tank.ID, nbin = 65)
+plot(Haz_D, conf.int = FALSE)
+```
+
+Getting the cdf of baseline hazard (i.e. the H~o~(t)). I plot the cdf (left) and inverse-cdf (right).
+
+```{r}
+Cumuhaz_DB = data.frame(time = Haz_D$time, 
+                        haz = Haz_D$hazard, 
+                        cumuhaz = cumsum(Haz_D$hazard))
+par(mfrow = c(1,2))
+plot(x = Cumuhaz_DB$time, y = Cumuhaz_DB$cumuhaz) #cdf
+plot(y = Cumuhaz_DB$time, x = Cumuhaz_DB$cumuhaz) #inversed
+```
+
+\
+Next I get sample from the random variable U. For demonstration purposes, to keep things simple and show how U becomes T, I will currently only draw one value/sample of u.
+
+```{r}
+#Get a single U
+U = runif(n = 1, min = 0, max = 1)
+print(U)
+```
+
+Now I get the CDF value. If you look back into the first equation in this document, this CDF value lies inside the square brackets (the value that is to-be-inversed).
+
+```{r}
+#Get CDF value. I set regression term to 0 for the baseline hazard (because log(1) = 0)
+CDF_Yval = -log(U) * exp(0)
+print(CDF_Yval)
+```
+
+Now I convert CDF (x-axis) to T (y-axis); see the plot above on the right for the visual. If CDF value is between the points shown, then I interpolate with a line.
+
+```{r}
+approx(x = Cumuhaz_DB$cumuhaz, y = Cumuhaz_DB$time, xout = CDF_Yval, method = "linear")$y
+```
+
+The output above is T. If T is below the last follow-up time then the fish died in the observation period of the study (Status = "1"). If T = "NA", that is because T is beyond the last-follow up time and the fish survived ("0").\
+\
+In the upcoming code, I simulate multiple T for multiple individuals and plot their survival curves (6 total with 100 fish each).
+
+```{r}
+set.seed(1)
+curve_total = 18 #desired number of survival curves. A number (6) was chosen as example
+fish_num_per_curve = 100
+last_follow_up_time = max(Cumuhaz_DB$time) #65 in this case
+
+  U = runif(n = fish_num_per_curve * curve_total, min = 0, max = 1)
+  
+  CDF_Yval = -log(U) * exp(-0)
+  
+  #Get Time to Event
+  TTE = approx(x = Cumuhaz_DB$cumuhaz, y = Cumuhaz_DB$time, xout = CDF_Yval, method = "linear")$y
+  
+  #Basically turn NA (from out of bound CDF_Yval) to the last follow up time
+  TTE = ifelse(is.na(TTE), last_follow_up_time, TTE)
+
+  #Label Status (1 - dead, or 0 - survived) given TTE
+  Surv_simul_DB = data.frame(TimetoEvent = TTE, 
+                             Status = ifelse(TTE == last_follow_up_time, 0, 1),
+                             curve_num = as.factor(rep(1:curve_total, each = fish_num_per_curve)),
+                             Trt_group = rep(LETTERS[1:6], each = fish_num_per_curve * 3))
+
+#Plot
+Surv_simul_obj = survfit(Surv(TimetoEvent, Status) ~ curve_num, data = Surv_simul_DB)
+Surv_simul_obj2 = survfit(Surv(TimetoEvent, Status) ~ Trt_group, data = Surv_simul_DB)
+ggsurvplot(Surv_simul_obj, conf.int = FALSE, legend = "none", ggtheme = theme_bw(), xlim = c(0, 65), break.y.by = 0.1, break.x.by = 5)
+ggsurvplot(Surv_simul_obj2, conf.int = FALSE, legend = "none", ggtheme = theme_bw(), xlim = c(0, 65), break.y.by = 0.1, break.x.by = 5)
+```
+
+# Validations
+
+## Check #1
+
+I compare the simulated survival curves with those from another popular(?) method (resampling with replacement) in other areas of statistics. This method uses the T values in the sample dataset and draw random samples from that until the same number of values have been drawn. The idea is to think the dataset T-value distribution represents the T-value probability distribution of the population, then draw samples from that population to get an understanding of the natural variation that arises between survival curves (each with X number of draws, i.e. fish T).
+
+```{r}
+Surv_DB_Tenaci_D = Surv_DB_Tenaci[Surv_DB_Tenaci$Treatment == "D",]
+
+#Resample
+Surv_RS_simul_DB = data.frame(curve_num = as.factor(rep(1:curve_total, each = fish_num_per_curve)),
+                                    TimetoEvent = sample(Surv_DB_Tenaci_D$Time.To.Event, replace = TRUE, size = fish_num_per_curve * curve_total))
+Surv_RS_simul_DB$Status = ifelse(Surv_RS_simul_DB$TimetoEvent == 65, 0, 1)
+
+#Plots
+Surv_RS_simul_obj = survfit(Surv(TimetoEvent, Status) ~ curve_num, data = Surv_RS_simul_DB)
+ggsurvplot(Surv_RS_simul_obj, conf.int = FALSE, legend = "none", ggtheme = theme_bw(), xlim = c(0,65), break.y.by = 0.1, break.x.by = 5)
+```
+
+Notably, the curves are more "stepped" because T are drawn from the QCATC997 dataset where all the T are integers (no 55.3 days for example).
+
+## Check #2
+
+I assess the SD (standard deviation) of the curves (basically) to see if it matches up with the "theoretic SD". More specifically, I compare the SD of the observed β for each curve in a cox-PH model vs the theoretic SE for a β in the cox-PH. I got the idea to do this sort of spontaneously? But it appears its not completely insane because [someone else did the same thing apparently](https://atrium.lib.uoguelph.ca/server/api/core/bitstreams/d5614132-6ac3-489c-a406-1803f9d2ed8b/content). The idea is to see if the observed variation (sd) of the "mean" is equal to the expected sd for the "mean" (SEM) due to sampling variation.\
+\
+For the computation to run I have to include the whole clutter of simulation code below. Most importantly, in the end of the code chunk I printed the two relevant outputs `sd(Coxph_coef)` and `mean(Coxph_se)` and they are close to each other.
+
+```{r, warning = FALSE, message = FALSE}
+curve_total = 6 #desired number of survival curves per simulation
+fish_num_per_curve = 100
+last_follow_up_time = max(Cumuhaz_DB$time) #65 in this case
+
+#initialize vectors
+Coxph_coef = c()
+Coxph_anova_p = c()
+Coxph_se = c()
+Coxph_log_rank_p = c()
+log_rank_p = c()
+
+for(rep_num in 1:3000) {
+
+  U = runif(n = fish_num_per_curve * curve_total, min = 0, max = 1)
+  
+  CDF_Yval = -log(U) * exp(0)
+
+  #Get Time to Event
+  TTE = approx(x = Cumuhaz_DB$cumuhaz, y = Cumuhaz_DB$time, xout = CDF_Yval, method = "linear")$y
+  
+  #Basically turn NA (from out of bound CDF_Yval) to the last follow up time
+  TTE = ifelse(is.na(TTE), last_follow_up_time, TTE)
+
+  #Label Status (1 - dead, or 0 - survived) given TTE
+  Surv_simul_DB = data.frame(TimetoEvent = TTE, 
+                             Status = ifelse(TTE == last_follow_up_time, 0, 1),
+                             curve_num = as.factor(rep(1:curve_total, each = fish_num_per_curve)))
+
+  #Fit coxph models
+  options(contrasts = c("contr.sum", "contr,poly"))
+  Coxph_simul = coxph(Surv(TimetoEvent, Status) ~ curve_num, data = Surv_simul_DB) #null mod
+  Coxph_simul_mod_sum = summary(Coxph_simul)
+
+  #Get and Store coefs
+  Coxph_coef = append(Coxph_coef, (coef(Coxph_simul)))
+  Coxph_se = append(Coxph_se, (diag(Coxph_simul$var))^0.5)
+  Coxph_anova_p = append(Coxph_anova_p, anova(Coxph_simul)$`Pr(>|Chi|)`[2])
+  Coxph_log_rank_p = append(Coxph_log_rank_p, Coxph_simul_mod_sum$sctest[3])
+  
+  #Get and Store log-rank test p-value
+  log_rank_p = append(log_rank_p, pairwise_survdiff(Surv(TimetoEvent, Status) ~ curve_num, data = Surv_simul_DB, p.adjust.method = "none")$p.value)
+  
+}
+
+sd(Coxph_coef)
+mean(Coxph_se)
+```
+
+We see that the observed SD and expected SD are practically similar. A part of the difference is expected due to the limited number of simulations (3000). However, after increasing the number of simulations further, I do believe there might be some real bias (real mismatch) between the two values and this has something to do with bias in the coxph parameter estimation. The bias appears minor (0-2%) and decreasing (in terms of the percent) when the number of fish is increased to 500, but then increases afterwards. I think I know why but not explained here.
+
+## Check #3
+
+Under the null (no effect), the p-value for the factor (curve_num in this case) should be uniformly distributed, i.e. each p-value has an equal chance of occurring. I collected p-values in the previous simulation and show a histogram of them below.
+
+```{r}
+hist(Coxph_anova_p, freq = FALSE, breaks = 10)
+```
+
+Increasing the number of simulations does smoothen the top of this histoplot, but I can't guarantee that there is no minor fluctuations from uniformity somewhere... I believe such thorough search is not important.
+
+## Check #4
+
+It may not be fair to consider this check #4 as the result is correlated with check #3 and thus not an independent check... Below, I show the false positive rate (percent of p-value below 0.05). The FPR should be 5%, consistent with the critical p-value (alpha) of 0.05.
+
+```{r}
+sum(Coxph_anova_p < 0.05) / length(Coxph_anova_p)
+```
+
+FPR observed in this simulation run = 0.47. Results might change slightly by run. Although some of the difference (0.047 vs 0.05) can be attributed to the limited simulation number (3000), after investigation at higher numbers of simulations I believe there can be a real bias due to the bias discussed in Check 2.
+
+## Check #5
+
+I compare the power estimated using this approach vs an [online log-rank test power calculator](https://homepage.univie.ac.at/robin.ristl/samplesize.php?test=logrank). First, I do a power calculation using the simulation approach. I use a hazard ratio of 0.5.
+
+```{r, warning = FALSE, message = FALSE}
+fish_num_per_curve = 100
+last_follow_up_time = max(Cumuhaz_DB$time) #65 in this case
+
+#initialize vectors
+Coxph_coef = c()
+Coxph_anova_p = c()
+Coxph_se = c()
+Coxph_log_rank_p = c()
+log_rank_p = c()
+Coxph_nevent = c()
+
+for(rep_num in 1:3000) {
+
+  CDF_Yval = c()
+
+for(Treatment_Term in c(0, log(0.5))) { #set hazard ratios of the different treatments 
+
+  U = runif(n = fish_num_per_curve, min = 0, max = 1)
+  
+  CDF_Yval_temp = -log(U) * exp(-Treatment_Term)
+  CDF_Yval = append(CDF_Yval_temp, CDF_Yval)
+}
+  
+  #Get Time to Event
+  TTE = approx(x = Cumuhaz_DB$cumuhaz, y = Cumuhaz_DB$time, xout = CDF_Yval, method = "linear")$y
+  
+  #Basically turn NA (from out of bound CDF_Yval) to the last follow up time
+  TTE = ifelse(is.na(TTE), last_follow_up_time, TTE)
+
+  #Label Status (1 - dead, or 0 - survived) given TTE
+  Surv_simul_DB = data.frame(TimetoEvent = TTE, 
+                             Status = ifelse(TTE == last_follow_up_time, 0, 1),
+                             Treatment_G = as.factor(rep(c("A", "B"), each = fish_num_per_curve)))
+  
+  #Fit coxph models
+  options(contrasts = c("contr.sum", "contr,poly"))
+  Coxph_simul = coxph(Surv(TimetoEvent, Status) ~ Treatment_G, data = Surv_simul_DB) #non-null mod
+  Coxph_simul_mod_sum = summary(Coxph_simul)
+
+  #Get and Store values
+  Coxph_nevent = append(Coxph_nevent, Coxph_simul_mod_sum$nevent)
+  
+  #Get and Store log-rank test p-value
+  log_rank_p = append(log_rank_p, pairwise_survdiff(Surv(TimetoEvent, Status) ~ Treatment_G, data = Surv_simul_DB, p.adjust.method = "none")$p.value)
+  
+}
+
+sum(log_rank_p < 0.05, na.rm = TRUE) / rep_num #Power
+mean(Coxph_nevent) #Average number of deaths over the simulations
+```
+
+Says power is 84.3% in this simulation run and the number of deaths is usually 74. Next, I go to the online calculator and put in HR = 0.5, alpha = 0.05, number of event = 74. Says power is 84.65%. Great!
+
+## Check #6
+
+In this section, I check the false positive rate under the null given inter-tank variation using the coxme model that accounts for inter-tank variation. First, I estimate the inter-tank variability from past data:
+
+```{r}
+options(contrasts = c("contr.sum", "contr.poly"))
+Tenaci_coxme = coxme(data = Surv_DB_Tenaci, Surv(Time.To.Event, Status) ~ Treatment + (1|Tank.ID))
+VarCorr(Tenaci_coxme) # variance = 0.1244
+```
+
+I add this inter-tank variation to the simulation process based on the standard mixed model formulation which also applies to mixed coxph models (coxme). Note: the sd for the random effect is estimated through ML in the coxme (instead of the usual REML for mixed models), hence there is expected to be some downward bias on the sd which increases false positive rate.
+
+```{r, warning = FALSE, message = FALSE, cache = TRUE}
+fish_num_per_curve = 100
+Treatment_Terms = c(0,0,0,0)
+last_follow_up_time = max(Cumuhaz_DB$time) #65 in this case
+tank_per_treatment = 4
+inter_tank_sd = (VarCorr(Tenaci_coxme)$Tank.ID[1]^0.5) #Tenaci Citribel. sd = 0.353
+
+
+#zero vectors
+Coxph_anova_p = c()
+Coxph_anova_p0 = c()
+Coxph_tanksd = c()
+Coxph_tanksd0 = c()
+Coxph_coef = c()
+
+for(rep_num in 1:1000) {
+    
+  CDF_Yval = c()
+  CDF_Yval0 = c()
+  
+  for(Treatment_Term in Treatment_Terms) {
+      
+    for(Tank_num in 1:tank_per_treatment) {
+      
+      Tank_eff = rnorm(n = 1, mean = 0, sd = inter_tank_sd)
+      
+      U = runif(n = fish_num_per_curve, min = 0, max = 1)
+      
+      CDF_Yval_temp = -log(U) * exp(-(Treatment_Term + Tank_eff))
+      CDF_Yval = append(CDF_Yval, CDF_Yval_temp)
+    }
+  }
+  
+  #Get Time to Event
+  TTE = approx(x = Cumuhaz_DB$cumuhaz, y = Cumuhaz_DB$time, xout = CDF_Yval, method = "linear")$y
+
+  #Turn NA (from out of bound CDF_Yval) to the last follow up time
+  TTE = ifelse(is.na(TTE), last_follow_up_time, TTE)
+
+  #Label Status (1 - dead, or 0 - survived) given TTE
+  Surv_simul_DB = data.frame(TimetoEvent = TTE,
+                             CDF_Yval = CDF_Yval,
+                             Status = ifelse(TTE == last_follow_up_time, 0, 1),
+                             Treatment_G = as.factor(rep(LETTERS[1:length(Treatment_Terms)], each = fish_num_per_curve * tank_per_treatment)),
+                             Tank_num = as.factor(rep(1:(length(Treatment_Terms) * tank_per_treatment), each = fish_num_per_curve)))
+  
+ 
+  #Fit coxph models
+  options(contrasts = c("contr.sum", "contr,poly"))
+  Coxph_simul = coxme(Surv(TimetoEvent, Status) ~ Treatment_G + (1|Tank_num), data = Surv_simul_DB) #With some inter-tank variation
+  Coxph_simul2 = coxme(Surv(TimetoEvent, Status) ~ 1 + (1|Tank_num), data = Surv_simul_DB) #With some inter-tank variation
+
+  #Get and Store values
+  Coxph_anova_p = append(Coxph_anova_p, anova(Coxph_simul, Coxph_simul2)$`P(>|Chi|)`[2])
+  Coxph_tanksd = append(Coxph_tanksd, VarCorr(Coxph_simul)$Tank_num^0.5)
+  #print(rep_num)
+}
+```
+
+```{r, warning = FALSE, message = FALSE}
+hist(Coxph_anova_p, breaks = 20, freq = FALSE)
+mean(Coxph_anova_p < 0.05)
+```
+
+8% FPR Not bad!!
+
+Now I convert the simulation process into a function that other people (or myself) can use in the future:
+
+```{r}
+
+```

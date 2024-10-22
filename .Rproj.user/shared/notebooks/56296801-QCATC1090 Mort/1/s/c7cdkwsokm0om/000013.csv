@@ -1,0 +1,11 @@
+"0",""
+"0","Ten_Haz[[1]] + "
+"0","  geom_line(data = Ref_Ten_Haz_DB2, aes(x = Time - 6, y = Hazard, fill = Trt.ID), color = ""black"", linewidth = 1) +"
+"0","  geom_point(data = Ref_Ten_Haz_DB2, aes(x = Time - 6, y = Hazard, fill = Trt.ID), color = ""black"") +"
+"0","  scale_y_continuous(limits = c(0, 0.10)) +"
+"0","  xlab(""Standardized Time*"")"
+"2","Warning in geom_line(data = Ref_Ten_Haz_DB2, aes(x = Time - 6, y = Hazard,  :"
+"2","
+ "
+"2"," [38;5;232mIgnoring unknown aesthetics: [32mfill[38;5;232m[39m
+"

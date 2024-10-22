@@ -1,0 +1,7 @@
+"0","#Load data"
+"0","setwd(""C:/Users/sean4/Downloads"")"
+"0","QCATC1070_Mort = read.csv(file = ""QCATC1070-2 Mort Data.csv"")"
+"0",""
+"0","#Filter for desired data"
+"0","QCATC1070_Mort2 = QCATC1070_Mort[QCATC1070_Mort$Tank.Type == ""Sentinel"",]"
+"0","QCATC1070_Mort = QCATC1070_Mort[QCATC1070_Mort$Tank.Type == ""Challenge"",]"

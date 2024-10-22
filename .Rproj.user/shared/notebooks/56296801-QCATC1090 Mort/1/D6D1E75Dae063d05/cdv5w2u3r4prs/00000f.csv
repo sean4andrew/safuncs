@@ -1,0 +1,7 @@
+"0","Mor_Surv_DB = Surv_Gen(mort_db = Mor_DB, "
+"0","                       today_tte = 55,"
+"0","                       starting_fish_count = 90)"
+"0",""
+"0","Ten_Surv_DB = Surv_Gen(mort_db = Ten_DB, "
+"0","                       today_tte = 59,"
+"0","                       starting_fish_count = 88)"

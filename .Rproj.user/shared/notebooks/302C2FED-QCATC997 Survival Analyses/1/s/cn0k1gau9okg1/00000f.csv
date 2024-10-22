@@ -1,0 +1,2 @@
+"0","Surv_obj_TenT = survfit(Surv(Time.To.Event, Status) ~ Tank.ID, data = Surv_DB_Tenaci)"
+"0","Surv_obj_MoriT = survfit(Surv(Time.To.Event, Status) ~ Tank.ID, data = Surv_DB_Moritella)"

@@ -1,0 +1,2 @@
+"0","setwd(""C:/Users/sean4/Documents/R Projects/QCATC1068 Lallemand Scores"")"
+"0","QCATC1068_Scores_DB = read.csv(file = ""QCATC1068 Lallemand Scores.csv"") #For sampling time point #5"

@@ -1,0 +1,29 @@
+"0","#Generate survival data"
+"0","QCATC1070_Surv_DB = Surv_Gen(mort_db = QCATC1070_Mort, "
+"0","                             today_tte = 13, #today's days post challenge"
+"0","                             tank_without_mort = c(""F14"", ""F20""), #this is required for the function to work properly"
+"0","                             trt_without_mort = c(""2"", ""5""), #the treatment IDs for the tanks without morts, in the same order."
+"0","                             starting_fish_count = 40) #per tank"
+"0",""
+"0","#Generate plots"
+"0","Surv_Plots(surv_db = QCATC1070_Surv_DB, "
+"0","           figure_name_prefix = ""QCATC1070-2"", "
+"0","           lambda = 10) #An accurate estimate of lambda (smoothing parameter) from low sample sizes can be unreliable. I chose 10.  "
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","[[1]]
+"
+"1","
+"
+"1","[[2]]
+"
+"1","
+"

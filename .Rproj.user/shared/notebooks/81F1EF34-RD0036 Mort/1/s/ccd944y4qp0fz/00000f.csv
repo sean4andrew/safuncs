@@ -1,0 +1,7 @@
+"0","IPNV_Surv_DB_Trojan = Surv_Gen(mort_db = IPNV_DB_Trojan, "
+"0","                               today_tte = 29,"
+"0","                               starting_fish_count = IPNV_starting_fish_count_Trojan)"
+"0",""
+"0","IPNV_Surv_DB_Cohab = Surv_Gen(mort_db = IPNV_DB_Cohab, "
+"0","                              today_tte = 29,"
+"0","                              starting_fish_count = IPNV_starting_fish_count_Cohab)"

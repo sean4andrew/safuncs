@@ -1,0 +1,31 @@
+"0","#SENTINELS"
+"0","#Generate survival data"
+"0","QCATC1070_Mort2$TTE = QCATC1070_Mort2$TTE - 16"
+"0",""
+"0","QCATC1070_Surv_DB2 = Surv_Gen(mort_db = QCATC1070_Mort2, "
+"0","                             today_tte = 18, #today's days post challenge #2"
+"0","                             starting_fish_count = 40) #per tank"
+"0",""
+"0","#Generate plots"
+"0","safuncs::Surv_Plots(surv_db = QCATC1070_Surv_DB2, "
+"0","           plot_prefix = ""QCATC1070-2 Sentinels"", "
+"0","           phi = 1,"
+"0","           xlab = ""Days Post Challenge #2"") #An accurate estimate of lambda (smoothing parameter) from low sample sizes can be unreliable. I chose 10."
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","[[1]]
+"
+"1","
+"
+"1","[[2]]
+"
+"1","
+"

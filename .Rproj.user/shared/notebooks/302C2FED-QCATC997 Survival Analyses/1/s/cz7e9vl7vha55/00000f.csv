@@ -1,0 +1,60 @@
+"0","library(survival)"
+"0","library(survminer)"
+"2","Loading required package: ggplot2
+"
+"2","Learn more about the underlying theory at https://ggplot2-book.org/
+"
+"2","Loading required package: ggpubr
+"
+"2","Registered S3 method overwritten by 'data.table':
+  method           from
+  print.data.table     
+"
+"2","
+Attaching package: ‘survminer’
+
+"
+"2","The following object is masked from ‘package:survival’:
+
+    myeloma
+
+"
+"0","library(MASS)"
+"0","library(car)"
+"2","Loading required package: carData
+"
+"0","library(emmeans)"
+"2","Welcome to emmeans.
+Caution: You lose important information if you filter this package's results.
+See '? untidy'
+"
+"0","library(multcomp)"
+"2","Loading required package: mvtnorm
+"
+"2","Loading required package: TH.data
+"
+"2","
+Attaching package: ‘TH.data’
+
+"
+"2","The following object is masked from ‘package:MASS’:
+
+    geyser
+
+"
+"0","library(coxme)"
+"2","Loading required package: bdsmatrix
+"
+"2","
+Attaching package: ‘bdsmatrix’
+
+"
+"2","The following object is masked from ‘package:base’:
+
+    backsolve
+
+"
+"0","library(nlme)"
+"0",""
+"0","Surv_DB_Tenaci = read.csv(file = ""QCATC997 Mortality Tenaci.csv"")"
+"0","Surv_DB_Moritella = read.csv(file = ""QCATC997 Mortality Moritella.csv"")"

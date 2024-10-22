@@ -1,0 +1,5 @@
+"0","#remotes::install_github(""sean4andrew/safuncs2"")"
+"0","library(safuncs)"
+"0",""
+"0","setwd(""C:/Users/sean4/Downloads"")"
+"0","ISA_DB = read.csv(file = ""RD0037 ISA.csv"")"

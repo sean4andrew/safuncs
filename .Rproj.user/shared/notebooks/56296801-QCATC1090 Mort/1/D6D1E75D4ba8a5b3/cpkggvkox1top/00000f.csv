@@ -1,0 +1,22 @@
+"0","Ref_Mor_DB_filter = Ref_Mor_DB[Ref_Mor_DB$TTE <= 18, ]"
+"0","Ref_Surv_DB = Surv_Gen(mort_db = Ref_Mor_DB_filter,"
+"0","                       starting_fish_count = 97,"
+"0","                       today_tte = 18)"
+"0",""
+"0","Surv_Plots(Ref_Surv_DB,"
+"0","           dailybin = FALSE,"
+"0","           plot = ""haz"","
+"0","           xlab = ""Standard Days"","
+"0","           lambda = 1)"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"

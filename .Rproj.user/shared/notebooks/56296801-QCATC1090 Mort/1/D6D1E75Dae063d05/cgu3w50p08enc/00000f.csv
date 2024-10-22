@@ -1,0 +1,6 @@
+"0","#remotes::install_github(""sean4andrew/safuncs"")"
+"0","library(safuncs)"
+"0",""
+"0","setwd(""C:/Users/sean4/Downloads"")"
+"0","Mor_DB = read.csv(file = ""QCATC1090 Moritella Mort.csv"")"
+"0","Ten_DB = read.csv(file = ""QCATC1090 Tenaci Mort.csv"")"

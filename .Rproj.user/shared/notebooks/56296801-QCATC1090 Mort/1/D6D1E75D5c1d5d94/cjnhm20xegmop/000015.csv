@@ -1,0 +1,13 @@
+"0","ggsave(paste(""QCATC1090 Extra2 Hazard Curve.tiff""), dpi = 300, width = 6, height = 4)"
+"2","Warning:"
+"2"," [38;5;232mRemoved 2 rows containing missing values or values outside the scale range (`geom_line()`).[39m
+"
+"2","Warning:"
+"2"," [38;5;232mRemoved 2 rows containing missing values or values outside the scale range (`geom_point()`).[39m
+"
+"2","Warning:"
+"2"," [38;5;232mRemoved 10 rows containing missing values or values outside the scale range (`geom_line()`).[39m
+"
+"2","Warning:"
+"2"," [38;5;232mRemoved 10 rows containing missing values or values outside the scale range (`geom_point()`).[39m
+"

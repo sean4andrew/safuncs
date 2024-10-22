@@ -1,0 +1,10 @@
+"0","ggplot(data = Haz_DB, aes(x = Time, y = log(Hazard), color = Treatment)) +"
+"0","  geom_point(size = 2, fill = ""white"") + "
+"0","  geom_line(linewidth = 1) + "
+"0","  xlim(30, 65)"
+"2","Warning:"
+"2"," [38;5;232mRemoved 7 rows containing missing values or values outside the scale range (`geom_point()`).[39m
+"
+"2","Warning:"
+"2"," [38;5;232mRemoved 7 rows containing missing values or values outside the scale range (`geom_line()`).[39m
+"

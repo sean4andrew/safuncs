@@ -1,0 +1,1 @@
+{"frames":[{"func":"Surv_Pred(pred_db = Ten_896_Surv, ref_db = Ten_997_Surv, predsr_tte = 36)","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error in ref_bshaz[ref_bshaz$time < predsr_tte, ] : \n  incorrect number of dimensions\n"}

@@ -1,0 +1,10 @@
+"0","remotes::install_github(""sean4andrew/safuncs"")"
+"2","Using GitHub PAT from the git credential store.
+"
+"2","Skipping install of 'safuncs' from a github remote, the SHA1 (44dc31bc) has not changed since last install.
+  Use `force = TRUE` to force installation
+"
+"0","library(safuncs)"
+"0",""
+"0","setwd(""C:/Users/sean4/Downloads"")"
+"0","Mor2_DB = read.csv(file = ""QCATC1066_mort_r.csv"")"

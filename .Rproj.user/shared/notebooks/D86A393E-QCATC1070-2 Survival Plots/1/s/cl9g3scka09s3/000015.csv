@@ -1,0 +1,23 @@
+"0","#Generate plots"
+"0","safuncs::Surv_Plots(surv_db = QCATC1070_Surv_DB2, "
+"0","           plot_prefix = ""QCATC1070-2 Sentinels"", "
+"0","           phi = 1,"
+"0","           xlab = ""Days Post Challenge #2"")"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","NOTE: entry.status has been set to 0 for all.
+"
+"1","[[1]]
+"
+"1","
+"
+"1","[[2]]
+"
+"1","
+"

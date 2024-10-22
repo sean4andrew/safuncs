@@ -1,0 +1,15 @@
+"0","#Against control group"
+"0","Ref_Haz = Haz_DB[,2:3][Haz_DB$Treatment == ""E"",]"
+"0","Haz_DB2 = merge(Haz_DB, Ref_Haz, by = ""Time"")"
+"0","Haz_DB2$HR = Haz_DB2$Hazard.x / Haz_DB2$Hazard.y"
+"0","ggplot(data = Haz_DB2, aes(x = Time, y = HR, color = Treatment)) +"
+"0","  geom_point(size = 2, fill = ""white"") + "
+"0","  geom_line(linewidth = 1) + "
+"0","  xlim(30, 65) +"
+"0","  ylim(0, 2)#y-axis range 0 to 2. Set scale to one that matters. Might mess up (slightly? unknown extent? SE estimates... can i answer this using simulations? vs estimated SE, vs true SE.) Show sampling (i.e. method variation). Changes to p-value for comparing 2 groups? Control and Moregard for example. Focus on p-values that are borderline-ish..."
+"2","Warning:"
+"2"," [38;5;232mRemoved 3 rows containing missing values or values outside the scale range (`geom_point()`).[39m
+"
+"2","Warning:"
+"2"," [38;5;232mRemoved 3 rows containing missing values or values outside the scale range (`geom_line()`).[39m
+"
