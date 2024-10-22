@@ -61,3 +61,6 @@ library(pwr)
 pwr::pwr.chisq.test(w = ES.w2(probs_mat), df = 2, sig.level = 0.05, N = 100)
 ## Results: Power is 85.6\% for the Chi-square test at the total count of 100.
 }
+\seealso{
+\href{https://sean4andrew.github.io/safuncs/reference/Con_Simul_PR.html}{Link} for executed examples which includes any figure outputs.
+}

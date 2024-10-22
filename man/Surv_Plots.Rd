@@ -89,3 +89,6 @@ Surv_Plots(surv_db = surv_dat,
            phi = 1,
            plot = "both")
 }
+\seealso{
+\href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed examples which includes any figure outputs.
+}

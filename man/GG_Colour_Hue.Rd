@@ -20,3 +20,6 @@ Not my function but it is useful so here it is! \href{https://stackoverflow.com/
 GG_Colour_Hue(6)
 
 }
+\seealso{
+\href{https://sean4andrew.github.io/safuncs/reference/GG_Colour_Hue.html}{Link} for executed examples which includes any figure outputs.
+}

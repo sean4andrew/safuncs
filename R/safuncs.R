@@ -30,6 +30,8 @@
 #' @param margin_fixed_Trt. Whether margins are fixed per treatment group (i.e. fixed number of fish per treatment). Default = FALSE. See \bold{Details} for further information on marginals.
 #' @param verbose Whether to print the parameters and probability matrix used. Default = TRUE.
 #'
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Con_Simul.html}{Link} for executed examples which includes any figure outputs.
+#'
 #' @return Returns a list containing:\tabular{lll}{
 #'  \code{sim_tab} \tab \tab The simulated contingency table containing counts across different treatment groups (rows) and lesion categories (columns) \cr
 #'  \code{params} \tab \tab The simulation parameters as a vector \cr
@@ -98,6 +100,8 @@ Con_Simul = function(probs = "equal",
 #' @param sample_sizes A vector of sample sizes over which false positive rates are to be calculated. A sample size is defined as the total number of counts in a contingency table. Defaults to total count received by \code{Con_Simul_Object}.
 #' @param n_sim Number of contingency tables simulated for each positive rate calculation. Defaults to 1000.
 #' @param FPR Whether to calculate false positive rate in addition to power. Defaults to TRUE.
+#'
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Con_Simul_PR.html}{Link} for executed examples which includes any figure outputs.
 #'
 #' @return Returns a list containing:\tabular{lll}{
 #'  \code{pos_rate} \tab \tab A dataframe containing positive rates of various tests at specified sample sizes \cr
@@ -314,6 +318,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @param plot_name Character string specifying the name of the saved plot. Defaults to "Surv_Simul-Plot-Output".
 #' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
 #'
+#'
 #' @return At minimum, returns a simulated survival dataframe consisting of 5 columns: TTE (Time to Event), Status (0 / 1), Trt.ID, Tank.ID, and n_sim which represents the simulation number for the data subsets.
 #'
 #' If \code{plot_out = TRUE}, outputs a list that additionally contains a Kaplan-Meier survival plot. The plot illustrates the survival curve with end survival rates for the simulated dataset as well as the population. If the number of simulated dataset is greater than 1, multiple curves are drawn representing each and a statement is provided regarding the power to detect the effect of Treatment -- specifically, the percent positive (p < 0.05) from a global log-rank test using \code{survival::survdiff()}.
@@ -324,7 +329,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @import magrittr
 #' @import dplyr
 #'
-#' @seealso \href{file:///C:/Users/sean4/Documents/GitHub/safuncs/docs/reference/Surv_Simul.html}{Link} for executed examples which includes any figure outputs.
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Simul.html}{Link} for executed examples which includes any figure outputs.
 #'
 #' @export
 #'
@@ -635,6 +640,8 @@ theme_Publication = function(base_size = 14) {
 #' @import dplyr
 #' @import ggplot2
 #'
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Pred.html}{Link} for executed examples which includes any figure outputs.
+#'
 #' @export
 #'
 #' @examples
@@ -771,6 +778,8 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #' @import magrittr
 #' @import devtools
 #'
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Gen.html}{Link} for executed examples which includes any figure outputs.
+#'
 #' @export
 #'
 #' @examples
@@ -852,6 +861,8 @@ Surv_Gen = function(mort_db,
 #' @param trt_order Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.
 #' @param data_out Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.
 #' @param plot_dim Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.
+#'
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed examples which includes any figure outputs.
 #'
 #' @return By default, with argument {\code{plot = "both"}}, returns the Kaplan-Meier Survival Curve and the Hazard Curve. Output can be trimmed by setting \code{plot = "haz"} or \code{plot = "surv"}.
 #'
@@ -995,6 +1006,8 @@ Surv_Plots = function(surv_db,
 #'
 #' @return Returns a vector representing the default colour codes assigned to each group by ggplot.
 #' @export
+#'
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/GG_Colour_Hue.html}{Link} for executed examples which includes any figure outputs.
 #'
 #' @examples
 #' # Get colour codes used for 6 categorical groups

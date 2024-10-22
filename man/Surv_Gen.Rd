@@ -53,3 +53,6 @@ Surv_Gen(mort_db = mort_db_ex,
          tank_without_mort = c("C99", "C100"),
          trt_without_mort = c("A", "B"))
 }
+\seealso{
+\href{https://sean4andrew.github.io/safuncs/reference/Surv_Gen.html}{Link} for executed examples which includes any figure outputs.
+}

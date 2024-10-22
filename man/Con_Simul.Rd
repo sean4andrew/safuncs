@@ -45,3 +45,6 @@ For further discussion into the types of marginals in contingency tables, refer 
 Con_Tab = Con_Simul(total_count = 750, n_lesion = 3, n_Trt. = 5)
 Con_Tab = Con_Simul(probs = matrix(nrow = 2, ncol = 3, c(1/6, 3/12, 1/6, 1/6, 1/6, 1/12)))
 }
+\seealso{
+\href{https://sean4andrew.github.io/safuncs/reference/Con_Simul.html}{Link} for executed examples which includes any figure outputs.
+}
