@@ -85,6 +85,10 @@
 <p>False Positive Rate is defined as the percentage of tests yielding positive results (p-value &lt; 0.05) on contingency tables simulated based on a probability matrix without treatment effect. The odd ratios between lesion scores for all treatment groups are assumed to be the same as that for control (first row in the probability matrix).</p>
 <p>P-values for the Chi-square test are computed using <code><a href="https://rdrr.io/r/stats/chisq.test.html" class="external-link">stats::chisq.test()</a></code> with default parameters. P-values for Fisher's exact test are computed using <code><a href="https://rdrr.io/r/stats/fisher.test.html" class="external-link">stats::fisher.test()</a></code> with <code>simulate.p.value</code> set to TRUE, alongside default parameters. P-values for ordinal regression are computed from <code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">stats::anova()</a></code> applied to the output of <code><a href="https://rdrr.io/pkg/ordinal/man/clm.html" class="external-link">ordinal::clm()</a></code>.</p>
     </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><a href="https://sean4andrew.github.io/safuncs/reference/Con_Simul_PR.html">Link</a> for executed examples which includes any figure outputs.</p></div>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
