@@ -69,7 +69,8 @@ Simulations are based on uniform-probability draws (\emph{U} ~ (0, 1)) from a se
 To verify the correct "randomness" is produced in the simulated survival data, given that adding "randomness" is the whole point of simulations (to me), 5 different validation checks have been performed (documented in a pdf to be uploaded to github). Those checks showed that the HR estimated by fitting two curves sampled from the same population, converges to a mean of 1 (as should be) over many simulations, and across simulations the HR varies as expected (SD of simulated HRs = SE of HR as supposed by the cox model). Those checks also showed that the p-value obtained by applying log-rank test to null (no-effect) simulated datasets, has a distribution that is uniform (as should be), with a false positive rate of 0.05 given the alpha used was 0.05 (as should be). Additionally, power calculated from the simulations equal to the power calculated from an \href{https://homepage.univie.ac.at/robin.ristl/samplesize.php?test=logrank}{online calculator}. Last, the checks showed that the variations in a simulated survival curve is similar to that observed in curves simulated using a different, more limited, method (bootstraping / re-sampling with replacement).
 }
 \examples{
-#Starting from an example mortality database, we first generate the complete survivor data using Surv_Gen()
+#Starting from an example mortality database, we first generate the complete survivor
+#data using Surv_Gen()
 data(mort_db_ex)
 surv_dat = Surv_Gen(mort_db = mort_db_ex,
                     starting_fish_count = 100,
@@ -78,19 +79,24 @@ surv_dat = Surv_Gen(mort_db = mort_db_ex,
 #Filter for the control group ("A") to use as a reference hazard curve for simulations
 surv_dat_A = surv_dat[surv_dat$Trt.ID == "A", ]
 
-#Estimate the hazard curve of the control group and get the associated hazard dataframe using either bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB
-ref_haz_route_bshazard = bshazard::bshazard(data = surv_dat_A, survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE)
+#Estimate the hazard curve of the control group and get the associated hazard dataframe
+#using either bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB
+ref_haz_route_bshazard = bshazard::bshazard(data = surv_dat_A,
+                                            survival::Surv(TTE, Status) ~ Tank.ID,
+                                            verbose = FALSE)
 ref_haz_route_bshazard = data.frame(summary(ref_haz_route_bshazard)$HazardEstimates)
 
-ref_haz_route_safuncs = safuncs::Surv_Plots(surv_db = surv_dat_A, data_out = TRUE)$Hazard_DB
+ref_haz_route_safuncs = safuncs::Surv_Plots(surv_db = surv_dat_A,
+                                            data_out = TRUE)$Hazard_DB
 
-#Simulate!
+#Simulate! Sampled 10 fish per tank at 45 DPC, but otherwise default conditions.
 Surv_Simul(haz_db = ref_haz_route_safuncs,
            treatments_hr = c(1, 0.8, 0.5),
            sampling_specs = data.frame(Amount = 10,
-                                       TTE = 45))$surv_plots #sampling of 10 fish at 45 DPC, but otherwise default experimental conditions.
+                                       TTE = 45))$surv_plots
 
-#Simulate multiple times to better see if samples are reliable to answer the question: are my future samples likely to be good approximates of the truth / population
+#Simulate multiple times to better see if samples are reliable to answer the
+#question: are my future samples likely to be good approximates of the truth / population
 Surv_Simul(haz_db = ref_haz_route_safuncs,
            treatments_hr = c(1, 0.8, 0.5),
            sampling_specs = data.frame(Amount = 10,
