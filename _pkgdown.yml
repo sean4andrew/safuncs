@@ -1,4 +1,5 @@
 url: https://sean4andrew.github.io/safuncs/
 template:
   bootstrap: 5
+  bootswatch: lux
 
