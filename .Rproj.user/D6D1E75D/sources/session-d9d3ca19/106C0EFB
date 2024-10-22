@@ -1,0 +1,26 @@
+{
+    "id": "106C0EFB",
+    "path": "~/GitHub/safuncs/R/safuncs.R",
+    "project_path": "R/safuncs.R",
+    "type": "r_source",
+    "hash": "4252199869",
+    "contents": "",
+    "dirty": true,
+    "created": 1729559151206.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "359,45",
+        "scrollLine": "348"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1729561803,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1729561803517,
+    "read_only": false,
+    "read_only_alternatives": []
+}
