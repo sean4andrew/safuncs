@@ -450,8 +450,8 @@ Surv_Simul = function(haz_db,
 
     surv_samps_ends = data.frame(surv_samps_temp %>%
                                    dplyr::group_by(Trt.ID) %>%
-                                   dplyr::reframe(surv_prob = c(min(1, max(surv_prob)), min(surv_prob)),
-                                                  time = c(min(haz_db$time), max(haz_db$time)),
+                                   dplyr::reframe(surv_prob = c(1, min(surv_prob)),
+                                                  time = c(floor(min(haz_db$time)), ceiling(max(haz_db$time))),
                                                   n_sim = loopnum,
                                                   alpha = 1 - (0.0001 ^ (1/n_sim))))
     surv_samps_ends$type = paste("Sample (n = ", n_sim, ")", sep = "")
