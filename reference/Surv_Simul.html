@@ -131,11 +131,11 @@
 <span class="r-in"><span>                    starting_fish_count <span class="op">=</span> <span class="fl">100</span>,</span></span>
 <span class="r-in"><span>                    last_tte <span class="op">=</span> <span class="fl">54</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">#Filter for the control group ("A") to use as a reference hazard curve for simulations</span></span></span>
+<span class="r-in"><span><span class="co">#Filter for the control group ("A") to get a reference hazard curve for simulations</span></span></span>
 <span class="r-in"><span><span class="va">surv_dat_A</span> <span class="op">=</span> <span class="va">surv_dat</span><span class="op">[</span><span class="va">surv_dat</span><span class="op">$</span><span class="va">Trt.ID</span> <span class="op">==</span> <span class="st">"A"</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">#Estimate the hazard curve of the control group and get the associated hazard dataframe</span></span></span>
-<span class="r-in"><span><span class="co">#using either bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB</span></span></span>
+<span class="r-in"><span><span class="co">#Estimate the hazard curve of the control group and get the associated hazard</span></span></span>
+<span class="r-in"><span><span class="co">#dataframe using bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB</span></span></span>
 <span class="r-in"><span><span class="va">ref_haz_route_bshazard</span> <span class="op">=</span> <span class="fu">bshazard</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/bshazard/man/bshazard.html" class="external-link">bshazard</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">surv_dat_A</span>,</span></span>
 <span class="r-in"><span>                                            <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">TTE</span>, <span class="va">Status</span><span class="op">)</span> <span class="op">~</span> <span class="va">Tank.ID</span>,</span></span>
 <span class="r-in"><span>                                            verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
@@ -153,8 +153,8 @@
 <span class="r-in"><span>                                       TTE <span class="op">=</span> <span class="fl">45</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">surv_plots</span></span></span>
 <span class="r-plt img"><img src="Surv_Simul-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">#Simulate multiple times to better see if samples are reliable to answer the</span></span></span>
-<span class="r-in"><span><span class="co">#question: are my future samples likely to be good approximates of the truth / population</span></span></span>
+<span class="r-in"><span><span class="co">#Simulate multiple times to better answer the question: are my future samples</span></span></span>
+<span class="r-in"><span><span class="co">#likely to be good approximates of the truth / population</span></span></span>
 <span class="r-in"><span><span class="fu">Surv_Simul</span><span class="op">(</span>haz_db <span class="op">=</span> <span class="va">ref_haz_route_safuncs</span>,</span></span>
 <span class="r-in"><span>           treatments_hr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.8</span>, <span class="fl">0.5</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>           sampling_specs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Amount <span class="op">=</span> <span class="fl">10</span>,</span></span>
