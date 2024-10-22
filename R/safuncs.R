@@ -329,18 +329,18 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @export
 #'
 #' @examples
-#' #Starting from an example mortality database, we first generate the complete
-#' #survivor data using Surv_Gen()
+#' #Starting from an example mortality database, we first generate the complete survivor
+#' #data using Surv_Gen()
 #' data(mort_db_ex)
 #' surv_dat = Surv_Gen(mort_db = mort_db_ex,
 #'                     starting_fish_count = 100,
 #'                     last_tte = 54)
 #'
-#' #Filter for the control group ("A") to use as a reference hazard curve for simulations
+#' #Filter for the control group ("A") to get a reference hazard curve for simulations
 #' surv_dat_A = surv_dat[surv_dat$Trt.ID == "A", ]
 #'
-#' #Estimate the hazard curve of the control group and get the associated hazard dataframe
-#' #using either bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB
+#' #Estimate the hazard curve of the control group and get the associated hazard
+#' #dataframe using bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB
 #' ref_haz_route_bshazard = bshazard::bshazard(data = surv_dat_A,
 #'                                             survival::Surv(TTE, Status) ~ Tank.ID,
 #'                                             verbose = FALSE)
@@ -355,8 +355,8 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'            sampling_specs = data.frame(Amount = 10,
 #'                                        TTE = 45))$surv_plots
 #'
-#' #Simulate multiple times to better see if samples are reliable to answer the question:
-#' #are my future samples likely to be good approximates of the truth / population
+#' #Simulate multiple times to better answer the question: are my future samples
+#' #likely to be good approximates of the truth / population
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
 #'            treatments_hr = c(1, 0.8, 0.5),
 #'            sampling_specs = data.frame(Amount = 10,
