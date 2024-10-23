@@ -1,0 +1,35 @@
+---
+title: "Get Started!"
+author: "Sean Andrew"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    fig_caption: yes
+vignette: >
+  %\VignetteIndexEntry{safuncs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Welcome to the documentation of package `safuncs`! It is designed to assist you in the analysis of your biological data (e.g. survival).
+
+Below I wrote a short tutorial on how some of the core functions in `safuncs` can be used.
+
+To get started, please install and load the package by running the following code:
+```{r, results = "hide", message = FALSE, warning = FALSE}
+remotes::install_github("sean4andrew/safuncs") #install package
+library(safuncs) #load
+```
+
+## Survival Analysis
+
+At ONDA, survival data is often readily available to the scientist in the form of rows of entries for every mortality observed. This dataset needs to be converted to a useful form for analysis in R or Prism. The functions `Surv_Gen()` and `Surv_Gen_Prism()` shortens the data transformation process to just one line of code! Below, I show how to use them.
+
+[Sean is procrastinating! Slap him to get this documentation continued..]

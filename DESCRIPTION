@@ -31,3 +31,4 @@ Imports:
     grid,
     pwr,
     ggthemes
+Config/Needs/website: rmarkdown
