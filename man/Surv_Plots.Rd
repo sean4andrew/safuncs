@@ -86,8 +86,8 @@ Surv_Plots(surv_db = surv_dat,
            xlim = c(0, 54),
            ylim = c(0, 1),
            xlab = "TTE",
-           phi = 1,
-           plot = "both")
+           plot = "both",
+           dailybin = FALSE)
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed examples which includes any figure outputs.

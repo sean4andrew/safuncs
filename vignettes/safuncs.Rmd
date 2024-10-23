@@ -30,6 +30,6 @@ library(safuncs) #load
 
 ## Survival Analysis
 
-At ONDA, survival data is often available to scientists initially in the form of rows of entries for every mortality observed. This dataset needs to be converted to a useful form for analysis in R or Prism. The functions `Surv_Gen()` and `Surv_Gen_Prism()` shortens the data transformation process to just one line of code! Below, I show how to use them.
+At ONDA, survival data is often available to scientists initially in the form of rows of entries for every mortality observed. This data needs to be converted to a useful form for analysis in R or Prism. The function `Surv_Gen()` shortens the data transformation step to just one line of code! Below, I show how to use them.
 
-[Sean is procrastinating! Slap him to get this documentation continued..]
+[Sean is procrastinating! Slap him to get his documentation done..]
