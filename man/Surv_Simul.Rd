@@ -91,14 +91,14 @@ ref_haz_route_safuncs = safuncs::Surv_Plots(surv_db = surv_dat_A,
 
 #Simulate! Sampled 10 fish per tank at 45 DPC, but otherwise default conditions.
 Surv_Simul(haz_db = ref_haz_route_safuncs,
-           treatments_hr = c(1, 0.8, 0.5),
+           treatments_hr = c(1, 0.75, 0.5),
            sampling_specs = data.frame(Amount = 10,
                                        TTE = 45))$surv_plots
 
 #Simulate multiple times to better answer the question: are my future samples
 #likely to be good approximates of the truth / population
 Surv_Simul(haz_db = ref_haz_route_safuncs,
-           treatments_hr = c(1, 0.8, 0.5),
+           treatments_hr = c(1, 0.75, 0.5),
            sampling_specs = data.frame(Amount = 10,
                                        TTE = 45),
            n_sim = 4)$surv_plots

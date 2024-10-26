@@ -32,31 +32,31 @@ library(safuncs) # load
 
 At ONDA, survival data is often available to scientists initially in the form of rows of entries for every mortality observed. This data needs to be converted to a useful form for analysis in R or Prism. The function `Surv_Gen()` shortens the data transformation step to just one line of code! Below, I showcase its use.
 
-Let us first examine the raw survival data we can have from our OneDrive excel file: 
+Let us first examine the raw survival data we can get from our OneDrive mort excel file: 
 ```{r}
 data(mort_db_ex) # load example data file
 head(mort_db_ex, n = 5) # view first 5 rows of data
 ```
-This data contains 4 columns with the 2nd-to-last indicating Time to Event (TTE), e.g. days post challenge, for each fish and the last column indicating the type or Status of the event (1 = death, 0 = sampled-out or survived). In this data, we are missing rows representing surviving fish and such data needs to be present for proper survival analysis.
+The data contains several rows (first 5 shown) with each representing one mortality. The 2nd leftmost column indicates the Time to Event (TTE), e.g. days post challenge, and the last column indicates the type or Status of the event (1 = death, 0 = sampled-out or survived). Missing from this data are rows representing surviving fish (Status = 0); these needs to be present for a proper survival analysis.
 <br>
 <br>
 Introducing `Surv_Gen()`!
 
-Obtain the proper survival data by simply inserting the mort data into `Surv_Gen()` and providing the number of fish per tank (e.g. 100) and the TTE the fish survived to (e.g. 54).
+Obtain the proper survival data by simply inserting the mort data into `Surv_Gen()`. Provide a time (TTE) indicating until when other fish survived and the starting number of fish used per tank.
 ```{r, results = "hide"}
 Surv_Gen(mort_db = mort_db_ex,
          starting_fish_count = 100, # per tank
          last_tte = 54)
 ```
 
-Below is the bottom 5 rows of the output dataframe, which shows the generated survivor data (note: Status = 0 for survivors)
+Below is the bottom 5 rows of the output dataframe, which shows some of the generated survivor data (note: Status = 0 for survivors)
 ```{r, echo = FALSE}
 tail(Surv_Gen(mort_db = mort_db_ex,
               starting_fish_count = 100, # per tank
               last_tte = 54), n = 5)
 ```
 
-You can also specify tank-specific fish numbers (e.g. 50 fish for Tank C03), using a dataframe as the `starting_fish_count` input!
+You can also specify tank-specific fish numbers by inserting a dataframe as input to `starting_fish_count`!
 ```{r, eval = FALSE}
 # reduce example data to simplify the demonstration
 mort_db_ex2 = mort_db_ex[mort_db_ex$Tank.ID %in% c("C01", "C02", "C03"),]
@@ -65,11 +65,11 @@ mort_db_ex2 = mort_db_ex[mort_db_ex$Tank.ID %in% c("C01", "C02", "C03"),]
 Surv_Gen(mort_db = mort_db_ex2,
          starting_fish_count = data.frame(Trt.ID = c("B", "A", "C"), # a vector of treatment groups for the specified tanks
                                           Tank.ID = c("C1", "C2", "C3"), # a vector with ALL tanks in the study
-                                          starting_fish_count = c(100, 100, 50)), # a vector of fish numbers for the tanks, matching order
+                                          starting_fish_count = c(100, 100, 50)), # a vector of fish numbers in same order as Tank.IDs
          last_tte = 54)
 ```
 
-With your newly constructed R script, you can now quickly regenerate survival data whenever there is a slight change in the mort database; perhaps from day-to-day or corrections.
+With your newly set up R script, you can now quickly regenerate survival data whenever there is a slight change in the mort database; perhaps from day-to-day or after corrections.
 
 ###################################################################
 [Sean is procrastinating! Slap him to get this documentation done..]

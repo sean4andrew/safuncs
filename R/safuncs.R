@@ -356,14 +356,14 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'
 #' #Simulate! Sampled 10 fish per tank at 45 DPC, but otherwise default conditions.
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
-#'            treatments_hr = c(1, 0.8, 0.5),
+#'            treatments_hr = c(1, 0.75, 0.5),
 #'            sampling_specs = data.frame(Amount = 10,
 #'                                        TTE = 45))$surv_plots
 #'
 #' #Simulate multiple times to better answer the question: are my future samples
 #' #likely to be good approximates of the truth / population
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
-#'            treatments_hr = c(1, 0.8, 0.5),
+#'            treatments_hr = c(1, 0.75, 0.5),
 #'            sampling_specs = data.frame(Amount = 10,
 #'                                        TTE = 45),
 #'            n_sim = 4)$surv_plots
@@ -381,6 +381,7 @@ Surv_Simul = function(haz_db,
 
   #Initialize objects to store loop results
   surv_samps = data.frame()
+  cens_db = data.frame()
   Surv_simul_outDB = data.frame()
   pvalues = c()
   colnames(haz_db) = tolower(colnames(haz_db))
@@ -425,7 +426,7 @@ Surv_Simul = function(haz_db,
 
       #Repeat for each specified sampling time and each tank
       for(samp_time in 1:length(sampling_specs$TTE)) {
-        for(tank_num in levels(Surv_simul_DB$Tank.ID)) {
+        for(tank_num in as.numeric(levels(Surv_simul_DB$Tank.ID))) {
 
           rows_sel = sample(x = which(Surv_simul_DB$Tank.ID == tank_num & Surv_simul_DB$TTE > sampling_specs$TTE[samp_time]),
                             size = sampling_specs$Amount[samp_time],
@@ -445,12 +446,12 @@ Surv_Simul = function(haz_db,
 
     #Transform simulated survival data for plotting purposes
     surv_obj = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = Surv_simul_DB)
-      if(length(levels(as.factor(Surv_simul_DB$Trt.ID))) > 1) {
-        attributes(surv_obj$strata)$names <- levels(as.factor(Surv_simul_DB$Trt.ID))
-      } else {
-        surv_obj$strata = length(surv_obj$surv)
-        attributes(surv_obj$strata)$names <- levels(as.factor(Surv_simul_DB$Trt.ID))
-      }
+    if(length(levels(as.factor(Surv_simul_DB$Trt.ID))) > 1) {
+      attributes(surv_obj$strata)$names <- levels(as.factor(Surv_simul_DB$Trt.ID))
+    } else {
+      surv_obj$strata = length(surv_obj$surv)
+      attributes(surv_obj$strata)$names <- levels(as.factor(Surv_simul_DB$Trt.ID))
+    }
 
     surv_samps_temp = data.frame(Trt.ID = summary(surv_obj)$strata,
                                  surv_prob = summary(surv_obj)$surv,
@@ -468,6 +469,14 @@ Surv_Simul = function(haz_db,
     surv_samps_ends$type = paste("Sample (n = ", n_sim, ")", sep = "")
 
     surv_samps = rbind(surv_samps, surv_samps_temp, surv_samps_ends)
+
+    #Get survival probability at mid censoring
+    cens_db_temp  = data.frame(Trt.ID = summary(surv_obj, time = sampling_specs$TTE)$strata,
+                               surv_prob = summary(surv_obj, time = sampling_specs$TTE)$surv,
+                               time = summary(surv_obj, time = sampling_specs$TTE)$time,
+                               n_sim = loopnum,
+                               type = as.factor(paste("Sample (n = ", n_sim, ")", sep = "")))
+    cens_db = rbind(cens_db, cens_db_temp)
   }
 
   #Get "population" survival dataset by exponentiating the negative cumulative hazard
@@ -483,63 +492,67 @@ Surv_Simul = function(haz_db,
   surv_comb$type = factor(surv_comb$type, levels = c(paste("Sample (n = ", n_sim, ")", sep = ""), "Population / truth"))
   surv_comb$Trt.ID = factor(surv_comb$Trt.ID, levels = rep(c("Control", LETTERS[2:length(treatments_hr)])))
 
-    #Get end_sr for population plots and sample plots
-    end_db = data.frame(surv_comb %>%
-                          dplyr::group_by(type, Trt.ID, n_sim) %>%
-                          dplyr::summarise(surv_prob = min(surv_prob), time = max(TTE), .groups = "drop") %>%
-                          dplyr::group_by(type, Trt.ID) %>%
-                          dplyr::summarise(surv_prob = mean(surv_prob), time = max(time), .groups = "drop"))
+  #Get end_sr for population plots and sample plots
+  end_db = data.frame(surv_comb %>%
+                        dplyr::group_by(type, Trt.ID, n_sim) %>%
+                        dplyr::summarise(surv_prob = min(surv_prob), time = max(TTE), .groups = "drop") %>%
+                        dplyr::group_by(type, Trt.ID) %>%
+                        dplyr::summarise(surv_prob = mean(surv_prob), time = max(time), .groups = "drop"))
 
-    #Get % significance (i.e. power) for plotting
-    perc_sf = paste(round(100 * sum(pvalues < 0.05) / length(pvalues), digits = 0), "%", sep = "")
+  #Get % significance (i.e. power) for plotting
+  perc_sf = paste(round(100 * sum(pvalues < 0.05) / length(pvalues), digits = 0), "%", sep = "")
 
-    #Ggplot
-    if(n_sim == 1) {
-      surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = interaction(n_sim, Trt.ID))) +
-        facet_wrap(~ type) +
-        geom_step() +
-        scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
-        scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 15), 1))) +
-        ylab("Survival Probability (%)") +
-        xlab("Time to Event") +
-        scale_alpha(range = c(min(surv_comb$alpha), 1))+
-        guides(alpha = "none") +
-        geom_text(data = end_db, aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)),
-                  vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) +
-        annotation_custom(grob = grid::textGrob(paste(c(paste("The sample has a", sep = ""),
-                                                        paste("p-value = ", signif(pvalues, digits = 2), sep = ""),
-                                                        "(global test of Trt.)"), collapse = "\n"),
-                                                x = grid::unit(1.05, "npc"),
-                                                y = grid::unit(0.08, "npc"),
-                                                hjust = 0,
-                                                gp = grid::gpar(fontsize = 9))) +
-        coord_cartesian(clip = "off") +
-        theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
+  #Ggplot
+  if(n_sim == 1) {
+    surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = interaction(n_sim, Trt.ID))) +
+      facet_wrap(~ type) +
+      geom_step() +
+      scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
+      scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 15), 1))) +
+      ylab("Survival Probability (%)") +
+      xlab("Time to Event") +
+      scale_alpha(range = c(min(surv_comb$alpha), 1))+
+      guides(alpha = "none") +
+      geom_text(data = end_db, aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)),
+                vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) +
+      annotation_custom(grob = grid::textGrob(paste(c(paste("The sample has a", sep = ""),
+                                                      paste("p-value = ", signif(pvalues, digits = 2), sep = ""),
+                                                      "(global test of Trt.)"), collapse = "\n"),
+                                              x = grid::unit(1.05, "npc"),
+                                              y = grid::unit(0.08, "npc"),
+                                              hjust = 0,
+                                              gp = grid::gpar(fontsize = 9))) +
+      coord_cartesian(clip = "off") +
+      theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
 
-    } else {
-      surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = interaction(n_sim, Trt.ID))) +
-        facet_wrap(~ type) +
-        geom_step(aes(alpha = alpha)) +
-        scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
-        scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 15), 1))) +
-        ylab("Survival Probability (%)") +
-        xlab("Time to Event") +
-        scale_alpha(range = c(min(surv_comb$alpha), 1)) +
-        guides(alpha = "none") +
-        geom_text(data = end_db[end_db$type == "Population / truth",],
-                  aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)),
-                  vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) +
-        annotation_custom(grob = grid::textGrob(paste(c(paste(perc_sf, " of the sample", sep = ""),
-                                                        paste("sets (n) has p < 0.05", sep = ""),
-                                                        "(global test of Trt.)"), collapse = "\n"),
-                                                x = grid::unit(1.03, "npc"),
-                                                y = grid::unit(0.08, "npc"),
-                                                hjust = 0,
-                                                gp = grid::gpar(fontsize = 9))) +
-        coord_cartesian(clip = "off") +
-        theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
+  } else {
+    surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = interaction(n_sim, Trt.ID))) +
+      facet_wrap(~ type) +
+      geom_step(aes(alpha = alpha)) +
+      scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
+      scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 15), 1))) +
+      ylab("Survival Probability (%)") +
+      xlab("Time to Event") +
+      scale_alpha(range = c(min(surv_comb$alpha), 1)) +
+      guides(alpha = "none") +
+      geom_text(data = end_db[end_db$type == "Population / truth",],
+                aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)),
+                vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) +
+      annotation_custom(grob = grid::textGrob(paste(c(paste(perc_sf, " of the sample", sep = ""),
+                                                      paste("sets (n) has p < 0.05", sep = ""),
+                                                      "(global test of Trt.)"), collapse = "\n"),
+                                              x = grid::unit(1.03, "npc"),
+                                              y = grid::unit(0.08, "npc"),
+                                              hjust = 0,
+                                              gp = grid::gpar(fontsize = 9))) +
+      coord_cartesian(clip = "off") +
+      theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
 
-    }
+  }
+
+  #Add censoring points
+  if(!is.null(sampling_specs))
+  {surv_plots = surv_plots + geom_point(data = cens_db, aes(x = time, y = surv_prob, colour = Trt.ID), shape = 3)}
 
   #Plot theme
   if(theme == "prism") {surv_plots = surv_plots + ggprism::theme_prism()}
@@ -554,13 +567,13 @@ Surv_Simul = function(haz_db,
 
     return(simul_surv_db = Surv_simul_outDB)
 
-    } else {
+  } else {
 
-      output = list(simul_surv_db = Surv_simul_outDB)
-      if(plot_out == TRUE) {output$surv_plots <- surv_plots}
-      if(pop_out == TRUE) {output$population_surv_db <- surv_pop}
-      return(output)
-    }
+    output = list(simul_surv_db = Surv_simul_outDB)
+    if(plot_out == TRUE) {output$surv_plots <- surv_plots}
+    if(pop_out == TRUE) {output$population_surv_db <- surv_pop}
+    return(output)
+  }
 }
 
 #################################################### Function 4 - theme_Publication() ##################################################
