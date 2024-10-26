@@ -310,7 +310,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @param fish_num_per_tank The number of fish to simulate per tank. Defaults to 100.
 #' @param tank_num_per_trt The number of tanks to simulate per treatment group. Defaults to 4.
 #' @param treatments_hr A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1). Length of the vector represents the number of treatment groups. Defaults to \code{c(1, 1, 1, 1)}.
-#' @param logHR_sd_intertank The standard deviation of inter-tank variation in the log(HR) scale according to the \code{coxme} framework. Defaults to 0 (no inter-tank variation) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low inter-tank variation situation, while 0.35 is fairly high but can and has occurred in some experiments.
+#' @param logHR_sd_intertank The standard deviation of inter-tank variation in the log(HR) scale according to the \code{coxme} framework. Defaults to 0 (no inter-tank variation) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low inter-tank variation situation, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets.
 #' @param sampling_specs A dataframe representing the number / amount of right censored data (e.g. sampled fish) per tank at different times represented by two columns "Amount" and "TTE", respectively. See \bold{Examples} for example of use. Defaults to NULL (no sampling).
 #' @param n_sim Number of survival dataset to simulate. Defaults to 1.
 #' @param plot_out Whether to output the information plot (further details in \bold{return}). Defaults to TRUE.
@@ -427,7 +427,7 @@ Surv_Simul = function(haz_db,
       for(samp_time in 1:length(sampling_specs$TTE)) {
         for(tank_num in levels(Surv_simul_DB$Tank.ID)) {
 
-          rows_sel = sample(x = which(Surv_simul_DB[Surv_simul_DB$Tank.ID == tank_num, "TTE"] > sampling_specs$TTE[samp_time]),
+          rows_sel = sample(x = which(Surv_simul_DB$Tank.ID == tank_num & Surv_simul_DB$TTE > sampling_specs$TTE[samp_time]),
                             size = sampling_specs$Amount[samp_time],
                             replace = FALSE)
 

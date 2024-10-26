@@ -27,7 +27,7 @@ Surv_Simul(
 
 \item{treatments_hr}{A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1). Length of the vector represents the number of treatment groups. Defaults to \code{c(1, 1, 1, 1)}.}
 
-\item{logHR_sd_intertank}{The standard deviation of inter-tank variation in the log(HR) scale according to the \code{coxme} framework. Defaults to 0 (no inter-tank variation) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low inter-tank variation situation, while 0.35 is fairly high but can and has occurred in some experiments.}
+\item{logHR_sd_intertank}{The standard deviation of inter-tank variation in the log(HR) scale according to the \code{coxme} framework. Defaults to 0 (no inter-tank variation) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low inter-tank variation situation, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets.}
 
 \item{sampling_specs}{A dataframe representing the number / amount of right censored data (e.g. sampled fish) per tank at different times represented by two columns "Amount" and "TTE", respectively. See \bold{Examples} for example of use. Defaults to NULL (no sampling).}
 
