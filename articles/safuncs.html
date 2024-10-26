@@ -54,7 +54,7 @@
                         <h4 data-toc-skip class="author">Sean
 Andrew</h4>
             
-            <h4 data-toc-skip class="date">2024-10-23</h4>
+            <h4 data-toc-skip class="date">2024-10-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/sean4andrew/safuncs/blob/master/vignettes/safuncs.Rmd" class="external-link"><code>vignettes/safuncs.Rmd</code></a></small>
       <div class="d-none name"><code>safuncs.Rmd</code></div>
@@ -70,8 +70,8 @@ data (e.g. survival).</p>
 <p>To get started, please install and load the package by running the
 following code:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"sean4andrew/safuncs"</span><span class="op">)</span> <span class="co">#install package</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sean4andrew/safuncs" class="external-link">safuncs</a></span><span class="op">)</span> <span class="co">#load</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"sean4andrew/safuncs"</span><span class="op">)</span> <span class="co"># install package</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sean4andrew/safuncs" class="external-link">safuncs</a></span><span class="op">)</span> <span class="co"># load</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="survival-analysis">Survival Analysis<a class="anchor" aria-label="anchor" href="#survival-analysis"></a>
 </h2>
@@ -79,9 +79,60 @@ following code:</p>
 the form of rows of entries for every mortality observed. This data
 needs to be converted to a useful form for analysis in R or Prism. The
 function <code><a href="../reference/Surv_Gen.html">Surv_Gen()</a></code> shortens the data transformation step
-to just one line of code! Below, I show how to use them.</p>
-<p>[Sean is procrastinating! Slap him to get his documentation
+to just one line of code! Below, I showcase its use.</p>
+<p>Let us first examine the raw survival data we can have from our
+OneDrive excel file:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mort_db_ex</span><span class="op">)</span> <span class="co"># load example data file</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">mort_db_ex</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="co"># view first 5 rows of data</span></span>
+<span><span class="co">#&gt;   Tank.ID Trt.ID TTE Status</span></span>
+<span><span class="co">#&gt; 1      C1      B   0      1</span></span>
+<span><span class="co">#&gt; 2      C6      B   4      1</span></span>
+<span><span class="co">#&gt; 3      C6      B   7      1</span></span>
+<span><span class="co">#&gt; 4      C1      B  19      1</span></span>
+<span><span class="co">#&gt; 5      C8      D  19      1</span></span></code></pre></div>
+<p>This data contains 4 columns with the 2nd-to-last indicating Time to
+Event (TTE), e.g. days post challenge, for each fish and the last column
+indicating the type or Status of the event (1 = death, 0 = sampled-out
+or survived). In this data, we are missing rows representing surviving
+fish and such data needs to be present for proper survival analysis.
+<br><br> Introducing <code><a href="../reference/Surv_Gen.html">Surv_Gen()</a></code>!</p>
+<p>Obtain the proper survival data by simply inserting the mort data
+into <code><a href="../reference/Surv_Gen.html">Surv_Gen()</a></code> and providing the number of fish per tank
+(e.g. 100) and the TTE the fish survived to (e.g. 54).</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/Surv_Gen.html">Surv_Gen</a></span><span class="op">(</span>mort_db <span class="op">=</span> <span class="va">mort_db_ex</span>,</span>
+<span>         starting_fish_count <span class="op">=</span> <span class="fl">100</span>, <span class="co"># per tank</span></span>
+<span>         last_tte <span class="op">=</span> <span class="fl">54</span><span class="op">)</span></span></code></pre></div>
+<p>Below is the bottom 5 rows of the output dataframe, which shows the
+generated survivor data (note: Status = 0 for survivors)</p>
+<pre><code><span><span class="co">#&gt;      Tank.ID Trt.ID TTE Status</span></span>
+<span><span class="co">#&gt; 1196      C8      D  54      0</span></span>
+<span><span class="co">#&gt; 1197      C8      D  54      0</span></span>
+<span><span class="co">#&gt; 1198      C8      D  54      0</span></span>
+<span><span class="co">#&gt; 1199      C8      D  54      0</span></span>
+<span><span class="co">#&gt; 1200      C8      D  54      0</span></span></code></pre>
+<p>You can also specify tank-specific fish numbers (e.g. 50 fish for
+Tank C03), using a dataframe as the <code>starting_fish_count</code>
+input!</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># reduce example data to simplify the demonstration</span></span>
+<span><span class="va">mort_db_ex2</span> <span class="op">=</span> <span class="va">mort_db_ex</span><span class="op">[</span><span class="va">mort_db_ex</span><span class="op">$</span><span class="va">Tank.ID</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C01"</span>, <span class="st">"C02"</span>, <span class="st">"C03"</span><span class="op">)</span>,<span class="op">]</span></span>
+<span></span>
+<span><span class="co"># apply Surv_Gen()!</span></span>
+<span><span class="fu"><a href="../reference/Surv_Gen.html">Surv_Gen</a></span><span class="op">(</span>mort_db <span class="op">=</span> <span class="va">mort_db_ex2</span>,</span>
+<span>         starting_fish_count <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Trt.ID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B"</span>, <span class="st">"A"</span>, <span class="st">"C"</span><span class="op">)</span>, <span class="co"># a vector of treatment groups for the specified tanks</span></span>
+<span>                                          Tank.ID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C1"</span>, <span class="st">"C2"</span>, <span class="st">"C3"</span><span class="op">)</span>, <span class="co"># a vector with ALL tanks in the study</span></span>
+<span>                                          starting_fish_count <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">100</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span>, <span class="co"># a vector of fish numbers for the tanks, matching order</span></span>
+<span>         last_tte <span class="op">=</span> <span class="fl">54</span><span class="op">)</span></span></code></pre></div>
+<p>With your newly constructed R script, you can now quickly regenerate
+survival data whenever there is a slight change in the mort database;
+perhaps from day-to-day or corrections.</p>
+<div id="section" class="section level67">
+<p class="heading"></p>
+<p>[Sean is procrastinating! Slap him to get this documentation
 done..]</p>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
