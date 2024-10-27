@@ -1073,3 +1073,20 @@ GG_Colour_Hue = function(n) {
 #' }
 #'
 "surv_db_ex"
+
+##################################################### Data 3 - haz_db_ex #######################################################
+
+#' Example Hazard Data
+#'
+#' @description A reference hazard dataframe created using `Surv_Plots(data_out = TRUE)$Hazard_DB` which uses `bshazard::bshazard()`. Contains hazard rates over time.
+#' @usage
+#' data(haz_db_ex)
+#' view(haz_db_ex)
+#'
+#' @format A data frame containing 54 rows and 3 columns:\tabular{lll}{
+#'  \code{Trt.ID} \tab \tab A label for the treatment group used in creating this reference hazard dataframe \cr
+#'  \code{Hazard} \tab \tab Hazard values (rates) \cr
+#'  \code{Time} \tab \tab Time / TTE in days post challenge. \cr
+#' }
+#'
+"haz_db_ex"
