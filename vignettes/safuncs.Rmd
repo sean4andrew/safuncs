@@ -37,7 +37,7 @@ Let us first examine the raw survival data we can get from our OneDrive mort exc
 data(mort_db_ex) # load example data file
 head(mort_db_ex, n = 5) # view first 5 rows of data
 ```
-The 2nd-leftmost column named *TTE* indicates the Time to Event, e.g. days post challenge, and the last column *Status* indicates the type of event (1 = death, 0 = sampled-out or survived). Missing from such dataset are rows representing surviving fish (Status = 0); these needs to be present for a proper survival analysis.
+The 2nd-leftmost column named *TTE* indicates the Time to Event, e.g. days post challenge, and the last column *Status* indicates the type of event (1 = death, 0 = sampled-out or survived). Missing from such a dataset are the rows representing surviving fish (Status = 0); these needs to be present for a proper survival analysis.
 <br>
 <br>
 Introducing `Surv_Gen()`!
@@ -56,7 +56,7 @@ tail(Surv_Gen(mort_db = mort_db_ex,
               last_tte = 54), n = 5)
 ```
 
-You can also specify tank-specific starting fish numbers by using a dataframe as input to `starting_fish_count`!
+You can also specify tank-specific starting fish numbers using a dataframe as input to `starting_fish_count`!
 ```{r, eval = FALSE}
 # reduce example data to simplify the demonstration
 mort_db_ex2 = mort_db_ex[mort_db_ex$Tank.ID %in% c("C01", "C02", "C03"),]
@@ -69,7 +69,14 @@ Surv_Gen(mort_db = mort_db_ex2,
          last_tte = 54)
 ```
 
-With a short R script as shown, you can now quickly regenerate survival data whenever there is a slight change in the mort database; perhaps from day-to-day or after corrections. For those wanting to use the generated survival data in prism, specify `output_prism = TRUE` to save a prism-ready csv. in your working directory.
+With a short R script as shown, you can quickly regenerate survival data whenever there is a slight change in the mort database; perhaps from day-to-day or after corrections. For those wanting to use the generated survival data in prism, specify `output_prism = TRUE` to save a prism-ready csv. in your working directory.
 
-###################################################################
-[Sean is procrastinating! Remind him to get this documentation done..]
+Once the complete survival data has been obtained, plots can be easily generated using `Surv_Plots()`!
+```{r}
+data(surv_db_ex) # load example complete survival data
+
+Surv_Plots(surv_db_ex)
+```
+The plots save automatically to your working directory as a .tiff and a power-point editable plot (as .pptx). Notably, `Surv_Plots()` accepts many more arguments that can influence the hazard plot in particular and needs tailoring for your specific experiment. For more details on these arguments, please see its [documentation page](https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html).
+
+############TO BE CONTINUED###########
