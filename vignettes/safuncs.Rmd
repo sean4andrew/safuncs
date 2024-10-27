@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-Welcome to the documentation of the R package `safuncs`! The package is designed to assist you in the analysis of your biological data (e.g. survival).
+Welcome to the documentation of the R package `safuncs`! This package is designed to assist you in the analysis of your biological data (e.g. survival).
 
 Below I wrote a short tutorial on how some of the core functions in `safuncs` can be used.
 
@@ -37,26 +37,26 @@ Let us first examine the raw survival data we can get from our OneDrive mort exc
 data(mort_db_ex) # load example data file
 head(mort_db_ex, n = 5) # view first 5 rows of data
 ```
-The data contains several rows (first 5 shown) with each representing one mortality. The 2nd leftmost column indicates the Time to Event (TTE), e.g. days post challenge, and the last column indicates the type or Status of the event (1 = death, 0 = sampled-out or survived). Missing from this data are rows representing surviving fish (Status = 0); these needs to be present for a proper survival analysis.
+The 2nd-leftmost column named '*TTE*' indicates the Time to Event, e.g. days post challenge, and the last column '*Status*' indicates the type of event (1 = death, 0 = sampled-out or survived). Missing from such dataset are rows representing surviving fish (Status = 0); these needs to be present for a proper survival analysis.
 <br>
 <br>
 Introducing `Surv_Gen()`!
 
-Obtain the proper survival data by simply inserting the mort data into `Surv_Gen()`. Provide a time (TTE) indicating until when other fish survived and the starting number of fish used per tank.
+Obtain the proper survival data by simply inserting the mort database into `Surv_Gen()`. Provide a time (TTE) indicating until when other fish survived and the starting number of fish used per tank.
 ```{r, results = "hide"}
 Surv_Gen(mort_db = mort_db_ex,
          starting_fish_count = 100, # per tank
          last_tte = 54)
 ```
 
-Below is the bottom 5 rows of the output dataframe, which shows some of the generated survivor data (note: Status = 0 for survivors)
+Below is the output data's bottom 5 rows which represent the generated survivors (Status = 0).
 ```{r, echo = FALSE}
 tail(Surv_Gen(mort_db = mort_db_ex,
               starting_fish_count = 100, # per tank
               last_tte = 54), n = 5)
 ```
 
-You can also specify tank-specific fish numbers by inserting a dataframe as input to `starting_fish_count`!
+You can also specify tank-specific starting fish numbers by using a dataframe as input to `starting_fish_count`!
 ```{r, eval = FALSE}
 # reduce example data to simplify the demonstration
 mort_db_ex2 = mort_db_ex[mort_db_ex$Tank.ID %in% c("C01", "C02", "C03"),]
@@ -69,7 +69,7 @@ Surv_Gen(mort_db = mort_db_ex2,
          last_tte = 54)
 ```
 
-With your newly set up R script, you can now quickly regenerate survival data whenever there is a slight change in the mort database; perhaps from day-to-day or after corrections.
+With such a short R script, you can now quickly regenerate survival data whenever there is a slight change in the mort database; perhaps from day-to-day or after corrections. For those wanting to use the survival data in prism, specify `output_prism = TRUE` to get a prism-ready csv. saved in your working directory.
 
 ###################################################################
 [Sean is procrastinating! Slap him to get this documentation done..]

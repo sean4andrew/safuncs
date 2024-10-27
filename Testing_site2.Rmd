@@ -223,4 +223,59 @@ theme = "ggplot2"
       return(output)
     }
 ```
+Surv_Gen()
+```{r}
+mort_db = mort_db_ex
+starting_fish_count = 100
+last_tte = 54
+tank_without_mort = NULL
+trt_without_mort = NULL
+output = "prism"
+
+  #Count the number of rows in mort_db, for each combination of treatment and tank ID
+  DB_Mort_Gensum = data.frame(mort_db %>%
+                                dplyr::group_by(Trt.ID, Tank.ID) %>%
+                                dplyr::summarise(Num_dead = dplyr::n()))
+
+  #Include tanks without morts in the count database
+  if(!is.null(tank_without_mort) && !is.null(trt_without_mort)) {
+    WM_DB = data.frame(Trt.ID = trt_without_mort,
+                       Tank.ID = tank_without_mort,
+                       Num_dead = 0)
+    DB_Mort_Gensum = rbind(DB_Mort_Gensum, WM_DB)
+  }
+
+  #Use tank-specific starting fish count if information provided
+  if(is.data.frame(starting_fish_count)) {
+    DB_Mort_Gensum = base::merge(DB_Mort_Gensum, starting_fish_count, all.y = TRUE)
+    DB_Mort_Gensum$Num_dead[is.na(DB_Mort_Gensum$Num_dead)] = 0
+    DB_Mort_Gensum$Num_alive = DB_Mort_Gensum$starting_fish_count - DB_Mort_Gensum$Num_dead
+    DB_Mort_Gensum = DB_Mort_Gensum[, -3]
+  } else {DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead}
+
+  #Generate rows of data representing survivors
+  DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
+  DB_Mort_Genalive$Status = 0
+  DB_Mort_Genalive$TTE = last_tte
+  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[, -c(3:4)])
+  
+  #Create prism output
+  if(output == "prism"){
+    prism_db = data.frame(blank = rep("", nrow(DB_Mort_Gencomb)))
+    
+    for(col_nm in trt_levels) {
+      temp_db = data.frame(ifelse(DB_Mort_Gencomb$Trt.ID == col_nm, DB_Mort_Gencomb$Status, ""))
+      colnames(temp_db) = col_nm
+      prism_db = cbind(prism_db, temp_db)
+    }
+    
+    prism_db = cbind(data.frame(DB_Mort_Gencomb[, -which(colnames(DB_Mort_Gencomb) %in% c("Trt.ID","Status"))]), 
+                                prism_db[, -1])
+    write.csv(prism_db, "Surv_Gen Prism Survival Data.csv")
+  }
+    
+  }
+
+  return(DB_Mort_Gencomb)
+```
 

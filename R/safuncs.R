@@ -503,16 +503,20 @@ Surv_Simul = function(haz_db,
   perc_sf = paste(round(100 * sum(pvalues < 0.05) / length(pvalues), digits = 0), "%", sep = "")
 
   #Ggplot
+  surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = interaction(n_sim, Trt.ID))) +
+    facet_wrap(~ type) +
+    geom_step(aes(alpha = alpha)) +
+    scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
+    scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 15), 1))) +
+    ylab("Survival Probability (%)") +
+    xlab("Time to Event") +
+    scale_alpha(range = c(min(surv_comb$alpha), 1))+
+    guides(alpha = "none") +
+    coord_cartesian(clip = "off") +
+    theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
+
   if(n_sim == 1) {
-    surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = interaction(n_sim, Trt.ID))) +
-      facet_wrap(~ type) +
-      geom_step() +
-      scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
-      scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 15), 1))) +
-      ylab("Survival Probability (%)") +
-      xlab("Time to Event") +
-      scale_alpha(range = c(min(surv_comb$alpha), 1))+
-      guides(alpha = "none") +
+    surv_plots = surv_plots +
       geom_text(data = end_db, aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)),
                 vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) +
       annotation_custom(grob = grid::textGrob(paste(c(paste("The sample has a", sep = ""),
@@ -521,20 +525,9 @@ Surv_Simul = function(haz_db,
                                               x = grid::unit(1.05, "npc"),
                                               y = grid::unit(0.08, "npc"),
                                               hjust = 0,
-                                              gp = grid::gpar(fontsize = 9))) +
-      coord_cartesian(clip = "off") +
-      theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
-
+                                              gp = grid::gpar(fontsize = 9)))
   } else {
-    surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = interaction(n_sim, Trt.ID))) +
-      facet_wrap(~ type) +
-      geom_step(aes(alpha = alpha)) +
-      scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
-      scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 15), 1))) +
-      ylab("Survival Probability (%)") +
-      xlab("Time to Event") +
-      scale_alpha(range = c(min(surv_comb$alpha), 1)) +
-      guides(alpha = "none") +
+    surv_plots = surv_plots +
       geom_text(data = end_db[end_db$type == "Population / truth",],
                 aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)),
                 vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) +
@@ -544,10 +537,7 @@ Surv_Simul = function(haz_db,
                                               x = grid::unit(1.03, "npc"),
                                               y = grid::unit(0.08, "npc"),
                                               hjust = 0,
-                                              gp = grid::gpar(fontsize = 9))) +
-      coord_cartesian(clip = "off") +
-      theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
-
+                                              gp = grid::gpar(fontsize = 9)))
   }
 
   #Add censoring points
@@ -785,6 +775,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #' @param last_tte Value representing the time-to-event the fish survived to, assigned to every row of survivor data generated.
 #' @param tank_without_mort A vector of strings specifying the tanks absent from \code{mort_db}; used to generate survivor data for those tanks. Argument ignored if \code{starting_fish_count} is a dataframe.
 #' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep their order the same. Argument ignored if \code{starting_fish_count} is a dataframe.
+#' @param output_prism Whether to generate and save a prism ready survival csv. Defaults to FALSE.
 #'
 #' @return A dataframe produced by combining the input mort data and generated rows of survivor data.
 #'
@@ -809,7 +800,8 @@ Surv_Gen = function(mort_db,
                     starting_fish_count,
                     last_tte,
                     tank_without_mort = NULL,
-                    trt_without_mort = NULL) {
+                    trt_without_mort = NULL,
+                    output_prism = FALSE) {
 
   #Count the number of rows in mort_db, for each combination of treatment and tank ID
   DB_Mort_Gensum = data.frame(mort_db %>%
@@ -837,6 +829,21 @@ Surv_Gen = function(mort_db,
   DB_Mort_Genalive$Status = 0
   DB_Mort_Genalive$TTE = last_tte
   DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[, -c(3:4)])
+
+  #Create prism output
+  if(output_prism == TRUE){
+    prism_db = data.frame(blank = rep("", nrow(DB_Mort_Gencomb)))
+
+    for(col_nm in trt_levels) {
+      temp_db = data.frame(ifelse(DB_Mort_Gencomb$Trt.ID == col_nm, DB_Mort_Gencomb$Status, ""))
+      colnames(temp_db) = col_nm
+      prism_db = cbind(prism_db, temp_db)
+    }
+
+    prism_db = cbind(data.frame(DB_Mort_Gencomb[, -which(colnames(DB_Mort_Gencomb) %in% c("Trt.ID","Status"))]),
+                     prism_db[, -1])
+    write.csv(prism_db, "Surv_Gen Prism Survival Data.csv")
+  }
 
   return(DB_Mort_Gencomb)
 }
