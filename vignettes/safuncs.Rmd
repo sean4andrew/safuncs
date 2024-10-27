@@ -37,7 +37,7 @@ Let us first examine the raw survival data we can get from our OneDrive mort exc
 data(mort_db_ex) # load example data file
 head(mort_db_ex, n = 5) # view first 5 rows of data
 ```
-The 2nd-leftmost column named '*TTE*' indicates the Time to Event, e.g. days post challenge, and the last column '*Status*' indicates the type of event (1 = death, 0 = sampled-out or survived). Missing from such dataset are rows representing surviving fish (Status = 0); these needs to be present for a proper survival analysis.
+The 2nd-leftmost column named *TTE* indicates the Time to Event, e.g. days post challenge, and the last column *Status* indicates the type of event (1 = death, 0 = sampled-out or survived). Missing from such dataset are rows representing surviving fish (Status = 0); these needs to be present for a proper survival analysis.
 <br>
 <br>
 Introducing `Surv_Gen()`!
@@ -72,4 +72,4 @@ Surv_Gen(mort_db = mort_db_ex2,
 With such a short R script, you can now quickly regenerate survival data whenever there is a slight change in the mort database; perhaps from day-to-day or after corrections. For those wanting to use the survival data in prism, specify `output_prism = TRUE` to get a prism-ready csv. saved in your working directory.
 
 ###################################################################
-[Sean is procrastinating! Slap him to get this documentation done..]
+[Sean is procrastinating! Remind him to get this documentation done..]

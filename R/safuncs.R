@@ -356,14 +356,14 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'
 #' #Simulate! Sampled 10 fish per tank at 45 DPC, but otherwise default conditions.
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
-#'            treatments_hr = c(1, 0.75, 0.5),
+#'            treatments_hr = c(1, 0.8, 0.5),
 #'            sampling_specs = data.frame(Amount = 10,
 #'                                        TTE = 45))$surv_plots
 #'
 #' #Simulate multiple times to better answer the question: are my future samples
 #' #likely to be good approximates of the truth / population
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
-#'            treatments_hr = c(1, 0.75, 0.5),
+#'            treatments_hr = c(1, 0.8, 0.5),
 #'            sampling_specs = data.frame(Amount = 10,
 #'                                        TTE = 45),
 #'            n_sim = 4)$surv_plots
@@ -1037,3 +1037,39 @@ GG_Colour_Hue = function(n) {
   hues = seq(15, 375, length = n + 1)
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
+
+##################################################### Data 1 - mort_db_ex #######################################################
+
+#' Example Mort Data
+#'
+#' @description A subset of columns taken from the online excel mortality file in OneDrive.
+#' @usage
+#' data(mort_db_ex)
+#' view(mort_db_ex)
+#'
+#' @format A data frame containing 399 rows and 4 columns:\tabular{lll}{
+#'  \code{Tank.ID} \tab \tab Unique labels for the different tanks in the study \cr
+#'  \code{Trt.ID} \tab \tab Unique labels for the different treatments in the study \cr
+#'  \code{TTE} \tab \tab Time to Event. In this dataset, TTE = days post challenge \cr
+#'  \code{Status} \tab \tab Value indicating what happened at TTE. In this dataset, Status = 1 indicating all events are death \cr
+#' }
+#'
+"mort_db_ex"
+
+##################################################### Data 2 - surv_db_ex #######################################################
+
+#' Example Survival Data
+#'
+#' @description A complete survival dataset with survivors, based of \code{mort_db_ex}. Ready for proper survival analysis.
+#' @usage
+#' data(surv_db_ex)
+#' view(surv_db_ex)
+#'
+#' @format A data frame containing 1200 rows and 4 columns:\tabular{lll}{
+#'  \code{Tank.ID} \tab \tab Unique labels for the different tanks in the study \cr
+#'  \code{Trt.ID} \tab \tab Unique labels for the different treatments in the study \cr
+#'  \code{TTE} \tab \tab Time to Event. In this dataset, TTE = days post challenge \cr
+#'  \code{Status} \tab \tab Value indicating what happened at TTE. In this dataset, Status = 1 or 0 indicating death or survival, respectively \cr
+#' }
+#'
+"surv_db_ex"
