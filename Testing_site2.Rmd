@@ -269,8 +269,10 @@ output = "prism"
       prism_db = cbind(prism_db, temp_db)
     }
     
-    prism_db = cbind(data.frame(DB_Mort_Gencomb[, -which(colnames(DB_Mort_Gencomb) %in% c("Trt.ID","Status"))]), 
+    prism_db = cbind(data.frame(DB_Mort_Gencomb[, -which(colnames(DB_Mort_Gencomb) == "Status")]), 
                                 prism_db[, -1])
+    prism_db = data.frame(prism_db %>% arrange(Trt.ID, Tank.ID))[, -which(colnames(DB_Mort_Gencomb) == "Trt.ID")]
+    
     write.csv(prism_db, "Surv_Gen Prism Survival Data.csv")
   }
     
