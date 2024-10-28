@@ -835,7 +835,7 @@ Surv_Gen = function(mort_db,
     prism_db = data.frame(blank = rep("", nrow(DB_Mort_Gencomb)))
 
     #Get treatment specific column entries for Status
-    for(col_nm in trt_levels) {
+    for(col_nm in levels(factor(DB_Mort_Gencomb$Trt.ID))) {
       temp_db = data.frame(ifelse(DB_Mort_Gencomb$Trt.ID == col_nm, DB_Mort_Gencomb$Status, ""))
       colnames(temp_db) = col_nm
       prism_db = cbind(prism_db, temp_db)
@@ -844,8 +844,8 @@ Surv_Gen = function(mort_db,
     #Organize prism data and save
     prism_db = cbind(data.frame(DB_Mort_Gencomb[, -which(colnames(DB_Mort_Gencomb) == "Status")]),
                      prism_db[, -1])
-    prism_db = data.frame(prism_db %>% dplyr::arrange(Trt.ID, Tank.ID))[, -which(colnames(DB_Mort_Gencomb) == "Trt.ID")]
-    write.csv(prism_db, "Surv_Gen Prism Survival Data.csv")
+    prism_db = data.frame(prism_db %>% dplyr::arrange(Trt.ID, Tank.ID))[, -which(colnames(prism_db) == "Trt.ID")]
+    write.csv(prism_db, paste("Surv_Gen Prism - last TTE ", last_tte, ".csv", sep = ""))
   }
 
   return(DB_Mort_Gencomb)
