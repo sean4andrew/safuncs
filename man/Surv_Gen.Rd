@@ -46,15 +46,18 @@ Each row should represent one fish.
 For an example dataframe, execute \code{data(mort_db_ex)} and view.
 }
 \examples{
-#First, we load an example mortality database available from the safuncs package
+# First, we load an example mortality database available from the safuncs package
 data(mort_db_ex)
 
-#Next, we input this data into Surv_Gen() as well as the study details to generate entries (rows) for survivors in the output - a "complete" dataframe for further survival analysis and data visualization.
-Surv_Gen(mort_db = mort_db_ex,
-         starting_fish_count = 100,
-         last_tte = 54,
-         tank_without_mort = c("C99", "C100"),
-         trt_without_mort = c("A", "B"))
+# Next, we input this data into Surv_Gen() as well as the study details to generate entries (rows) for survivors in the output - a "complete" dataframe for further survival analysis and data visualization.
+Surv_Data_Output = Surv_Gen(mort_db = mort_db_ex,
+                   starting_fish_count = 100,
+                   last_tte = 54,
+                   tank_without_mort = c("C99", "C100"),
+                   trt_without_mort = c("A", "B"))
+
+# Below, the bottom 5 rows of the output is displayed to show the rows of survivor data generated.
+tail(Surv_Data_Output, n = 5)
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Gen.html}{Link} for executed examples which includes any figure outputs.

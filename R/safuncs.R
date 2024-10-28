@@ -787,15 +787,18 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #' @export
 #'
 #' @examples
-#' #First, we load an example mortality database available from the safuncs package
+#' # First, we load an example mortality database available from the safuncs package
 #' data(mort_db_ex)
 #'
-#' #Next, we input this data into Surv_Gen() as well as the study details to generate entries (rows) for survivors in the output - a "complete" dataframe for further survival analysis and data visualization.
-#' Surv_Gen(mort_db = mort_db_ex,
-#'          starting_fish_count = 100,
-#'          last_tte = 54,
-#'          tank_without_mort = c("C99", "C100"),
-#'          trt_without_mort = c("A", "B"))
+#' # Next, we input this data into Surv_Gen() as well as the study details to generate entries (rows) for survivors in the output - a "complete" dataframe for further survival analysis and data visualization.
+#' Surv_Data_Output = Surv_Gen(mort_db = mort_db_ex,
+#'                    starting_fish_count = 100,
+#'                    last_tte = 54,
+#'                    tank_without_mort = c("C99", "C100"),
+#'                    trt_without_mort = c("A", "B"))
+#'
+#' # Below, the bottom 5 rows of the output is displayed to show the rows of survivor data generated.
+#' tail(Surv_Data_Output, n = 5)
 Surv_Gen = function(mort_db,
                     starting_fish_count,
                     last_tte,
