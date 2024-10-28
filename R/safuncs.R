@@ -776,6 +776,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #' @param tank_without_mort A vector of strings specifying the tanks absent from \code{mort_db}; used to generate survivor data for those tanks. Argument ignored if \code{starting_fish_count} is a dataframe.
 #' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep their order the same. Argument ignored if \code{starting_fish_count} is a dataframe.
 #' @param output_prism Whether to generate and save a prism ready survival csv. Defaults to FALSE.
+#' @param output_prism_date The starting date to be used in the prism file. Please specify date in "dd-Mmm-yyyy" syntax (e.g. "08-Aug-2024").
 #'
 #' @return A dataframe produced by combining the input mort data and generated rows of survivor data.
 #'
@@ -804,7 +805,8 @@ Surv_Gen = function(mort_db,
                     last_tte,
                     tank_without_mort = NULL,
                     trt_without_mort = NULL,
-                    output_prism = FALSE) {
+                    output_prism = FALSE,
+                    output_prism_date = NULL) {
 
   #Count the number of rows in mort_db, for each combination of treatment and tank ID
   DB_Mort_Gensum = data.frame(mort_db %>%
@@ -835,6 +837,7 @@ Surv_Gen = function(mort_db,
 
   #Create prism output
   if(output_prism == TRUE){
+
     prism_db = data.frame(blank = rep("", nrow(DB_Mort_Gencomb)))
 
     #Get treatment specific column entries for Status
@@ -845,8 +848,16 @@ Surv_Gen = function(mort_db,
     }
 
     #Organize prism data and save
-    prism_db = cbind(data.frame(DB_Mort_Gencomb[, -which(colnames(DB_Mort_Gencomb) == "Status")]),
-                     prism_db[, -1])
+    if(is.null(output_prism_date)) {
+      prism_db = cbind(data.frame(DB_Mort_Gencomb[, -which(colnames(DB_Mort_Gencomb) == "Status")]),
+                       prism_db[, -1])
+    } else {
+      prism_db = cbind(data.frame(starting_date = format(as.Date(output_prism_date, format = "%d-%b-%Y"), "%d-%b-%Y"),
+                                  ending_date = format(as.Date(output_prism_date, format = "%d-%b-%Y") + DB_Mort_Gencomb$TTE, "%d-%b-%Y")),
+                       data.frame(DB_Mort_Gencomb[, -which(colnames(DB_Mort_Gencomb) == "Status")]),
+                       prism_db[, -1])
+    }
+
     prism_db = data.frame(prism_db %>% dplyr::arrange(Trt.ID, Tank.ID))[, -which(colnames(prism_db) == "Trt.ID")]
     write.csv(prism_db, paste("Surv_Gen Prism - last TTE ", last_tte, ".csv", sep = ""))
   }

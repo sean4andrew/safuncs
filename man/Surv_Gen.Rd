@@ -10,7 +10,8 @@ Surv_Gen(
   last_tte,
   tank_without_mort = NULL,
   trt_without_mort = NULL,
-  output_prism = FALSE
+  output_prism = FALSE,
+  output_prism_date = NULL
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ Surv_Gen(
 \item{trt_without_mort}{A vector of strings corresponding to \code{tank_without_mort}. Keep their order the same. Argument ignored if \code{starting_fish_count} is a dataframe.}
 
 \item{output_prism}{Whether to generate and save a prism ready survival csv. Defaults to FALSE.}
+
+\item{output_prism_date}{The starting date to be used in the prism file. Please specify date in "dd-Mmm-yyyy" syntax (e.g. "08-Aug-2024").}
 }
 \value{
 A dataframe produced by combining the input mort data and generated rows of survivor data.

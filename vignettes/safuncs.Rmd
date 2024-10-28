@@ -69,7 +69,7 @@ Surv_Gen(mort_db = mort_db_ex2,
          last_tte = 54)
 ```
 
-With a short R script as shown, you can quickly regenerate survival data whenever there is a slight change in the mort database; perhaps from day-to-day or after corrections. For those wanting to use the generated survival data in prism, specify `output_prism = TRUE` to save a prism-ready csv. in your working directory.
+With a short R script as shown, you can quickly regenerate survival data whenever there is a slight change in the mort database; perhaps from day-to-day or after corrections. For those wanting to use the generated survival data in prism, specify `output_prism = TRUE` to save a prism-ready csv. in your working directory. If you want starting and ending dates in the Prism output, specify`output_prism_date`.
 
 Once the complete survival data has been obtained, plots can be easily generated using `Surv_Plots()`!
 ```{r, out.width = '100%'}
