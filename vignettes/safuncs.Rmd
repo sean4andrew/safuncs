@@ -69,7 +69,9 @@ Surv_Gen(mort_db = mort_db_ex2,
          last_tte = 54)
 ```
 
-With a short R script as shown, you can quickly regenerate survival data whenever there is a slight change in the mort database; perhaps from day-to-day or after corrections. For those wanting to use the generated survival data in prism, set the argument `output_prism = TRUE` in `Surv_Gen()` to save a prism-ready csv. in your working directory. If you want starting and ending dates in the Prism output, input a starting date into the argument `output_prism_date`, as shown:
+With a short R script as shown, you can quickly regenerate survival data whenever there is a slight change in the mort database; perhaps from day-to-day or after corrections. 
+
+For those wanting to use the generated survival data in prism, set the argument `output_prism = TRUE` in `Surv_Gen()` to save a prism-ready csv. in your working directory. If you want starting and ending dates in the Prism output, input a starting date into the argument `output_prism_date`, as shown:
 ```{r, results = "hide"}
 Surv_Gen(mort_db = mort_db_ex,
          starting_fish_count = 100, # per tank
