@@ -313,7 +313,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @param logHR_sd_intertank The standard deviation of inter-tank variation in the log(HR) scale according to the \code{coxme} framework. Defaults to 0 (no inter-tank variation) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low inter-tank variation situation, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets.
 #' @param sampling_specs A dataframe representing the number / amount of right censored data (e.g. sampled fish) per tank at different times represented by two columns "Amount" and "TTE", respectively. See \bold{Examples} for example of use. Defaults to NULL (no sampling).
 #' @param n_sim Number of survival dataset to simulate. Defaults to 1.
-#' @param plot_out Whether to output the information plot (further details in \bold{return}). Defaults to TRUE.
+#' @param plot_out Whether to output the information plot (further details in \bold{Value}). Defaults to TRUE.
 #' @param pop_out Whether to output a dataframe containing the survival probability values for the population. Defaults to TRUE.
 #' @param plot_name Character string specifying the name of the saved plot. Defaults to "Surv_Simul-Plot-Output".
 #' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".

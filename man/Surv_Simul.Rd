@@ -33,7 +33,7 @@ Surv_Simul(
 
 \item{n_sim}{Number of survival dataset to simulate. Defaults to 1.}
 
-\item{plot_out}{Whether to output the information plot (further details in \bold{return}). Defaults to TRUE.}
+\item{plot_out}{Whether to output the information plot (further details in \bold{Value}). Defaults to TRUE.}
 
 \item{pop_out}{Whether to output a dataframe containing the survival probability values for the population. Defaults to TRUE.}
 

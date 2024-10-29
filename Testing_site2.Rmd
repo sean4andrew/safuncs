@@ -13,6 +13,39 @@ remotes::install_github("sean4andrew/safuncs")
 use_package() 
 ```
 
+Auto labeller
+```{r}
+study_id = "ONDA01180"
+timepoint = "Baseline"
+trt_tank_id = c("Tk.F01-TrtA", "Tk.F02-TrtA", "Tk.F03-TrtB", "Tk.F04-TrtB")
+animal = "Fish"
+animal_numbers = 1:4 #for all arguments, specify as vector and match with trt_tank_id.
+tissue = c("Spleen", "Liver")
+repli = NA
+
+combin = levels(interaction(study_id, timepoint, trt_tank_id, animal, animal_numbers, tissue, sep = ", ", lex.order = TRUE))
+mat = matrix(combin, ncol = 6)
+
+View(mat)
+write.csv(x = mat, file = paste(study_id, "labels.csv", sep = " "))
+```
+
+
+Function
+```{r}
+v_vec = c("study_id", "timepoint", "trt_tank_id", "animal", "animal_numbers", "tissue", "repli")
+nonNA_vec = v_vec[!is.na(sapply(v_vec, get))]
+
+if(is.na(timepoint)) {
+  write.csv(x = mat, file = paste(study_id, "labels.csv", sep = " "))
+} else {
+  write.csv(x = mat, file = paste(study_id, timepoint, "labels.csv", sep = " "))
+}
+```
+
+
+
+
 Test
 ```{r}
 haz_db = ref_haz_route_safuncs
