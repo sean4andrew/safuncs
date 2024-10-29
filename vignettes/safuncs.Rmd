@@ -79,8 +79,7 @@ Surv_Gen(mort_db = mort_db_ex,
          output_prism = TRUE,
          output_prism_date = "08Aug2024")
 ```
-<br>
-<br>
+
 Once the complete survival data has been obtained, plots can be easily generated using `Surv_Plots()`!
 ```{r, out.width = '100%'}
 data(surv_db_ex) # load example complete survival data
