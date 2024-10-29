@@ -13,7 +13,7 @@ Surv_Plots(
   lambda = NULL,
   phi = NULL,
   dailybin = FALSE,
-  plot = "both",
+  plot = "surv",
   colours = NULL,
   theme = "ggplot",
   trt_order = NULL,
@@ -38,7 +38,7 @@ Surv_Plots(
 
 \item{dailybin}{Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE at large sample sizes with tank-replication. Defaults to FALSE.}
 
-\item{plot}{Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".}
+\item{plot}{Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "surv".}
 
 \item{colours}{Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.}
 
@@ -51,7 +51,7 @@ Surv_Plots(
 \item{plot_dim}{Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.}
 }
 \value{
-By default, with argument {\code{plot = "both"}}, returns the Kaplan-Meier Survival Curve and the Hazard Curve. Output can be trimmed by setting \code{plot = "haz"} or \code{plot = "surv"}.
+With argument {\code{plot = "both"}}, returns the Kaplan-Meier Survival Curve and the Hazard Curve. Output can be trimmed by setting \code{plot = "haz"} or \code{plot = "surv"}.
 
 If \code{data_out = TRUE}, returns a list of the plot(s) and the associated dataframes to create them.
 }

@@ -68,7 +68,6 @@ Surv_Gen(mort_db = mort_db_ex2,
                                           starting_fish_count = c(100, 100, 50)), # a vector of fish numbers in same order as Tank.IDs
          last_tte = 54)
 ```
-
 With a short R script as shown, you can quickly regenerate survival data whenever there is a slight change in the mort database; perhaps from day-to-day or after corrections. 
 
 For those wanting to use the generated survival data in prism, set the argument `output_prism = TRUE` in `Surv_Gen()` to save a prism-ready csv. in your working directory. If you want starting and ending dates in the Prism output, input a starting date into the argument `output_prism_date`, as shown:
@@ -77,14 +76,15 @@ Surv_Gen(mort_db = mort_db_ex,
          starting_fish_count = 100, # per tank
          last_tte = 54,
          output_prism = TRUE,
-         output_prism_date = "08Aug2024")
+         output_prism_date = "08-Aug-2024")
 ```
 
 Once the complete survival data has been obtained, plots can be easily generated using `Surv_Plots()`!
 ```{r, out.width = '100%'}
 data(surv_db_ex) # load example complete survival data
 
-Surv_Plots(surv_db_ex)
+Surv_Plots(surv_db_ex,
+           plot = "both") # plot the survival curve and hazard curve
 ```
 The plots save automatically to your working directory as a .tiff and in a power-point editable format (.pptx). Notably, `Surv_Plots()` accepts many more arguments that can influence the hazard plot in particular and needs tailoring for your specific experiment. For more details on these arguments, please see the functions' [documentation page](https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html).
 

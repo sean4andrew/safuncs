@@ -808,6 +808,10 @@ Surv_Gen = function(mort_db,
                     output_prism = FALSE,
                     output_prism_date = NULL) {
 
+  #Remove NA rows
+  mort_db[mort_db == "#N/A"] = NA
+  mort_db = na.omit(mort_db)
+
   #Count the number of rows in mort_db, for each combination of treatment and tank ID
   DB_Mort_Gensum = data.frame(mort_db %>%
                                 dplyr::group_by(Trt.ID, Tank.ID) %>%
@@ -892,7 +896,7 @@ Surv_Gen = function(mort_db,
 #' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
 #' @param phi Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate phi; NULL specification is recommended for large sample size situations. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (QCATC997; phi ~ 0.8-1.4) where there are large sample sizes with tank-replication. The phi value of 1 indicates the set of counts (deaths) over time have a Poisson distribution, following the different hazard rates along the curve and are not overdispersed (phi > 1).
 #' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE at large sample sizes with tank-replication. Defaults to FALSE.
-#' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
+#' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "surv".
 #' @param colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
 #' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
 #' @param trt_order Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.
@@ -901,7 +905,7 @@ Surv_Gen = function(mort_db,
 #'
 #' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed examples which includes any figure outputs.
 #'
-#' @return By default, with argument {\code{plot = "both"}}, returns the Kaplan-Meier Survival Curve and the Hazard Curve. Output can be trimmed by setting \code{plot = "haz"} or \code{plot = "surv"}.
+#' @return With argument {\code{plot = "both"}}, returns the Kaplan-Meier Survival Curve and the Hazard Curve. Output can be trimmed by setting \code{plot = "haz"} or \code{plot = "surv"}.
 #'
 #' If \code{data_out = TRUE}, returns a list of the plot(s) and the associated dataframes to create them.
 #'
@@ -931,7 +935,7 @@ Surv_Plots = function(surv_db,
                       lambda = NULL,
                       phi = NULL,
                       dailybin = FALSE,
-                      plot = "both",
+                      plot = "surv",
                       colours = NULL,
                       theme = "ggplot",
                       trt_order = NULL,
