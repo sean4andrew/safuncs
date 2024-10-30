@@ -83,6 +83,7 @@ surv_dat_A = surv_dat[surv_dat$Trt.ID == "A", ]
 #dataframe using bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB
 ref_haz_route_bshazard = bshazard::bshazard(data = surv_dat_A,
                                             survival::Surv(TTE, Status) ~ Tank.ID,
+                                            nbin = max(surv_dat_A$TTE),
                                             verbose = FALSE)
 ref_haz_route_bshazard = data.frame(summary(ref_haz_route_bshazard)$HazardEstimates)
 
