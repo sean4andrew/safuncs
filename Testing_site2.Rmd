@@ -218,31 +218,31 @@ theme = "ggplot2"
 
   
   #For use with old surv_prob method (deprecated)
-  surv_pop_old = data.frame(Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]), each = length(haz_db$hazard))),
-                            cumhaz_prob = as.vector(apply((haz_db$hazard) %*% t(treatments_hr), 2, cumsum)),
-                            time = rep(haz_db$time, times = length(treatments_hr)),
-                            type = "Population / truth",
-                            n_sim = 1,
-                            alpha = 1)
+  surv_pop = data.frame(Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]), each = length(haz_db$hazard))),
+                        #cumhaz_prob = as.vector(apply((haz_db$hazard) %*% t(treatments_hr), 2, cumsum)),
+                        surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum))),
+                        time = rep(haz_db$time, times = length(treatments_hr)),
+                        type = "Population / truth",
+                        n_sim = 1,
+                        alpha = 1)
   #methods to get surv_prob stored here below:
   #option 1 (old):
   #surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum)))
   
-  #New method
-  surv_pop = data.frame()
-  for(pop_trt in levels(factor(surv_pop_old$Trt.ID))) {
-    pop_trt_cumhaz = surv_pop_old$cumhaz_prob[surv_pop_old$Trt.ID == pop_trt]
-    surv_prob_db = approx(x = haz_db$time, y = pop_trt_cumhaz, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear")
-    
-    surv_pop_temp = data.frame(Trt.ID = pop_trt,
-                               time = surv_prob_db$x,
-                               surv_prob = exp(-surv_prob_db$y),
-                               type = "Population / truth",
-                               n_sim = 1,
-                               alpha = 1)
-    surv_pop = rbind(surv_pop, surv_pop_temp)
-  }
- 
+  # #New method
+  # surv_pop = data.frame()
+  # for(pop_trt in levels(factor(surv_pop_old$Trt.ID))) {
+  #   pop_trt_cumhaz = surv_pop_old$cumhaz_prob[surv_pop_old$Trt.ID == pop_trt]
+  #   surv_prob_db = approx(x = haz_db$time, y = pop_trt_cumhaz, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear")
+  #   
+  #   surv_pop_temp = data.frame(Trt.ID = pop_trt,
+  #                              time = surv_prob_db$x,
+  #                              surv_prob = exp(-surv_prob_db$y),
+  #                              type = "Population / truth",
+  #                              n_sim = 1,
+  #                              alpha = 1)
+  #   surv_pop = rbind(surv_pop, surv_pop_temp)
+  # }
 
   #To the end of creating survival plots
   surv_comb = rbind(surv_samps, surv_pop)

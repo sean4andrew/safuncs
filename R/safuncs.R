@@ -489,12 +489,12 @@ Surv_Simul = function(haz_db,
 
   #For use with old surv_prob method (revived)
   surv_pop = data.frame(Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]), each = length(haz_db$hazard))),
-                        cumhaz_prob = as.vector(apply((haz_db$hazard) %*% t(treatments_hr), 2, cumsum)),
+                        #cumhaz_prob = as.vector(apply((haz_db$hazard) %*% t(treatments_hr), 2, cumsum)),
+                        surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum))),
                         time = rep(haz_db$time, times = length(treatments_hr)),
                         type = "Population / truth",
                         n_sim = 1,
-                        alpha = 1,
-                        surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum))))
+                        alpha = 1)
   #methods to get surv_prob stored here below:
   #option 1 (old):
   #surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum)))
