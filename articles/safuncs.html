@@ -148,7 +148,8 @@ easily generated using <code><a href="../reference/Surv_Plots.html">Surv_Plots()
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">surv_db_ex</span><span class="op">)</span> <span class="co"># load example complete survival data</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/Surv_Plots.html">Surv_Plots</a></span><span class="op">(</span><span class="va">surv_db_ex</span><span class="op">)</span> <span class="co"># plot the survival curve and hazard curve</span></span>
+<span><span class="fu"><a href="../reference/Surv_Plots.html">Surv_Plots</a></span><span class="op">(</span><span class="va">surv_db_ex</span>, <span class="co"># plot the survival curve and hazard curve</span></span>
+<span>           dailybin <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="co"># recommended argument for good (large) sample size datasets</span></span>
 <span><span class="co">#&gt; NOTE: entry.status has been set to 0 for all.</span></span>
 <span><span class="co">#&gt; NOTE: entry.status has been set to 0 for all.</span></span>
 <span><span class="co">#&gt; NOTE: Dropping  1  rows with duration of follow up &lt; tol</span></span>
