@@ -50,13 +50,17 @@ Surv_Gen(mort_db = mort_db_ex,
 ```
 
 Below is the output data's bottom 5 rows which represent the generated survivors (Status = 0).
+```{r, echo = FALSE, results = "hide"}
+a = Surv_Gen(mort_db = mort_db_ex,
+             starting_fish_count = 100, # per tank
+             last_tte = 54)
+```
 ```{r, echo = FALSE}
-tail(Surv_Gen(mort_db = mort_db_ex,
-              starting_fish_count = 100, # per tank
-              last_tte = 54), n = 5)
+tail(a, n = 5)
 ```
 
-You also get printout messages to verify the correct data is generated:
+
+You also get some printout messages for verification purposes:
 ```{r, echo = FALSE}
 test_db = Surv_Gen(mort_db = mort_db_ex,
                    starting_fish_count = 100, # per tank

@@ -896,7 +896,6 @@ Surv_Gen = function(mort_db,
   print(paste("Your total number of tanks is:", length(levels(factor(DB_Mort_Gencomb$Tank.ID)))))
   print(paste("Your total number of treatment groups is:", length(levels(factor(DB_Mort_Gencomb$Trt.ID)))))
   print(paste("Your total number of fish in the output data is:", nrow(DB_Mort_Gencomb)))
-  print("Are these numbers correct?")
   return(DB_Mort_Gencomb)
 }
 
