@@ -121,9 +121,15 @@ generated survivors (Status = 0).</p>
 <span><span class="co">#&gt; 1198      C8      D  54      0</span></span>
 <span><span class="co">#&gt; 1199      C8      D  54      0</span></span>
 <span><span class="co">#&gt; 1200      C8      D  54      0</span></span></code></pre>
+<p>You also get printout messages to verify the correct data is
+generated:</p>
+<pre><code><span><span class="co">#&gt; [1] "Your total number of tanks is: 12"</span></span>
+<span><span class="co">#&gt; [1] "Your total number of treatment groups is: 4"</span></span>
+<span><span class="co">#&gt; [1] "Your total number of fish in the output data is: 1200"</span></span>
+<span><span class="co">#&gt; [1] "Are these numbers correct?"</span></span></code></pre>
 <p>You can also specify tank-specific starting fish numbers using a
 dataframe as input to <code>starting_fish_count</code>!</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># reduce example data to simplify the demonstration</span></span>
 <span><span class="va">mort_db_ex2</span> <span class="op">=</span> <span class="va">mort_db_ex</span><span class="op">[</span><span class="va">mort_db_ex</span><span class="op">$</span><span class="va">Tank.ID</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C01"</span>, <span class="st">"C02"</span>, <span class="st">"C03"</span><span class="op">)</span>,<span class="op">]</span></span>
 <span></span>
@@ -141,7 +147,7 @@ the argument <code>output_prism = TRUE</code> in <code><a href="../reference/Sur
 to save a prism-ready csv. in your working directory. If you want
 starting and ending dates in the Prism output, input a starting date
 into the argument <code>output_prism_date</code>, as shown:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/Surv_Gen.html">Surv_Gen</a></span><span class="op">(</span>mort_db <span class="op">=</span> <span class="va">mort_db_ex</span>,</span>
 <span>         starting_fish_count <span class="op">=</span> <span class="fl">100</span>, <span class="co"># per tank</span></span>
 <span>         last_tte <span class="op">=</span> <span class="fl">54</span>,</span>
@@ -149,7 +155,7 @@ into the argument <code>output_prism_date</code>, as shown:</p>
 <span>         output_prism_date <span class="op">=</span> <span class="st">"08-Aug-2024"</span><span class="op">)</span></span></code></pre></div>
 <p>Once the complete survival data has been obtained, plots can be
 easily generated using <code><a href="../reference/Surv_Plots.html">Surv_Plots()</a></code>!</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">surv_db_ex</span><span class="op">)</span> <span class="co"># load example complete survival data</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/Surv_Plots.html">Surv_Plots</a></span><span class="op">(</span><span class="va">surv_db_ex</span>, <span class="co"># plot the survival curve and hazard curve</span></span>
@@ -160,10 +166,10 @@ easily generated using <code><a href="../reference/Surv_Plots.html">Surv_Plots()
 <span><span class="co">#&gt; NOTE: entry.status has been set to 0 for all.</span></span>
 <span><span class="co">#&gt; NOTE: entry.status has been set to 0 for all.</span></span>
 <span><span class="co">#&gt; $Survival_Plot</span></span></code></pre></div>
-<p><img src="safuncs_files/figure-html/unnamed-chunk-7-1.png" width="100%"></p>
+<p><img src="safuncs_files/figure-html/unnamed-chunk-8-1.png" width="100%"></p>
 <pre><code><span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $Hazard_Plot</span></span></code></pre>
-<p><img src="safuncs_files/figure-html/unnamed-chunk-7-2.png" width="100%">
+<p><img src="safuncs_files/figure-html/unnamed-chunk-8-2.png" width="100%">
 The plots save automatically to your working directory as a .tiff and in
 a power-point editable format (.pptx). Notably,
 <code><a href="../reference/Surv_Plots.html">Surv_Plots()</a></code> accepts many more arguments that can influence
