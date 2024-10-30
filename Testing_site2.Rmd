@@ -13,33 +13,83 @@ remotes::install_github("sean4andrew/safuncs")
 use_package() 
 ```
 
-Auto labeller
-```{r}
+Label generator (script)
+```{r, warning = FALSE}
 study_id = "ONDA01180"
 timepoint = "Baseline"
 trt_tank_id = c("Tk.F01-TrtA", "Tk.F02-TrtA", "Tk.F03-TrtB", "Tk.F04-TrtB")
 animal = "Fish"
-animal_numbers = 1:4 #for all arguments, specify as vector and match with trt_tank_id.
+animal_numbers = 1:4
 tissue = c("Spleen", "Liver")
-repli = NA
+replic = NA
+n_col = 6
 
+# Formatting (don't mind me):
+replic = paste("Rep", replic, sep = "")
+
+# Actually important stuff (edit me!)
 combin = levels(interaction(study_id, timepoint, trt_tank_id, animal, animal_numbers, tissue, sep = ", ", lex.order = TRUE))
-mat = matrix(combin, ncol = 6)
 
+# Resolving printout issues (don't mind me)
+mat = matrix(c(combin, rep("", (ceiling(length(combin)/n_col) * n_col) - length(combin))), ncol = n_col)
+
+# Print outputs (don't mind me)
 View(mat)
+paste("Your total label count is:", length(combin))
 write.csv(x = mat, file = paste(study_id, "labels.csv", sep = " "))
 ```
 
-
-Function
+Label generator function demo:
 ```{r}
-v_vec = c("study_id", "timepoint", "trt_tank_id", "animal", "animal_numbers", "tissue", "repli")
-nonNA_vec = v_vec[!is.na(sapply(v_vec, get))]
+Label_Gen(study_id = "ONDA01180",
+          timepoint = "Baseline",
+          trt_tank_id = c("Tk.F01-TrtA", "Tk.F02-TrtA", "Tk.F03-TrtB", "Tk.F04-TrtB"),
+          animal = "Fish",
+          animal_numbers = 1:4,
+          tissue = c("Spleen", "Liver"),
+          repli_num = 1:2,
+          n_col = 6) # number of columns in label paper
 
-if(is.na(timepoint)) {
-  write.csv(x = mat, file = paste(study_id, "labels.csv", sep = " "))
-} else {
-  write.csv(x = mat, file = paste(study_id, timepoint, "labels.csv", sep = " "))
+#Also, don't forget to demo what to do if you don't have information for a column (put "NA")
+```
+
+Label generator function
+```{r}
+Label_Gen = function(study_id,
+                     timepoint,
+                     trt_tank_id,
+                     animal,
+                     animal_numbers,
+                     tissue,
+                     repli_num,
+                     n_col) {
+  
+  # formatting variables
+  if(!is.na(repli_num)[1]){repli_num <<- paste("Rep", repli_num, sep = "")}
+  if(!is.na(animal[1]) & !is.na(animal_numbers[1])){
+    animal <<- levels(interaction(animal, animal_numbers, sep = "-", lex.order = TRUE))
+    animal_numbers <<- NA
+  }
+
+  # remove NA variables from combination
+  v_vec = c("study_id", "timepoint", "trt_tank_id", "animal", "animal_numbers", "tissue", "repli_num")
+  nonNA_vec = v_vec[!is.na(sapply(v_vec, get))]
+  
+  # get combination
+  get_vec = sapply(nonNA_vec, get)
+  combin = levels(interaction(sapply(nonNA_vec, get), sep = ", ", lex.order = TRUE))
+  mat = matrix(c(combin, rep("", (ceiling(length(combin)/n_col) * n_col) - length(combin))), ncol = n_col)
+  
+  # print outputs for double verification purposes
+  View(mat)
+  print(paste("Your total label count is:", length(combin)))
+
+  # save output
+  if(is.na(timepoint)) {
+    write.csv(x = mat, file = paste(study_id, "labels.csv", sep = " "))
+  } else {
+    write.csv(x = mat, file = paste(study_id, timepoint, "labels.csv", sep = " "))
+  }
 }
 ```
 

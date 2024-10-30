@@ -352,7 +352,8 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' ref_haz_route_bshazard = data.frame(summary(ref_haz_route_bshazard)$HazardEstimates)
 #'
 #' ref_haz_route_safuncs = safuncs::Surv_Plots(surv_db = surv_dat_A,
-#'                                             data_out = TRUE)$Hazard_DB
+#'                                             data_out = TRUE,
+#'                                             plot = "haz")$Hazard_DB
 #'
 #' #Simulate! Sampled 10 fish per tank at 45 DPC, but otherwise default conditions.
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
