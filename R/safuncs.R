@@ -480,15 +480,22 @@ Surv_Simul = function(haz_db,
   }
 
   #Get "population" survival dataset by exponentiating the negative cumulative hazard
-  surv_pop = data.frame(Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]), each = length(haz_db$hazard))),
-                        surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum))),
-                        time = rep(haz_db$time, times = length(treatments_hr)),
+  pop_haz_db = data.frame(approx(x = haz_db$time, y = haz_db$hazard, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear"))
+  colnames(pop_haz_db) = c("time", "hazard")
+
+  surv_pop = data.frame(Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]), each = length(pop_haz_db$hazard))),
+                        surv_prob = exp(-as.vector(apply((pop_haz_db$hazard * 0.1) %*% t(treatments_hr), 2, cumsum))),
+                        time = rep(pop_haz_db$time, times = length(treatments_hr)),
                         type = "Population / truth",
                         n_sim = 1,
                         alpha = 1)
 
-  #alternative method to get surv_prob stored here below:
-  #exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum)))
+  #methods to get surv_prob stored here below:
+  #option 1:
+  #surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum)))
+  #option 2:
+  #pop_haz_db = approx(x = haz_db$time, y = haz_db$hazard, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear")
+  #surv_prob = exp(-as.vector(apply((pop_haz_db$hazard * 0.1) %*% t(treatments_hr), 2, cumsum)))
 
   #To the end of creating survival plots
   surv_comb = rbind(surv_samps, surv_pop)
