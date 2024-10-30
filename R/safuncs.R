@@ -457,7 +457,7 @@ Surv_Simul = function(haz_db,
     surv_samps_temp = data.frame(Trt.ID = summary(surv_obj)$strata,
                                  surv_prob = summary(surv_obj)$surv,
                                  time = summary(surv_obj)$time,
-                                 type = paste("Sample (n = ", n_sim, ")", sep = ""),
+                                 type = paste("Sample set (n = ", n_sim, ")", sep = ""),
                                  n_sim = loopnum,
                                  alpha = 1 - (0.0001 ^ (1/n_sim)))
 
@@ -467,7 +467,7 @@ Surv_Simul = function(haz_db,
                                                   time = c(floor(min(haz_db$time)), ceiling(max(haz_db$time))),
                                                   n_sim = loopnum,
                                                   alpha = 1 - (0.0001 ^ (1/n_sim))))
-    surv_samps_ends$type = paste("Sample (n = ", n_sim, ")", sep = "")
+    surv_samps_ends$type = paste("Sample set (n = ", n_sim, ")", sep = "")
 
     surv_samps = rbind(surv_samps, surv_samps_temp, surv_samps_ends)
 
@@ -477,7 +477,7 @@ Surv_Simul = function(haz_db,
                                  surv_prob = summary(surv_obj, time = sampling_specs$TTE)$surv,
                                  time = summary(surv_obj, time = sampling_specs$TTE)$time,
                                  n_sim = loopnum,
-                                 type = as.factor(paste("Sample (n = ", n_sim, ")", sep = "")))
+                                 type = as.factor(paste("Sample set (n = ", n_sim, ")", sep = "")))
       cens_db = rbind(cens_db, cens_db_temp)
     }
   }
@@ -487,35 +487,36 @@ Surv_Simul = function(haz_db,
   colnames(pop_haz_db) = c("time", "hazard")
 
 
-  #For use with old surv_prob method (deprecated)
-  surv_pop_old = data.frame(Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]), each = length(haz_db$hazard))),
-                            cumhaz_prob = as.vector(apply((haz_db$hazard) %*% t(treatments_hr), 2, cumsum)),
-                            time = rep(haz_db$time, times = length(treatments_hr)),
-                            type = "Population / truth",
-                            n_sim = 1,
-                            alpha = 1)
+  #For use with old surv_prob method (revived)
+  surv_pop = data.frame(Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]), each = length(haz_db$hazard))),
+                        cumhaz_prob = as.vector(apply((haz_db$hazard) %*% t(treatments_hr), 2, cumsum)),
+                        time = rep(haz_db$time, times = length(treatments_hr)),
+                        type = "Population / truth",
+                        n_sim = 1,
+                        alpha = 1,
+                        surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum))))
   #methods to get surv_prob stored here below:
   #option 1 (old):
   #surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum)))
 
-  #New method
-  surv_pop = data.frame()
-  for(pop_trt in levels(factor(surv_pop_old$Trt.ID))) {
-    pop_trt_cumhaz = surv_pop_old$cumhaz_prob[surv_pop_old$Trt.ID == pop_trt]
-    surv_prob_db = approx(x = haz_db$time, y = pop_trt_cumhaz, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear")
-
-    surv_pop_temp = data.frame(Trt.ID = pop_trt,
-                               time = surv_prob_db$x,
-                               surv_prob = exp(-surv_prob_db$y),
-                               type = "Population / truth",
-                               n_sim = 1,
-                               alpha = 1)
-    surv_pop = rbind(surv_pop, surv_pop_temp)
-  }
+  #New method (deprecated)
+  # surv_pop = data.frame()
+  # for(pop_trt in levels(factor(surv_pop_old$Trt.ID))) {
+  #   pop_trt_cumhaz = surv_pop_old$cumhaz_prob[surv_pop_old$Trt.ID == pop_trt]
+  #   surv_prob_db = approx(x = haz_db$time, y = pop_trt_cumhaz, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear")
+  #
+  #   surv_pop_temp = data.frame(Trt.ID = pop_trt,
+  #                              time = surv_prob_db$x,
+  #                              surv_prob = exp(-surv_prob_db$y),
+  #                              type = "Population / truth",
+  #                              n_sim = 1,
+  #                              alpha = 1)
+  #   surv_pop = rbind(surv_pop, surv_pop_temp)
+  # }
 
   #To the end of creating survival plots
   surv_comb = rbind(surv_samps, surv_pop)
-  surv_comb$type = factor(surv_comb$type, levels = c(paste("Sample (n = ", n_sim, ")", sep = ""), "Population / truth"))
+  surv_comb$type = factor(surv_comb$type, levels = c(paste("Sample set (n = ", n_sim, ")", sep = ""), "Population / truth"))
   surv_comb$Trt.ID = factor(surv_comb$Trt.ID, levels = rep(c("Control", LETTERS[2:length(treatments_hr)])))
 
   #Get end_sr for population plots and sample plots
