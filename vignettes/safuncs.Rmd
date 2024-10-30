@@ -83,7 +83,8 @@ Once the complete survival data has been obtained, plots can be easily generated
 ```{r, out.width = '100%'}
 data(surv_db_ex) # load example complete survival data
 
-Surv_Plots(surv_db_ex) # plot the survival curve and hazard curve
+Surv_Plots(surv_db_ex, # plot the survival curve and hazard curve
+           dailybin = FALSE) # recommended argument for good (large) sample size datasets
 ```
 The plots save automatically to your working directory as a .tiff and in a power-point editable format (.pptx). Notably, `Surv_Plots()` accepts many more arguments that can influence the hazard plot in particular and needs tailoring for your specific experiment. For more details on these arguments, please see the functions' [documentation page](https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html).
 
