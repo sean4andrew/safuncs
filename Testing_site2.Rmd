@@ -15,7 +15,7 @@ use_package()
 
 
 ```{r}
-a = Surv_Gen(mort_db = mort_db_ex,
+Surv_Gen(mort_db = mort_db_ex,
          last_tte = 54,
          starting_fish_count = 100)
 ```
