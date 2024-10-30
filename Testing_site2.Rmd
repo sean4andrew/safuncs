@@ -99,12 +99,12 @@ Label_Gen = function(study_id,
 Test
 ```{r}
 haz_db = haz_db_ex
-fish_num_per_tank = 110
+fish_num_per_tank = 100
 tank_num_per_trt = 4
 treatments_hr = c(1, 0.8, 0.5)
 logHR_sd_intertank = 0
-sampling_specs = data.frame(Amount = 10, TTE = 40)
-n_sim = 3
+sampling_specs = NULL
+n_sim = 10
 plot_out = TRUE
 pop_out = TRUE
 plot_name = "Surv_Simul-Plot-Output"
@@ -201,13 +201,15 @@ theme = "ggplot2"
 
     surv_samps = rbind(surv_samps, surv_samps_temp, surv_samps_ends)
 
-    #Get survival probability at mid censoring
-    cens_db_temp  = data.frame(Trt.ID = summary(surv_obj, time = sampling_specs$TTE)$strata,
-                               surv_prob = summary(surv_obj, time = sampling_specs$TTE)$surv,
-                               time = summary(surv_obj, time = sampling_specs$TTE)$time,
-                               n_sim = loopnum,
-                               type = as.factor(paste("Sample (n = ", n_sim, ")", sep = "")))
-    cens_db = rbind(cens_db, cens_db_temp)
+    if(!is.null(sampling_specs)){
+      #Get survival probability at mid censoring
+      cens_db_temp  = data.frame(Trt.ID = summary(surv_obj, time = sampling_specs$TTE)$strata,
+                                 surv_prob = summary(surv_obj, time = sampling_specs$TTE)$surv,
+                                 time = summary(surv_obj, time = sampling_specs$TTE)$time,
+                                 n_sim = loopnum,
+                                 type = as.factor(paste("Sample (n = ", n_sim, ")", sep = "")))
+      cens_db = rbind(cens_db, cens_db_temp)
+    }
   }
 
   #Get "population" survival dataset by exponentiating the negative cumulative hazard
@@ -303,9 +305,11 @@ theme = "ggplot2"
     output = list(simul_surv_db = Surv_simul_outDB)
     if(plot_out == TRUE) {output$surv_plots <- surv_plots}
     if(pop_out == TRUE) {output$population_surv_db <- surv_pop}
-    return(output)
+    #return(output)
   }
 ```
+
+
 Surv_Gen()
 ```{r}
 mort_db = mort_db_ex

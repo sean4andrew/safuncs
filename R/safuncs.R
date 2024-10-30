@@ -470,13 +470,15 @@ Surv_Simul = function(haz_db,
 
     surv_samps = rbind(surv_samps, surv_samps_temp, surv_samps_ends)
 
-    #Get survival probability at mid censoring
-    cens_db_temp  = data.frame(Trt.ID = summary(surv_obj, time = sampling_specs$TTE)$strata,
-                               surv_prob = summary(surv_obj, time = sampling_specs$TTE)$surv,
-                               time = summary(surv_obj, time = sampling_specs$TTE)$time,
-                               n_sim = loopnum,
-                               type = as.factor(paste("Sample (n = ", n_sim, ")", sep = "")))
-    cens_db = rbind(cens_db, cens_db_temp)
+    if(!is.null(sampling_specs)){
+      #Get survival probability at mid censoring
+      cens_db_temp  = data.frame(Trt.ID = summary(surv_obj, time = sampling_specs$TTE)$strata,
+                                 surv_prob = summary(surv_obj, time = sampling_specs$TTE)$surv,
+                                 time = summary(surv_obj, time = sampling_specs$TTE)$time,
+                                 n_sim = loopnum,
+                                 type = as.factor(paste("Sample (n = ", n_sim, ")", sep = "")))
+      cens_db = rbind(cens_db, cens_db_temp)
+    }
   }
 
   #Get "population" survival dataset by exponentiating the negative cumulative hazard
