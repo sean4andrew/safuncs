@@ -13,7 +13,7 @@ Surv_Plots(
   lambda = NULL,
   phi = NULL,
   dailybin = FALSE,
-  plot = "surv",
+  plot = "both",
   colours = NULL,
   theme = "ggplot",
   trt_order = NULL,
@@ -38,7 +38,7 @@ Surv_Plots(
 
 \item{dailybin}{Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE at large sample sizes with tank-replication. Defaults to FALSE.}
 
-\item{plot}{Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "surv".}
+\item{plot}{Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".}
 
 \item{colours}{Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.}
 
