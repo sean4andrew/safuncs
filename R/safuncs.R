@@ -485,19 +485,32 @@ Surv_Simul = function(haz_db,
   pop_haz_db = data.frame(approx(x = haz_db$time, y = haz_db$hazard, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear"))
   colnames(pop_haz_db) = c("time", "hazard")
 
-  surv_pop = data.frame(Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]), each = length(pop_haz_db$hazard))),
-                        surv_prob = exp(-as.vector(apply((pop_haz_db$hazard * 0.1) %*% t(treatments_hr), 2, cumsum))),
-                        time = rep(pop_haz_db$time, times = length(treatments_hr)),
-                        type = "Population / truth",
-                        n_sim = 1,
-                        alpha = 1)
 
+  #For use with old surv_prob method (deprecated)
+  surv_pop_old = data.frame(Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]), each = length(haz_db$hazard))),
+                            cumhaz_prob = as.vector(apply((haz_db$hazard) %*% t(treatments_hr), 2, cumsum)),
+                            time = rep(haz_db$time, times = length(treatments_hr)),
+                            type = "Population / truth",
+                            n_sim = 1,
+                            alpha = 1)
   #methods to get surv_prob stored here below:
-  #option 1:
+  #option 1 (old):
   #surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum)))
-  #option 2:
-  #pop_haz_db = approx(x = haz_db$time, y = haz_db$hazard, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear")
-  #surv_prob = exp(-as.vector(apply((pop_haz_db$hazard * 0.1) %*% t(treatments_hr), 2, cumsum)))
+
+  #New method
+  surv_pop = data.frame()
+  for(pop_trt in levels(factor(surv_pop_old$Trt.ID))) {
+    pop_trt_cumhaz = surv_pop_old$cumhaz_prob[surv_pop_old$Trt.ID == pop_trt]
+    surv_prob_db = approx(x = haz_db$time, y = pop_trt_cumhaz, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear")
+
+    surv_pop_temp = data.frame(Trt.ID = pop_trt,
+                               time = surv_prob_db$x,
+                               surv_prob = exp(-surv_prob_db$y),
+                               type = "Population / truth",
+                               n_sim = 1,
+                               alpha = 1)
+    surv_pop = rbind(surv_pop, surv_pop_temp)
+  }
 
   #To the end of creating survival plots
   surv_comb = rbind(surv_samps, surv_pop)
@@ -907,7 +920,7 @@ Surv_Gen = function(mort_db,
 #' @param xlab A string specifying the plot x-axis label.
 #' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
 #' @param phi Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate phi; NULL specification is recommended for large sample size situations. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (QCATC997; phi ~ 0.8-1.4) where there are large sample sizes with tank-replication. The phi value of 1 indicates the set of counts (deaths) over time have a Poisson distribution, following the different hazard rates along the curve and are not overdispersed (phi > 1).
-#' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE at large sample sizes with tank-replication. Defaults to FALSE.
+#' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE for large sample sizes (often with tank replication), although at large sample sizes either TRUE or FALSE produces similar results usually. Defaults to TRUE.
 #' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
 #' @param colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
 #' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
@@ -946,7 +959,7 @@ Surv_Plots = function(surv_db,
                       xlab = "Days Post Challenge",
                       lambda = NULL,
                       phi = NULL,
-                      dailybin = FALSE,
+                      dailybin = TRUE,
                       plot = "both",
                       colours = NULL,
                       theme = "ggplot",
