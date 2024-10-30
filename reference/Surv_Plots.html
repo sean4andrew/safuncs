@@ -46,7 +46,7 @@
 <span>  xlab <span class="op">=</span> <span class="st">"Days Post Challenge"</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  phi <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  dailybin <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  dailybin <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  plot <span class="op">=</span> <span class="st">"both"</span>,</span>
 <span>  colours <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"ggplot"</span>,</span>
@@ -89,7 +89,7 @@
 
 
 <dt id="arg-dailybin">dailybin<a class="anchor" aria-label="anchor" href="#arg-dailybin"></a></dt>
-<dd><p>Whether to set time bins at daily (1 TTE) intervals. Refer to the <code>bshazard()</code> documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE at large sample sizes with tank-replication. Defaults to FALSE.</p></dd>
+<dd><p>Whether to set time bins at daily (1 TTE) intervals. Refer to the <code>bshazard()</code> documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE for large sample sizes (often with tank replication), although at large sample sizes either TRUE or FALSE produces similar results usually. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-plot">plot<a class="anchor" aria-label="anchor" href="#arg-plot"></a></dt>
