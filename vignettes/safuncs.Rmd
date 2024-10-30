@@ -56,6 +56,14 @@ tail(Surv_Gen(mort_db = mort_db_ex,
               last_tte = 54), n = 5)
 ```
 
+You also get printout messages to verify the correct data is generated:
+```{r, echo = FALSE}
+test_db = Surv_Gen(mort_db = mort_db_ex,
+                   starting_fish_count = 100, # per tank
+                   last_tte = 54)
+```
+
+
 You can also specify tank-specific starting fish numbers using a dataframe as input to `starting_fish_count`!
 ```{r, eval = FALSE}
 # reduce example data to simplify the demonstration
