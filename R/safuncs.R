@@ -893,6 +893,10 @@ Surv_Gen = function(mort_db,
     write.csv(prism_db, paste("Surv_Gen Prism - last TTE ", last_tte, ".csv", sep = ""))
   }
 
+  print(paste("Your total number of tanks is:", length(levels(factor(DB_Mort_Gencomb$Tank.ID)))))
+  print(paste("Your total number of treatment groups is:", length(levels(factor(DB_Mort_Gencomb$Trt.ID)))))
+  print(paste("Your total number of fish in the output data is:", nrow(DB_Mort_Gencomb)))
+  print("Are these numbers correct?")
   return(DB_Mort_Gencomb)
 }
 
@@ -1126,7 +1130,7 @@ GG_Colour_Hue = function(n) {
 
 #' Example Hazard Data
 #'
-#' @description A reference hazard dataframe created using `Surv_Plots(data_out = TRUE)$Hazard_DB` which uses `bshazard::bshazard()`. Contains hazard rates over time.
+#' @description A reference hazard dataframe created using \code{Surv_Plots(data_out = TRUE)$Hazard_DB} which uses \code{bshazard::bshazard()}. Contains hazard rates over time.
 #' @usage
 #' data(haz_db_ex)
 #' view(haz_db_ex)
