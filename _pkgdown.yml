@@ -16,6 +16,7 @@ reference:
   contents:
   - theme_Publication
   - GG_Colour_Hue
+  - Label_Gen
 - title: "Example Datasets"
   contents:
   - ends_with("_db_ex")

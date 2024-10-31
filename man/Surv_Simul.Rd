@@ -105,5 +105,5 @@ Surv_Simul(haz_db = ref_haz_route_safuncs,
            n_sim = 4)$surv_plots
 }
 \seealso{
-\href{https://sean4andrew.github.io/safuncs/reference/Surv_Simul.html}{Link} for executed examples which includes any figure outputs.
+\href{https://sean4andrew.github.io/safuncs/reference/Surv_Simul.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 }

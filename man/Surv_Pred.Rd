@@ -42,5 +42,5 @@ P
 #Placeholder
 }
 \seealso{
-\href{https://sean4andrew.github.io/safuncs/reference/Surv_Pred.html}{Link} for executed examples which includes any figure outputs.
+\href{https://sean4andrew.github.io/safuncs/reference/Surv_Pred.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 }

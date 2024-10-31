@@ -26,5 +26,5 @@ ggplot(data = iris, aes(x = Species, colour = Species, y = Petal.Length)) +
    theme_Publication()
 }
 \seealso{
-\href{file:///C:/Users/sean4/Documents/GitHub/safuncs/docs/reference/theme_Publication.html}{Link} for executed examples which includes any figure outputs.
+\href{file:///C:/Users/sean4/Documents/GitHub/safuncs/docs/reference/theme_Publication.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 }

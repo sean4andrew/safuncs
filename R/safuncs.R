@@ -3,15 +3,16 @@
 # Available functions with documentation:
 # 1. Con_Simul() -- simulates contingency tables based on the multinomial distribution.
 # 1b. Con_Simul_PR() -- calculates positive rates for statistical tests on contingency tables.
+# 3. Simul_Surv() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
+# 4. theme_Publication() -- ggplot theme for generating publication-ready plots.
 # 6. Surv_Gen() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
 # 7. Surv_Plots() -- generate Kaplan-Meier survival curve and hazard curve from survival data.
 # 8. GG_Color_Hue() -- returns the default colour codes assigned by ggplot to a given number of categorical groups (n)
 
 # Available functions without documentation:
 # 2. Simul_Con_MULT.FISH.ORD() -- simulates ordinal-distributed data across treatments and lesions with inter-fish variation in the PO.
-# 3. Simul_Surv() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
-# 4. theme_Publication() -- ggplot theme for generating publication-ready plots.
 # 5. Surv_Pred() -- predict future survival rate(s) for ongoing experiment based on a reference hazard function from older data.
+# 9. Label_Gen() -- generate combination of strings to use as labels.
 
 ########################################################## Function 1 - Con_Simul() ########################################################
 
@@ -30,7 +31,7 @@
 #' @param margin_fixed_Trt. Whether margins are fixed per treatment group (i.e. fixed number of fish per treatment). Default = FALSE. See \bold{Details} for further information on marginals.
 #' @param verbose Whether to print the parameters and probability matrix used. Default = TRUE.
 #'
-#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Con_Simul.html}{Link} for executed examples which includes any figure outputs.
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Con_Simul.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 #'
 #' @return Returns a list containing:\tabular{lll}{
 #'  \code{sim_tab} \tab \tab The simulated contingency table containing counts across different treatment groups (rows) and lesion categories (columns) \cr
@@ -101,7 +102,7 @@ Con_Simul = function(probs = "equal",
 #' @param n_sim Number of contingency tables simulated for each positive rate calculation. Defaults to 1000.
 #' @param FPR Whether to calculate false positive rate in addition to power. Defaults to TRUE.
 #'
-#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Con_Simul_PR.html}{Link} for executed examples which includes any figure outputs.
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Con_Simul_PR.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 #'
 #' @return Returns a list containing:\tabular{lll}{
 #'  \code{pos_rate} \tab \tab A dataframe containing positive rates of various tests at specified sample sizes \cr
@@ -329,7 +330,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @import magrittr
 #' @import dplyr
 #'
-#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Simul.html}{Link} for executed examples which includes any figure outputs.
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Simul.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 #'
 #' @export
 #'
@@ -607,7 +608,7 @@ Surv_Simul = function(haz_db,
 #' @import dplyr
 #' @import ggthemes
 #'
-#' @seealso \href{file:///C:/Users/sean4/Documents/GitHub/safuncs/docs/reference/theme_Publication.html}{Link} for executed examples which includes any figure outputs.
+#' @seealso \href{file:///C:/Users/sean4/Documents/GitHub/safuncs/docs/reference/theme_Publication.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 #'
 #' @export
 #'
@@ -670,7 +671,7 @@ theme_Publication = function(base_size = 14) {
 #' @import dplyr
 #' @import ggplot2
 #'
-#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Pred.html}{Link} for executed examples which includes any figure outputs.
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Pred.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 #'
 #' @export
 #'
@@ -810,7 +811,7 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #' @import magrittr
 #' @import devtools
 #'
-#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Gen.html}{Link} for executed examples which includes any figure outputs.
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Gen.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 #'
 #' @export
 #'
@@ -933,7 +934,7 @@ Surv_Gen = function(mort_db,
 #' @param data_out Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.
 #' @param plot_dim Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.
 #'
-#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed examples which includes any figure outputs.
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 #'
 #' @return With argument {\code{plot = "both"}}, returns the Kaplan-Meier Survival Curve and the Hazard Curve. Output can be trimmed by setting \code{plot = "haz"} or \code{plot = "surv"}.
 #'
@@ -1078,7 +1079,7 @@ Surv_Plots = function(surv_db,
 #' @return Returns a vector representing the default colour codes assigned to each group by ggplot.
 #' @export
 #'
-#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/GG_Colour_Hue.html}{Link} for executed examples which includes any figure outputs.
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/GG_Colour_Hue.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 #'
 #' @examples
 #' # Get colour codes used for 6 categorical groups
@@ -1087,6 +1088,79 @@ Surv_Plots = function(surv_db,
 GG_Colour_Hue = function(n) {
   hues = seq(15, 375, length = n + 1)
   hcl(h = hues, l = 65, c = 100)[1:n]
+}
+
+######################################################## Function 9 - Label_Gen() #######################################################
+
+#' @title Generate Text for Labels
+#'
+#' @description This function combines texts (strings) or numbers specified in the \bold{Arguments} of the function. Function is originally made to automate label generation for lab use.
+#'
+#' @details Computes all possible combination of variables provided in \bold{Arguments}. Output combinations are sorted in an ascending alphanumeric order.
+#'
+#' @param study_id A single text (or vector). Must not be NA.
+#' @param timepoint A single text (or vector) representing the sampling timepoint(s). Set to \code{= NA} if not applicable.
+#' @param trt_tank_id A single text (or vector) representing the treatment and tank ID combinations. Set to \code{= NA} if not applicable.
+#' @param animal A single text (or vector) representing the group of animal(s). Set to \code{= NA} if not applicable.
+#' @param animal_numbers A numeric (or vector) representing the number IDs for the animals. Set to \code{= NA} if not applicable.
+#' @param tissue A single text (or vector) representing the tissue type(s). Set to \code{= NA} if not applicable.
+#' @param repli_num A numeric (or vector) representing the replicate number(s). Set to \code{= NA} if not applicable.
+#' @param n_col A numeric corresponding to the number of columns in the label paper (and in the output matrix). Defaults to 6.
+#'
+#' @return Returns a matrix of text representing the combinations. Matrix automatically saved in a .csv in your working directory.
+#' @export
+#'
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for executed \bold{Examples} and the example outputs.
+#'
+#' @examples
+#' # set working directory
+#' setwd("C:/Users/sean4/Downloads")
+#' # make sure to use "/" instead of "\"
+#'
+#' # apply Label_Gen()!
+#' Label_Gen(study_id = "ONDA01180",
+#'           timepoint = "Baseline",
+#'           trt_tank_id = c("Tk.F01-TrtA", "Tk.F02-TrtA", "Tk.F03-TrtB", "Tk.F04-TrtB"),
+#'           animal = "Fish",
+#'           animal_numbers = 1:4,
+#'           tissue = NA,
+#'           repli_num = 1:2,
+#'           n_col = 6)
+Label_Gen = function(study_id,
+                     timepoint,
+                     trt_tank_id,
+                     animal,
+                     animal_numbers,
+                     tissue,
+                     repli_num,
+                     n_col = 6) {
+
+  # formatting variables
+  if(!is.na(repli_num)[1]){repli_num <<- paste("Rep", repli_num, sep = "")}
+  if(!is.na(animal[1]) & !is.na(animal_numbers[1])){
+    animal <<- levels(interaction(animal, animal_numbers, sep = "-", lex.order = TRUE))
+    animal_numbers <<- NA
+  }
+
+  # remove NA variables from combination
+  v_vec = c("study_id", "timepoint", "trt_tank_id", "animal", "animal_numbers", "tissue", "repli_num")
+  nonNA_vec = v_vec[!is.na(sapply(v_vec, get))]
+
+  # get combination
+  get_vec = sapply(nonNA_vec, get)
+  combin = levels(interaction(sapply(nonNA_vec, get), sep = ", ", lex.order = TRUE))
+  mat = matrix(c(combin, rep("", (ceiling(length(combin)/n_col) * n_col) - length(combin))), ncol = n_col)
+
+  # print outputs for double verification purposes
+  print(paste("Your total label count is:", length(combin)))
+
+  # save output
+  if(is.na(timepoint)) {
+    write.csv(x = mat, file = paste(study_id, "labels.csv", sep = " "))
+  } else {
+    write.csv(x = mat, file = paste(study_id, timepoint, "labels.csv", sep = " "))
+  }
+  return(mat)
 }
 
 ##################################################### Data 1 - mort_db_ex #######################################################

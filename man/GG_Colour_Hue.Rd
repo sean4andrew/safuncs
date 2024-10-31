@@ -21,5 +21,5 @@ GG_Colour_Hue(6)
 
 }
 \seealso{
-\href{https://sean4andrew.github.io/safuncs/reference/GG_Colour_Hue.html}{Link} for executed examples which includes any figure outputs.
+\href{https://sean4andrew.github.io/safuncs/reference/GG_Colour_Hue.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 }

@@ -63,5 +63,5 @@ Surv_Data_Output = Surv_Gen(mort_db = mort_db_ex,
 tail(Surv_Data_Output, n = 5)
 }
 \seealso{
-\href{https://sean4andrew.github.io/safuncs/reference/Surv_Gen.html}{Link} for executed examples which includes any figure outputs.
+\href{https://sean4andrew.github.io/safuncs/reference/Surv_Gen.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 }
