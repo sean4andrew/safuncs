@@ -1110,12 +1110,11 @@ GG_Colour_Hue = function(n) {
 #' @return Returns a matrix of text representing the combinations. Matrix automatically saved in a .csv in your working directory.
 #' @export
 #'
-#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for executed \bold{Examples} and the example outputs.
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for web documentation. To view an example output click "Run examples" under \bold{Examples}. A note, the online web will show that Label_Gen() produces an error output; this is untrue and is suspected to be caused by one quirky code I am using.
 #'
 #' @examples
 #' # set working directory
-#' setwd("C:/Users/sean4/Downloads")
-#' # make sure to use "/" instead of "\"
+#' setwd("C:/Users/sean4/Downloads") # make sure to use "/" instead of "\" (which is the default you might get from Windows)
 #'
 #' # apply Label_Gen()!
 #' Label_Gen(study_id = "ONDA01180",
