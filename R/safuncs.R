@@ -1115,7 +1115,7 @@ GG_Colour_Hue = function(n) {
 #' @examples
 #' # set working directory
 #' setwd("C:/Users/sean4/Downloads")
-#' # make sure to use "/" instead of "\" (which is the default you might get from Windows)
+#' # make sure to use "/" instead of "\" (which is what you might get from Windows)
 #'
 #' # apply Label_Gen()!
 #' Label_Gen(study_id = "ONDA01180",
