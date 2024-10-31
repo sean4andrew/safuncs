@@ -56,5 +56,5 @@ Label_Gen(study_id = "ONDA01180",
           n_col = 6)
 }
 \seealso{
-\href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for web documentation. To view an example output click "Run examples" under \bold{Examples}. A note, the online web will show that Label_Gen() produces an error output; this is untrue and is suspected to be caused by one quirky code I am using.
+\href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for web documentation. To view an example output in the R help pane, click "Run examples" under \bold{Examples}. A note, the online web will show that \code{Label_Gen()} produces an error output; this is untrue and is suspected to be caused by one quirky code I am using.
 }
