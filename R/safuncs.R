@@ -1094,7 +1094,7 @@ GG_Colour_Hue = function(n) {
 
 #' @title Generate Text for Labels
 #'
-#' @description This function combines texts (strings) or numbers specified in the \bold{Arguments} of the function. Function is originally made to automate label generation for lab use.
+#' @description This function combines texts (strings) or numbers specified in the \bold{Arguments} of the function. This function is originally made to automate label generation for lab use.
 #'
 #' @details Computes all possible combination of variables provided in \bold{Arguments}. Output combinations are sorted in an ascending alphanumeric order.
 #'
