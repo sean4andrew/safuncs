@@ -1113,11 +1113,6 @@ GG_Colour_Hue = function(n) {
 #' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for web documentation. To view an example output in the R help pane, click "Run examples" under \bold{Examples}. A note, the online web will show that \code{Label_Gen()} produces an error output; this does not happen in R and is suspected to be caused by the html interaction with one quirky code I am using.
 #'
 #' @examples
-#' # set working directory
-#' setwd("C:/Users/sean4/Downloads")
-#' # make sure to use "/" instead of "\" (which is what you might get from Windows)
-#'
-#' # apply Label_Gen()!
 #' Label_Gen(study_id = "ONDA01180",
 #'           timepoint = "Baseline",
 #'           trt_tank_id = c("Tk.F01-TrtA", "Tk.F02-TrtA", "Tk.F03-TrtB", "Tk.F04-TrtB"),

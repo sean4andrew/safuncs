@@ -42,11 +42,6 @@ This function combines texts (strings) or numbers specified in the \bold{Argumen
 Computes all possible combination of variables provided in \bold{Arguments}. Output combinations are sorted in an ascending alphanumeric order.
 }
 \examples{
-# set working directory
-setwd("C:/Users/sean4/Downloads")
-# make sure to use "/" instead of "\" (which is what you might get from Windows)
-
-# apply Label_Gen()!
 Label_Gen(study_id = "ONDA01180",
           timepoint = "Baseline",
           trt_tank_id = c("Tk.F01-TrtA", "Tk.F02-TrtA", "Tk.F03-TrtB", "Tk.F04-TrtB"),
