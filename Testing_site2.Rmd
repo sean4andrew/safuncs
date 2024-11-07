@@ -55,8 +55,8 @@ Label_Gen(study_id = "ONDA01180",
           animal = "Fish",
           animal_numbers = 1:4,
           tissue = c("Spleen", "Liver"),
-          repli_num = 1:2,
-          n_col = 6) # number of columns in label paper
+          repli_num = NA,
+          n_col = 4) # number of columns in label paper
 
 #Also, don't forget to demo what to do if you don't have information for a column (put "NA")
 ```

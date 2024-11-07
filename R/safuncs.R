@@ -914,7 +914,7 @@ Surv_Gen = function(mort_db,
 #'
 #' Each row should represent one fish. For an example dataframe, execute \code{data(surv_db_ex)} and view.
 #'
-#' For details on the statistical methodology used by \code{bshazard()}, refer to: \href{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}{here}.
+#' For details on the statistical methodology used by \code{bshazard::bshazard()}, refer to: \href{https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function}{here}.
 #'
 #' General concept: h(t) the hazard function is considered in an count model with the number of deaths as the response variable. I.e, death_count(t) = h(t) * P(t) where P(t) is the number alive as a function of time and h(t) is modeled over time using basis splines. The basis spline curvature\bold{s} is assumed to have a normal distribution with mean 0 (a random effect). Based on this assumption, the author found that the variance of curvatures (i.e. smoothness) is equal to the over-dispersion (phi) of the death counts related (divided) by some smoothness parameter (lambda). Phi and lambda can be estimated from the data or specified by the user. Specification can be helpful in low sample size situations where overdispersion (phi) estimates have been found to be unreliable and clearly wrong (based on my understanding of realistic estimates and what was estimated in past data with adequate, large sample sizes).
 #' @md
@@ -924,7 +924,7 @@ Surv_Gen = function(mort_db,
 #' @param xlim A vector specifying the plots x-axis lower and upper limits, respectively.
 #' @param ylim A vector specifying the Survival Plot y-axis lower and upper limits, respectively.
 #' @param xlab A string specifying the plot x-axis label.
-#' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
+#' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard::bshazard()} uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
 #' @param phi Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate phi; NULL specification is recommended for large sample size situations. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (QCATC997; phi ~ 0.8-1.4) where there are large sample sizes with tank-replication. The phi value of 1 indicates the set of counts (deaths) over time have a Poisson distribution, following the different hazard rates along the curve and are not overdispersed (phi > 1).
 #' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE for large sample sizes (often with tank replication), although at large sample sizes either TRUE or FALSE produces similar results usually. Defaults to TRUE.
 #' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
@@ -1092,25 +1092,26 @@ GG_Colour_Hue = function(n) {
 
 ######################################################## Function 9 - Label_Gen() #######################################################
 
-#' @title Generate Text for Labels
+#' @title Generate Texts for Labels
 #'
-#' @description This function combines texts (strings) or numbers specified in the \bold{Arguments} of the function. This function is originally made to automate label generation for lab use.
+#' @description Combine strings (texts) or numbers specified in the \bold{Arguments} of the function. Originally, this function is made to automate the generation of labels for lab use.
 #'
-#' @details Computes all possible combination of variables provided in \bold{Arguments}. Output combinations are sorted in an ascending alphanumeric order.
+#' @details Computes all possible combinations of variables provided in \bold{Arguments}. Output combinations are sorted in an ascending alphanumeric order.
 #'
-#' @param study_id A single text (or vector). Must not be NA.
-#' @param timepoint A single text (or vector) representing the sampling timepoint(s). Set to \code{= NA} if not applicable.
-#' @param trt_tank_id A single text (or vector) representing the treatment and tank ID combinations. Set to \code{= NA} if not applicable.
-#' @param animal A single text (or vector) representing the group of animal(s). Set to \code{= NA} if not applicable.
-#' @param animal_numbers A numeric (or vector) representing the number IDs for the animals. Set to \code{= NA} if not applicable.
-#' @param tissue A single text (or vector) representing the tissue type(s). Set to \code{= NA} if not applicable.
-#' @param repli_num A numeric (or vector) representing the replicate number(s). Set to \code{= NA} if not applicable.
+#' @param study_id A string (or vector of). Must not be NA.
+#' @param timepoint A string (or vector of) representing the sampling timepoint(s). Set to \code{= NA} if not applicable.
+#' @param trt_tank_id A string (or vector of) representing the treatment and tank ID combinations. Set to \code{= NA} if not applicable.
+#' @param animal A string (or vector of) representing the group of animal(s). Set to \code{= NA} if not applicable.
+#' @param animal_numbers A numeric (or vector of) representing the number IDs for the animals. Set to \code{= NA} if not applicable.
+#' @param tissue A string (or vector of) representing the tissue type(s). Set to \code{= NA} if not applicable.
+#' @param solvent A string (or vector of) representing the tissue type(s). Set to \code{= NA} if not applicable.
+#' @param repli_num A numeric (or vector of) representing the replicate number(s). Set to \code{= NA} if not applicable.
 #' @param n_col A numeric corresponding to the number of columns in the label paper (and in the output matrix). Defaults to 6.
 #'
-#' @return Returns a matrix of text representing the combinations. Matrix automatically saved in a .csv in your working directory.
+#' @return Returns a matrix of strings representing the possible combinations. \code{Label_Gen()} automatically saves the output matrix in a .csv in your working directory.
 #' @export
 #'
-#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for web documentation. To view an example output in the R help pane, click "Run examples" under \bold{Examples}. A note, the online web will show that \code{Label_Gen()} produces an error output; this does not happen in R and is suspected to be caused by the html interaction with one quirky code I am using.
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for web documentation. Note: the online web will show that running \code{Label_Gen()} produces an error output; this does not happen in R and is suspected to be caused by a faulty interaction between \code{pkgdown::build_site()} and a quirky code I used in \code{Label_Gen()}. To see a working example, click "Run Examples" in the R help page for the function.
 #'
 #' @examples
 #' Label_Gen(study_id = "ONDA01180",
@@ -1119,6 +1120,7 @@ GG_Colour_Hue = function(n) {
 #'           animal = "Fish",
 #'           animal_numbers = 1:4,
 #'           tissue = NA,
+#'           solvent = NA,
 #'           repli_num = 1:2,
 #'           n_col = 6)
 Label_Gen = function(study_id,
@@ -1127,6 +1129,7 @@ Label_Gen = function(study_id,
                      animal,
                      animal_numbers,
                      tissue,
+                     solvent,
                      repli_num,
                      n_col = 6) {
 
@@ -1138,7 +1141,7 @@ Label_Gen = function(study_id,
   }
 
   # remove NA variables from combination
-  v_vec = c("study_id", "timepoint", "trt_tank_id", "animal", "animal_numbers", "tissue", "repli_num")
+  v_vec = c("study_id", "timepoint", "trt_tank_id", "animal", "animal_numbers", "tissue", "solvent", "repli_num")
   nonNA_vec = v_vec[!is.na(sapply(v_vec, get))]
 
   # get combination

@@ -2,7 +2,7 @@
 % Please edit documentation in R/safuncs.R
 \name{Label_Gen}
 \alias{Label_Gen}
-\title{Generate Text for Labels}
+\title{Generate Texts for Labels}
 \usage{
 Label_Gen(
   study_id,
@@ -11,35 +11,38 @@ Label_Gen(
   animal,
   animal_numbers,
   tissue,
+  solvent,
   repli_num,
   n_col = 6
 )
 }
 \arguments{
-\item{study_id}{A single text (or vector). Must not be NA.}
+\item{study_id}{A string (or vector of). Must not be NA.}
 
-\item{timepoint}{A single text (or vector) representing the sampling timepoint(s). Set to \code{= NA} if not applicable.}
+\item{timepoint}{A string (or vector of) representing the sampling timepoint(s). Set to \code{= NA} if not applicable.}
 
-\item{trt_tank_id}{A single text (or vector) representing the treatment and tank ID combinations. Set to \code{= NA} if not applicable.}
+\item{trt_tank_id}{A string (or vector of) representing the treatment and tank ID combinations. Set to \code{= NA} if not applicable.}
 
-\item{animal}{A single text (or vector) representing the group of animal(s). Set to \code{= NA} if not applicable.}
+\item{animal}{A string (or vector of) representing the group of animal(s). Set to \code{= NA} if not applicable.}
 
-\item{animal_numbers}{A numeric (or vector) representing the number IDs for the animals. Set to \code{= NA} if not applicable.}
+\item{animal_numbers}{A numeric (or vector of) representing the number IDs for the animals. Set to \code{= NA} if not applicable.}
 
-\item{tissue}{A single text (or vector) representing the tissue type(s). Set to \code{= NA} if not applicable.}
+\item{tissue}{A string (or vector of) representing the tissue type(s). Set to \code{= NA} if not applicable.}
 
-\item{repli_num}{A numeric (or vector) representing the replicate number(s). Set to \code{= NA} if not applicable.}
+\item{solvent}{A string (or vector of) representing the tissue type(s). Set to \code{= NA} if not applicable.}
+
+\item{repli_num}{A numeric (or vector of) representing the replicate number(s). Set to \code{= NA} if not applicable.}
 
 \item{n_col}{A numeric corresponding to the number of columns in the label paper (and in the output matrix). Defaults to 6.}
 }
 \value{
-Returns a matrix of text representing the combinations. Matrix automatically saved in a .csv in your working directory.
+Returns a matrix of strings representing the possible combinations. \code{Label_Gen()} automatically saves the output matrix in a .csv in your working directory.
 }
 \description{
-This function combines texts (strings) or numbers specified in the \bold{Arguments} of the function. This function is originally made to automate label generation for lab use.
+Combine strings (texts) or numbers specified in the \bold{Arguments} of the function. Originally, this function is made to automate the generation of labels for lab use.
 }
 \details{
-Computes all possible combination of variables provided in \bold{Arguments}. Output combinations are sorted in an ascending alphanumeric order.
+Computes all possible combinations of variables provided in \bold{Arguments}. Output combinations are sorted in an ascending alphanumeric order.
 }
 \examples{
 Label_Gen(study_id = "ONDA01180",
@@ -48,9 +51,10 @@ Label_Gen(study_id = "ONDA01180",
           animal = "Fish",
           animal_numbers = 1:4,
           tissue = NA,
+          solvent = NA,
           repli_num = 1:2,
           n_col = 6)
 }
 \seealso{
-\href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for web documentation. To view an example output in the R help pane, click "Run examples" under \bold{Examples}. A note, the online web will show that \code{Label_Gen()} produces an error output; this does not happen in R and is suspected to be caused by the html interaction with one quirky code I am using.
+\href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for web documentation. Note: the online web will show that running \code{Label_Gen()} produces an error output; this does not happen in R and is suspected to be caused by a faulty interaction between \code{pkgdown::build_site()} and a quirky code I used in \code{Label_Gen()}. To see a working example, click "Run Examples" in the R help page for the function.
 }
