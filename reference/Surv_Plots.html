@@ -81,7 +81,7 @@
 
 
 <dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
-<dd><p>Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where <code>bshazard()</code> uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing <code>phi</code> is recommended; see below.</p></dd>
+<dd><p>Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where <code><a href="https://rdrr.io/pkg/bshazard/man/bshazard.html" class="external-link">bshazard::bshazard()</a></code> uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing <code>phi</code> is recommended; see below.</p></dd>
 
 
 <dt id="arg-phi">phi<a class="anchor" aria-label="anchor" href="#arg-phi"></a></dt>
@@ -128,7 +128,7 @@
 <li><p>"TTE" = Time to Event. Event depends on "Status".</p></li>
 <li><p>"Status" = Value indicating what happened at TTE. 1 for dead fish, 0 for survivors or those sampled and removed.</p></li>
 </ul><p>Each row should represent one fish. For an example dataframe, execute <code>data(surv_db_ex)</code> and view.</p>
-<p>For details on the statistical methodology used by <code>bshazard()</code>, refer to: <a href="https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function" class="external-link">here</a>.</p>
+<p>For details on the statistical methodology used by <code><a href="https://rdrr.io/pkg/bshazard/man/bshazard.html" class="external-link">bshazard::bshazard()</a></code>, refer to: <a href="https://www.researchgate.net/publication/287338889_bshazard_A_Flexible_Tool_for_Nonparametric_Smoothing_of_the_Hazard_Function" class="external-link">here</a>.</p>
 <p>General concept: h(t) the hazard function is considered in an count model with the number of deaths as the response variable. I.e, death_count(t) = h(t) * P(t) where P(t) is the number alive as a function of time and h(t) is modeled over time using basis splines. The basis spline curvature<b>s</b> is assumed to have a normal distribution with mean 0 (a random effect). Based on this assumption, the author found that the variance of curvatures (i.e. smoothness) is equal to the over-dispersion (phi) of the death counts related (divided) by some smoothness parameter (lambda). Phi and lambda can be estimated from the data or specified by the user. Specification can be helpful in low sample size situations where overdispersion (phi) estimates have been found to be unreliable and clearly wrong (based on my understanding of realistic estimates and what was estimated in past data with adequate, large sample sizes).</p>
     </div>
     <div class="section level2">
