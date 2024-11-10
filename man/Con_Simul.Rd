@@ -42,8 +42,11 @@ Counts are simulated from a multinomial distribution using \code{rmultinom()}. C
 For further discussion into the types of marginals in contingency tables, refer to: \href{https://www.uvm.edu/~statdhtx/StatPages/More_Stuff/Chi-square/Contingency-Tables.pdf}{here} and the comments on \bold{Arguments}.
 }
 \examples{
-Con_Tab = Con_Simul(total_count = 750, n_lesion = 3, n_Trt. = 5)
-Con_Tab = Con_Simul(probs = matrix(nrow = 2, ncol = 3, c(1/6, 3/12, 1/6, 1/6, 1/6, 1/12)))
+# Simulate table with uniform probabilities across cells
+Con_Simul(total_count = 750, n_lesion = 3, n_Trt. = 5)
+
+# Simulate table with specified probabilities across cells
+Con_Simul(probs = matrix(nrow = 2, ncol = 3, c(1/6, 3/12, 1/6, 1/6, 1/6, 1/12)))
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Con_Simul.html}{Link} for executed \bold{Examples} which includes any figure outputs.

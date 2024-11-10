@@ -42,8 +42,11 @@
 #' @export
 #'
 #' @examples
-#' Con_Tab = Con_Simul(total_count = 750, n_lesion = 3, n_Trt. = 5)
-#' Con_Tab = Con_Simul(probs = matrix(nrow = 2, ncol = 3, c(1/6, 3/12, 1/6, 1/6, 1/6, 1/12)))
+#' # Simulate table with uniform probabilities across cells
+#' Con_Simul(total_count = 750, n_lesion = 3, n_Trt. = 5)
+#'
+#' # Simulate table with specified probabilities across cells
+#' Con_Simul(probs = matrix(nrow = 2, ncol = 3, c(1/6, 3/12, 1/6, 1/6, 1/6, 1/12)))
 Con_Simul = function(probs = "equal",
                       total_count = 750,
                       n_lesion = 3,
