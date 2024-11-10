@@ -1141,8 +1141,7 @@ Label_Gen = function(input_list,
   # Store ordered combinations
   ordered_combos = interaction(poss_grid, sep = ", ")
   extended_combos = c(paste(ordered_combos),
-                      rep("", times = ceiling(ceiling(length(ordered_combos)/n_col)/21) * 21 * n_col -
-                            length(ordered_combos)))
+                      rep("", times = ceiling(length(ordered_combos)/n_col) * n_col - length(ordered_combos)))
   mat_combos = matrix(extended_combos, ncol = n_col, byrow = fill_by_row)
   colnames(mat_combos) = 1:n_col
 
