@@ -1094,7 +1094,7 @@ GG_Colour_Hue = function(n) {
 
 #' @title Generate Texts for Labels
 #'
-#' @description Combines texts specified in a list. List should contain multiple variables that holds the texts in a value or vector format. All combinations of texts across variables are computed. Output text is sorted in order of variables given in the list (default behavior) or as specified using \code{sort_by} argument. The output combinations are tabulated and saved in a .csv in your working directory.
+#' @description Combines texts specified in a list. List should contain multiple variables that holds the texts in a value or vector format. All combinations of texts across variables are computed. Output text (combinations) is sorted in order of variables given in the list (default behavior) or as specified using \code{sort_by} argument. The output combinations are tabulated and saved in a .csv in your working directory.
 #'
 #' @param input_list A list of named variables, each containing one or more text/number(s). See \bold{Examples} for examples.
 #' @param sort_by A value or vector representing the variable(s) to sort the output by. For each variable, sorts according to the order of text in the variable. When multiple variables is given, prioritizes sorting based on the order of variables; leftmost = highest priority. Defaults to NULL where sorting is based on \code{input_list} orders.
@@ -1147,7 +1147,7 @@ Label_Gen = function(input_list,
   colnames(mat_combos) = 1:n_col
 
   # Save and print outputs
-  print(paste("You have", length(combos), "total labels"))
+  print(paste("You have", length(ordered_combos), "total labels"))
 
   if(is.null(save_name)){
     write.csv(x = mat_combos, file = paste("Label_Gen ", Sys.Date(), ".csv", sep = ""))
