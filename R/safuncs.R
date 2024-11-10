@@ -1090,75 +1090,72 @@ GG_Colour_Hue = function(n) {
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
 
-######################################################## Function 9 - Label_Gen() #######################################################
+#################################################### Function 9 - Label_Gen() ####################################################
 
 #' @title Generate Texts for Labels
 #'
-#' @description Combine strings (texts) or numbers specified in the \bold{Arguments} of the function. Originally, this function is made to automate the generation of labels for lab use.
+#' @description Combines texts specified in a list. List should contain multiple variables that holds the texts in a value or vector format. All combinations of texts across variables are computed. Output text is sorted in order of variables given in the list (default behavior) or as specified using \code{sort_by} argument. The output combinations are tabulated and saved in a .csv in your working directory.
 #'
-#' @details Computes all possible combinations of variables provided in \bold{Arguments}. Output combinations are sorted in an ascending alphanumeric order.
+#' @param input_list A list of named variables, each containing one or more text/number(s). See \bold{Examples} for examples.
+#' @param sort_by A value or vector representing the variable(s) to sort the output by. For each variable, sorts according to the order of text in the variable. When multiple variables is given, prioritizes sorting based on the order of variables; leftmost = highest priority. Defaults to NULL where sorting is based on \code{input_list} orders.
+#' @param n_col The number of columns in the output table. It should match the number of columns in the label paper. Defaults to 6.
+#' @param fill_by_row Whether combinations should fill the output table by row (otherwise column). Defaults to TRUE.
+#' @param save_name Name of the saved .csv. Defaults to NULL where the file name is "Label_Gen" and today's date (YYYY-MM-DD).
 #'
-#' @param study_id A string (or vector of). Must not be NA.
-#' @param timepoint A string (or vector of) representing the sampling timepoint(s). Set to \code{= NA} if not applicable.
-#' @param trt_tank_id A string (or vector of) representing the treatment and tank ID combinations. Set to \code{= NA} if not applicable.
-#' @param animal A string (or vector of) representing the group of animal(s). Set to \code{= NA} if not applicable.
-#' @param animal_numbers A numeric (or vector of) representing the number IDs for the animals. Set to \code{= NA} if not applicable.
-#' @param tissue A string (or vector of) representing the tissue type(s). Set to \code{= NA} if not applicable.
-#' @param solvent A string (or vector of) representing the tissue type(s). Set to \code{= NA} if not applicable.
-#' @param repli_num A numeric (or vector of) representing the replicate number(s). Set to \code{= NA} if not applicable.
-#' @param n_col A numeric corresponding to the number of columns in the label paper (and in the output matrix). Defaults to 6.
-#'
-#' @return Returns a matrix of strings representing the possible combinations. \code{Label_Gen()} automatically saves the output matrix in a .csv in your working directory.
+#' @return A .csv containing all possible combinations. Additionally, a printout describing the .csv file name and location. Another printout describing the total number of labels / combinations created.
 #' @export
 #'
-#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for web documentation. Note: the online web will show that running \code{Label_Gen()} produces an error output; this does not happen in R and is suspected to be caused by a faulty interaction between \code{pkgdown::build_site()} and a quirky code I used in \code{Label_Gen()}. To see a working example, click "Run Examples" in the R help page for the function.
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for web documentation.
 #'
 #' @examples
-#' Label_Gen(study_id = "ONDA01180",
-#'           timepoint = "Baseline",
-#'           trt_tank_id = c("Tk.F01-TrtA", "Tk.F02-TrtA", "Tk.F03-TrtB", "Tk.F04-TrtB"),
-#'           animal = "Fish",
-#'           animal_numbers = 1:4,
-#'           tissue = NA,
-#'           solvent = NA,
-#'           repli_num = 1:2,
-#'           n_col = 6)
-Label_Gen = function(study_id,
-                     timepoint,
-                     trt_tank_id,
-                     animal,
-                     animal_numbers,
-                     tissue,
-                     solvent,
-                     repli_num,
-                     n_col = 6) {
+#' # Summarize the input variables in a list
+#' input_variables = list(Time = c("Baseline", "1wpv"),
+#'                        Animal = c("Oysters", "Lobsters"),
+#'                        Tissue = c("Meat", "Shell", "Water", "Head"),
+#'                        Replic_num = 1:3)
+#'
+#' # Run Label_Gen() using the input variables.
+#' Label_Gen(input_list = input_variables,
+#'           sort_by = c("Time", "Animal", "Tissue"),
+#'           n_col = 6,
+#'           fill_by_row = TRUE,
+#'           save_name = NULL)
+Label_Gen = function(input_list,
+                     sort_by = NULL,
+                     n_col = 6,
+                     fill_by_row = TRUE,
+                     save_name = NULL) {
 
-  # formatting variables
-  if(!is.na(repli_num)[1]){repli_num <<- paste("Rep", repli_num, sep = "")}
-  if(!is.na(animal[1]) & !is.na(animal_numbers[1])){
-    animal <<- levels(interaction(animal, animal_numbers, sep = "-", lex.order = TRUE))
-    animal_numbers <<- NA
+  # Create combination data frame
+  poss_grid = expand.grid(input_list)
+
+  # Sort output
+  if(is.null(sort_by)) {
+    sort_by = names(input_list)
+  }
+  rev_sb = rev(sort_by)
+  for(i in rev_sb){
+    poss_grid = poss_grid[order(poss_grid[, which(colnames(poss_grid) == i)]),]
   }
 
-  # remove NA variables from combination
-  v_vec = c("study_id", "timepoint", "trt_tank_id", "animal", "animal_numbers", "tissue", "solvent", "repli_num")
-  nonNA_vec = v_vec[!is.na(sapply(v_vec, get))]
+  # Store ordered combinations
+  ordered_combos = interaction(poss_grid, sep = ", ")
+  extended_combos = c(paste(ordered_combos),
+                      rep("", times = ceiling(ceiling(length(ordered_combos)/n_col)/21) * 21 * n_col -
+                            length(ordered_combos)))
+  mat_combos = matrix(extended_combos, ncol = n_col, byrow = fill_by_row)
+  colnames(mat_combos) = 1:n_col
 
-  # get combination
-  get_vec = sapply(nonNA_vec, get)
-  combin = levels(interaction(sapply(nonNA_vec, get), sep = ", ", lex.order = TRUE))
-  mat = matrix(c(combin, rep("", (ceiling(length(combin)/n_col) * n_col) - length(combin))), ncol = n_col)
+  # Save and print outputs
+  print(paste("You have", length(combos), "total labels"))
 
-  # print outputs for double verification purposes
-  print(paste("Your total label count is:", length(combin)))
-
-  # save output
-  if(is.na(timepoint)) {
-    write.csv(x = mat, file = paste(study_id, "labels.csv", sep = " "))
+  if(is.null(save_name)){
+    write.csv(x = mat_combos, file = paste("Label_Gen ", Sys.Date(), ".csv", sep = ""))
+    print(paste("File saved as", paste("Label_Gen ", Sys.Date(), ".csv", sep = ""), "in", getwd()))
   } else {
-    write.csv(x = mat, file = paste(study_id, timepoint, "labels.csv", sep = " "))
+    write.csv(x = mat_combos, file = paste(save_name, ".csv", sep = ""))
+    print(paste("File saved as", paste(save_name, ".csv", sep = ""), "in", getwd()))
   }
-  return(mat)
 }
 
 ##################################################### Data 1 - mort_db_ex #######################################################

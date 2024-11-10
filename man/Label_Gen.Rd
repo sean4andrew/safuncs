@@ -5,56 +5,44 @@
 \title{Generate Texts for Labels}
 \usage{
 Label_Gen(
-  study_id,
-  timepoint,
-  trt_tank_id,
-  animal,
-  animal_numbers,
-  tissue,
-  solvent,
-  repli_num,
-  n_col = 6
+  input_list,
+  sort_by = NULL,
+  n_col = 6,
+  fill_by_row = TRUE,
+  save_name = NULL
 )
 }
 \arguments{
-\item{study_id}{A string (or vector of). Must not be NA.}
+\item{input_list}{A list of named variables, each containing one or more text/number(s). See \bold{Examples} for examples.}
 
-\item{timepoint}{A string (or vector of) representing the sampling timepoint(s). Set to \code{= NA} if not applicable.}
+\item{sort_by}{A value or vector representing the variable(s) to sort the output by. For each variable, sorts according to the order of text in the variable. When multiple variables is given, prioritizes sorting based on the order of variables; leftmost = highest priority. Defaults to NULL where sorting is based on \code{input_list} orders.}
 
-\item{trt_tank_id}{A string (or vector of) representing the treatment and tank ID combinations. Set to \code{= NA} if not applicable.}
+\item{n_col}{The number of columns in the output table. It should match the number of columns in the label paper. Defaults to 6.}
 
-\item{animal}{A string (or vector of) representing the group of animal(s). Set to \code{= NA} if not applicable.}
+\item{fill_by_row}{Whether combinations should fill the output table by row (otherwise column). Defaults to TRUE.}
 
-\item{animal_numbers}{A numeric (or vector of) representing the number IDs for the animals. Set to \code{= NA} if not applicable.}
-
-\item{tissue}{A string (or vector of) representing the tissue type(s). Set to \code{= NA} if not applicable.}
-
-\item{solvent}{A string (or vector of) representing the tissue type(s). Set to \code{= NA} if not applicable.}
-
-\item{repli_num}{A numeric (or vector of) representing the replicate number(s). Set to \code{= NA} if not applicable.}
-
-\item{n_col}{A numeric corresponding to the number of columns in the label paper (and in the output matrix). Defaults to 6.}
+\item{save_name}{Name of the saved .csv. Defaults to NULL where the file name is "Label_Gen" and today's date (YYYY-MM-DD).}
 }
 \value{
-Returns a matrix of strings representing the possible combinations. \code{Label_Gen()} automatically saves the output matrix in a .csv in your working directory.
+A .csv containing all possible combinations. Additionally, a printout describing the .csv file name and location. Another printout describing the total number of labels / combinations created.
 }
 \description{
-Combine strings (texts) or numbers specified in the \bold{Arguments} of the function. Originally, this function is made to automate the generation of labels for lab use.
-}
-\details{
-Computes all possible combinations of variables provided in \bold{Arguments}. Output combinations are sorted in an ascending alphanumeric order.
+Combines texts specified in a list. List should contain multiple variables that holds the texts in a value or vector format. All combinations of texts across variables are computed. Output text is sorted in order of variables given in the list (default behavior) or as specified using \code{sort_by} argument. The output combinations are tabulated and saved in a .csv in your working directory.
 }
 \examples{
-Label_Gen(study_id = "ONDA01180",
-          timepoint = "Baseline",
-          trt_tank_id = c("Tk.F01-TrtA", "Tk.F02-TrtA", "Tk.F03-TrtB", "Tk.F04-TrtB"),
-          animal = "Fish",
-          animal_numbers = 1:4,
-          tissue = NA,
-          solvent = NA,
-          repli_num = 1:2,
-          n_col = 6)
+# Summarize the input variables in a list
+input_variables = list(Time = c("Baseline", "1wpv"),
+                       Animal = c("Oysters", "Lobsters"),
+                       Tissue = c("Meat", "Shell", "Water", "Head"),
+                       Replic_num = 1:3)
+
+# Run Label_Gen() using the input variables.
+Label_Gen(input_list = input_variables,
+          sort_by = c("Time", "Animal", "Tissue"),
+          n_col = 6,
+          fill_by_row = TRUE,
+          save_name = NULL)
 }
 \seealso{
-\href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for web documentation. Note: the online web will show that running \code{Label_Gen()} produces an error output; this does not happen in R and is suspected to be caused by a faulty interaction between \code{pkgdown::build_site()} and a quirky code I used in \code{Label_Gen()}. To see a working example, click "Run Examples" in the R help page for the function.
+\href{https://sean4andrew.github.io/safuncs/reference/Label_Gen.html}{Link} for web documentation.
 }

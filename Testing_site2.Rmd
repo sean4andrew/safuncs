@@ -388,3 +388,119 @@ output = "prism"
   return(DB_Mort_Gencomb)
 ```
 
+Label_Gen2?
+```{r}
+input_variables = list(Time = c("Baseline", "1wpv"),
+                       Animal = c("Oysters", "Lobsters"),
+                       Tissue = c("Meat", "Shell", "Water", "Head"))
+n_col = 6
+fill_by_row = TRUE
+
+
+Label_Gen2 = function(list_input,
+                      n_col = 6,
+                      fil_by_row = TRUE,
+                      save_name = NULL) {
+  
+  # Create combination data frame
+  poss_grid = expand.grid(input_variables)
+  
+  # Sort output
+  if(is.null(sort_by))
+  combos = interaction(poss_grid, sep = ", ", lex.order = TRUE)
+  ordered_combos = combos[order(poss_grid$Tissue)]
+  extended_combos = c(paste(ordered_combos), 
+                      rep("", times = ceiling(ceiling(length(ordered_combos)/n_col)/21) * 21 * n_col -
+                            length(ordered_combos)))
+  mat_combos = data.frame(matrix(extended_combos, ncol = n_col, byrow = fill_by_row))
+  tab_combos = flextable::flextable(mat_combos, cwidth = 1.34, cheight = 1.7, use_labels = FALSE)
+  tab_combos = bold(border_inner_v(border_inner_h(delete_part(
+    fontsize(tab_combos, size = 9, part = "all"), part = "header"), 
+    part = "all"), part = "all"), bold = TRUE, part = "all")
+  
+  # Save and print outputs
+  print(paste("You have", length(combos), "total labels"))
+  
+  if(!is.null(save_name)){
+    save_as_docx(tab_combos, values = list(tab_combos), path = paste(getwd(), "/Test2.docx", sep = ""),
+                 pr_section = prop_section(page_size = page_size(orient = "portrait", height = 11, width = 8.5),
+                                           page_margins = page_mar(bottom = 0, top = 0.25, right = 0.5, left = 0)))
+    
+  } else {
+  
+  }
+  
+  return(tab_combos)
+}
+  poss_grid = expand.grid(input_variables)
+  combos = interaction(poss_grid, sep = ", ")
+  ordered_combos = combos[order(poss_grid$Tissue)]
+  extended_combos = c(paste(ordered_combos), 
+                      rep("", times = ceiling(length(ordered_combos)/n_col) * n_col - length(ordered_combos)))
+  mat_combos = data.frame(matrix(extended_combos, ncol = n_col, byrow = fill_by_row))
+  
+  z = regulartable(mat_combos)
+  
+View(mat_combos)
+```
+
+Label_Gen1
+```{r}
+input_variables = list(Time = c("Baseline", "1wpv"),
+                       Animal = c("Oysters", "Lobsters"),
+                       Tissue = c("Meat", "Shell", "Water", "Head"))
+sort_by = c("Time", "Animal", "Tissue")
+n_col = 6
+fill_by_row = TRUE
+
+
+Label_Gen = function(list_input,
+                      sort_by = NULL,
+                      n_col = 6,
+                      fill_by_row = TRUE,
+                      save_name = NULL) {
+  
+  # Create combination data frame
+  poss_grid = expand.grid(input_variables)
+
+  # Sort output
+  if(is.null(sort_by)) {
+    sort_by = names(input_variables)
+  }
+  rev_sb = rev(sort_by)
+  for(i in rev_sb){
+    poss_grid = poss_grid[order(poss_grid[, which(colnames(poss_grid) == i)]),]  
+  }
+  
+  # Store ordered combinations
+  ordered_combos = interaction(poss_grid, sep = ", ")
+  extended_combos = c(paste(ordered_combos), 
+                      rep("", times = ceiling(ceiling(length(ordered_combos)/n_col)/21) * 21 * n_col -
+                            length(ordered_combos)))
+  mat_combos = matrix(extended_combos, ncol = n_col, byrow = fill_by_row)
+  colnames(mat_combos) = 1:n_col
+  
+  # Save and print outputs
+  print(paste("You have", length(combos), "total labels"))
+  
+  if(is.null(save_name)){
+    write.csv(x = mat_combos, file = paste("Label_Gen ", Sys.Date(), ".csv", sep = ""))
+    print(paste("File saved as", paste("Label_Gen ", Sys.Date(), ".csv", sep = ""), "in", getwd()))
+  } else {
+    write.csv(x = mat_combos, file = paste(save_name, ".csv", sep = ""))
+    print(paste("File saved as", paste(save_name, ".csv", sep = ""), "in", getwd()))
+  }
+}
+
+# Summarize the input variables in a list
+input_variables = list(Time = c("Baseline", "1wpv"),
+                       Animal = c("Oysters", "Lobsters"),
+                       Tissue = c("Meat", "Shell", "Water", "Head"))
+
+# Run Label_Gen() using the input variables.
+Label_Gen(list_input = input_variables,
+          sort_by = c("Time", "Animal", "Tissue"),
+          n_col = 6,
+          fill_by_row = TRUE,
+          save_name = NULL)
+```
