@@ -607,7 +607,7 @@ Surv_Simul = function(haz_db,
     merged_db = merged_db[merged_db$Status == 0, ]
     cens_db = cens_db[interaction(cens_db$Trt.ID, cens_db$time) %in% interaction(merged_db$Trt.ID, merged_db$TTE),]
     surv_plots = surv_plots +
-      geom_point(data = cens_db, aes(x = time, y = surv_prob, colour = Trt.ID), shape = 3, size = 0.7, stroke = 1.15)
+      geom_point(data = cens_db, aes(x = time, y = surv_prob, colour = Trt.ID), shape = 3, size = 0.7, stroke = 1)
   }
 
   #Plot theme
