@@ -166,9 +166,9 @@
 <span class="r-in"><span>           n_sim <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">$</span><span class="va">surv_plots</span></span></span>
 <span class="r-plt img"><img src="Surv_Simul-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">#To show that Surv_Simul() can handle even more complicated experimental designs,</span></span></span>
-<span class="r-in"><span><span class="co">#below I use different fish numbers per tank, different tank numbers per treatment,</span></span></span>
-<span class="r-in"><span><span class="co">#and different multi-sampling protocols per tank.</span></span></span>
+<span class="r-in"><span><span class="co">#Surv_Simul() can handle even more complicated experimental designs. Below, I use</span></span></span>
+<span class="r-in"><span><span class="co">#different treatment-specific fish numbers per tank and tank numbers per treatment,</span></span></span>
+<span class="r-in"><span><span class="co">#and different sampling designs per tank.</span></span></span>
 <span class="r-in"><span><span class="fu">Surv_Simul</span><span class="op">(</span>haz_db <span class="op">=</span> <span class="va">ref_haz_route_safuncs</span>,</span></span>
 <span class="r-in"><span>           fish_num_per_tank <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">100</span>, <span class="fl">100</span><span class="op">)</span>, <span class="co">#for Ctrl., Trt.B, C, respectively</span></span></span>
 <span class="r-in"><span>           tank_num_per_trt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>,       <span class="co">#Ctrl., B, C</span></span></span>
