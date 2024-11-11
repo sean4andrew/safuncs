@@ -19,11 +19,11 @@ Surv_Simul(
 )
 }
 \arguments{
-\item{haz_db}{A dataframe representing the reference hazard curve; can be generated from \code{bshazard()} or \code{Surv_Plots()}.}
+\item{haz_db}{A dataframe representing the reference hazard curve; can be generated from \code{bshazard::bshazard()} or \code{Surv_Plots()}.}
 
 \item{fish_num_per_tank}{The number of fish to simulate per tank. If the number differs by treatment, use a vector of numbers ordered according to \code{treatments_hr}. Defaults to 100 fish per tank.}
 
-\item{tank_num_per_trt}{The number of tanks to simulate per treatment group. If the number differs by treatment, use a vector ordered according to \code{treamtnets_hr}. Defaults to 4 tank per treatment.}
+\item{tank_num_per_trt}{The number of tanks to simulate per treatment group. If the number differs by treatment, use a vector ordered according to \code{treatments_hr}. Defaults to 4 tank per treatment.}
 
 \item{treatments_hr}{A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1). Length of the vector represents the number of treatment groups. Defaults to \code{c(1, 1, 1, 1)}.}
 
