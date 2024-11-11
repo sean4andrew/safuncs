@@ -95,8 +95,9 @@ Surv_Simul(haz_db = ref_haz_route_safuncs,
            treatments_hr = c(1, 0.8, 0.5),
            sampling_specs = data.frame(Amount = 10,
                                        TTE = 45))$surv_plots
+#Crosses indicate sampling occurred.
 
-#Below I show the results of simulating multiple times to better understand the
+#Further, results of simulating multiple times are shown to better understand the
 #chance that future samples accurately capture the truth/population. Specify n_sim!
 Surv_Simul(haz_db = ref_haz_route_safuncs,
            treatments_hr = c(1, 0.8, 0.5),
@@ -104,10 +105,9 @@ Surv_Simul(haz_db = ref_haz_route_safuncs,
                                        TTE = 45),
            n_sim = 4)$surv_plots
 
-
 #To show that Surv_Simul() can handle even more complicated experimental designs,
 #below I use different fish numbers per tank, different tank numbers per treatment,
-#and different multi-sampling designs for each tank.
+#and different multi-sampling protocols per tank.
 Surv_Simul(haz_db = ref_haz_route_safuncs,
            fish_num_per_tank = c(50, 100, 100), #for Ctrl., Trt.B, C, respectively
            tank_num_per_trt = c(1, 1, 2),       #Ctrl., B, C
