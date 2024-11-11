@@ -364,7 +364,6 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'            treatments_hr = c(1, 0.8, 0.5),
 #'            sampling_specs = data.frame(Amount = 10,
 #'                                        TTE = 45))$surv_plots
-#' #Crosses indicate sampling occurred.
 #'
 #' #Further, results of simulating multiple times are shown to better understand the
 #' #chance that future samples accurately capture the truth/population. Specify n_sim!

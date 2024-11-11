@@ -95,7 +95,6 @@ Surv_Simul(haz_db = ref_haz_route_safuncs,
            treatments_hr = c(1, 0.8, 0.5),
            sampling_specs = data.frame(Amount = 10,
                                        TTE = 45))$surv_plots
-#Crosses indicate sampling occurred.
 
 #Further, results of simulating multiple times are shown to better understand the
 #chance that future samples accurately capture the truth/population. Specify n_sim!
