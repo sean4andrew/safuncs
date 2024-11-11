@@ -292,7 +292,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 
 #' @title Simulate Survival Data
 #'
-#' @description Simulates survival data based on a set of user-specified experimental parameters and a reference hazard curve (e.g. hazard curve from the control group). Able to simulate data with inter-cluster (e.g. tank) variation which is added based on the framework of the mixed cox proportional hazards model (\code{coxme::coxme}). Able to simulate right censored data (e.g. sampled fish) using \code{sampling_specs} argument. Optionally produces a plot illustrating the characteristics of the simulated data and that of the population / truth from which the data (sample) is simulated.
+#' @description Simulates survival data based on a set of user-specified experimental parameters and a reference hazard curve (e.g. hazard curve from the control group). Able to simulate data with inter-cluster (e.g. tank) variation which is added based on the framework of the mixed cox proportional hazards model (\code{coxme::coxme}). Able to simulate right censored data (e.g. sampled fish) using \code{sampling_specs} argument. Able to simulate treatment- and tank- specific fish numbers. Optionally produces a plot illustrating the characteristics of the simulated data and that of the population / truth from which the data (sample) is simulated.
 #'
 #' @details Simulations are based on uniform-probability draws (\emph{U} ~ (0, 1)) from a set of events which can be expressed as a function of time using the cumulative density function of failures (\emph{F(t)}, i.e. cumulative mort. curve). \emph{F(t)} can be transformed to the cumulative hazard function \emph{H(t)}, hence the relationship between \emph{H(t)} and uniform draws (from \emph{U}) is also known (derivation and equation in \href{https://epub.ub.uni-muenchen.de/1716/1/paper_338.pdf}{Bender et al. (2003)}. Because \emph{H(t)} is related (as the integral) to the hazard function \emph{h(t)}, and since \emph{h(t)} is related to effects (e.g. treatment or tank) based on the cox proportional hazards model, such effects can now be incorporated into the simulation process as they can be interacted with \emph{U}. The simulation process is as follows:
 #'
@@ -311,11 +311,11 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' To verify the correct "randomness" is produced in the simulated survival data, given that adding "randomness" is the whole point of simulations (to me), 5 different validation checks have been performed (documented in a pdf to be uploaded to github). Those checks showed that the HR estimated by fitting two curves sampled from the same population, converges to a mean of 1 (as should be) over many simulations, and across simulations the HR varies as expected (SD of simulated HRs = SE of HR as supposed by the cox model). Those checks also showed that the p-value obtained by applying log-rank test to null (no-effect) simulated datasets, has a distribution that is uniform (as should be), with a false positive rate of 0.05 given the alpha used was 0.05 (as should be). Additionally, power calculated from the simulations equal to the power calculated from an \href{https://homepage.univie.ac.at/robin.ristl/samplesize.php?test=logrank}{online calculator}. Last, the checks showed that the variations in a simulated survival curve is similar to that observed in curves simulated using a different, more limited, method (bootstraping / re-sampling with replacement).
 #'
 #' @param haz_db A dataframe representing the reference hazard curve; can be generated from \code{bshazard()} or \code{Surv_Plots()}.
-#' @param fish_num_per_tank The number of fish to simulate per tank. Defaults to 100.
-#' @param tank_num_per_trt The number of tanks to simulate per treatment group. Defaults to 4.
+#' @param fish_num_per_tank The number of fish to simulate per tank. If the number differs by treatment, use a vector of numbers ordered according to \code{treatments_hr}. Defaults to 100 fish per tank.
+#' @param tank_num_per_trt The number of tanks to simulate per treatment group. If the number differs by treatment, use a vector ordered according to \code{treamtnets_hr}. Defaults to 4 tank per treatment.
 #' @param treatments_hr A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1). Length of the vector represents the number of treatment groups. Defaults to \code{c(1, 1, 1, 1)}.
 #' @param logHR_sd_intertank The standard deviation of inter-tank variation in the log(HR) scale according to the \code{coxme} framework. Defaults to 0 (no inter-tank variation) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low inter-tank variation situation, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets.
-#' @param sampling_specs A dataframe representing the number / amount of right censored data (e.g. sampled fish) per tank at different times represented by two columns "Amount" and "TTE", respectively. See \bold{Examples} for example of use. Defaults to NULL (no sampling).
+#' @param sampling_specs A dataframe containing at least 2 columns; "Amount" representing the number of right censored data (e.g. sampled fish) per tank; "TTE" representing the time the sampling occurred; optionally a "Tank.ID" column to account for different sampling conditions per tank. Tank.IDs start from 1 until the total number of tanks. Its correspondence with treatment groups are based on \code{tank_num_per_trt} and \code{treatments_hr}. See \bold{Examples} for example of use. Defaults to NULL (no sampling).
 #' @param n_sim Number of survival dataset to simulate. Defaults to 1.
 #' @param plot_out Whether to output the information plot (further details in \bold{Value}). Defaults to TRUE.
 #' @param pop_out Whether to output a dataframe containing the survival probability values for the population. Defaults to TRUE.
@@ -323,11 +323,11 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
 #'
 #'
-#' @return At minimum, returns a simulated survival dataframe consisting of 5 columns: TTE (Time to Event), Status (0 / 1), Trt.ID, Tank.ID, and n_sim which represents the simulation number for the data subsets.
+#' @return Returns a list that, at minimum, contains the simulated survival dataframe which has 5 columns: TTE (Time to Event), Status (0 / 1), Trt.ID, Tank.ID, and n_sim which represents the simulation number for the data subsets.
 #'
-#' If \code{plot_out = TRUE}, outputs a list that additionally contains a Kaplan-Meier survival plot. The plot illustrates the survival curve with end survival rates for the simulated dataset as well as the population. If the number of simulated dataset is greater than 1, multiple curves are drawn representing each and a statement is provided regarding the power to detect the effect of Treatment -- specifically, the percent positive (p < 0.05) from a global log-rank test using \code{survival::survdiff()}.
+#' If \code{plot_out = TRUE}, the list additionally contains a Kaplan-Meier survival plot. The plot illustrates the survival curve with end survival rates for the simulated dataset as well as the population. If the number of simulated dataset is greater than 1, multiple curves are drawn representing each and a statement is provided regarding the power to detect the effect of Treatment -- specifically, the percent positive (p < 0.05) from a global log-rank test using \code{survival::survdiff()}.
 #'
-#' If \code{pop_out = TRUE}, outputs a list that additionally contains a dataframe representing the survival probability values for the population / truth from which the sample is supposedly taken.
+#' If \code{pop_out = TRUE}, the list additionally contains a dataframe representing the survival probability values for the population / truth from which the sample is supposedly taken.
 #'
 #' @import ggplot2
 #' @import magrittr
@@ -365,13 +365,27 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'            sampling_specs = data.frame(Amount = 10,
 #'                                        TTE = 45))$surv_plots
 #'
-#' #Simulate multiple times to better answer the question: are my future samples
-#' #likely to be good approximates of the truth / population
+#' #Below I show the results of simulating multiple times to better understand the
+#' #chance that future samples accurately capture the truth/population. Specify n_sim!
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
 #'            treatments_hr = c(1, 0.8, 0.5),
 #'            sampling_specs = data.frame(Amount = 10,
 #'                                        TTE = 45),
 #'            n_sim = 4)$surv_plots
+#'
+#'
+#' #To show that Surv_Simul() can handle even more complicated experimental designs,
+#' #below I use different fish numbers per tank, different tank numbers per treatment,
+#' #and different multi-sampling designs for each tank.
+#' Surv_Simul(haz_db = ref_haz_route_safuncs,
+#'            fish_num_per_tank = c(50, 100, 100), #for Ctrl., Trt.B, C, respectively
+#'            tank_num_per_trt = c(1, 1, 2),       #Ctrl., B, C
+#'            treatments_hr = c(1, 0.8, 0.5),      #Ctrl., B, C
+#'            sampling_specs = data.frame(TTE = c(30, 30, 30, 50),
+#'                                        Amount = c(0, 20, 5, 5),
+#'                                        Tank.ID = c(1, 2, 3, 4)), #Ctrl., B, C, C
+#'            n_sim = 4)$surv_plots
+#'
 Surv_Simul = function(haz_db,
                       fish_num_per_tank = 100,
                       tank_num_per_trt = 4,
@@ -384,6 +398,13 @@ Surv_Simul = function(haz_db,
                       plot_name = "Surv_Simul-Plot-Output",
                       theme = "ggplot2") {
 
+  #Validate that tank_num_per_trt and sampling_specs with Tank.IDs are consistent
+  if(("Tank.ID" %in% colnames(sampling_specs)) && (length(sampling_specs$Tank.ID) !=
+                                                   ifelse(length(tank_num_per_trt) > 1, sum(tank_num_per_trt),
+                                                          tank_num_per_trt * length(treatments_hr)))) {
+    stop("The total number of tanks specified in sampling_specs is not equal to that in tank_num_per_trt. Please recheck!")
+  }
+
   #Initialize objects to store loop results
   surv_samps = data.frame()
   cens_db = data.frame()
@@ -395,18 +416,27 @@ Surv_Simul = function(haz_db,
   for(loopnum in 1:n_sim) {
 
     CDF_Yval = c()
+    Trt.ID = c()
+    Tank.ID = c()
+    Tank_num2 = 0
+    iTT = 0
 
     for(Treatment_Term in treatments_hr) {
+      iTT = iTT + 1
 
-      for(Tank_num in 1:tank_num_per_trt) {
+      for(Tank_num in 1:ifelse(length(tank_num_per_trt) > 1, tank_num_per_trt[iTT], tank_num_per_trt)) {
+        Tank_num2 = Tank_num2 + 1
 
         #Random sampling
         Tank_eff = rnorm(n = 1, mean = 0, sd = logHR_sd_intertank)
 
-        U = runif(n = fish_num_per_tank, min = 0, max = 1)
+        U = runif(n = ifelse(length(fish_num_per_tank) > 1, fish_num_per_tank[iTT], fish_num_per_tank), min = 0, max = 1)
 
         CDF_Yval_temp = -log(U) * exp(-(log(Treatment_Term) + Tank_eff))
         CDF_Yval = append(CDF_Yval, CDF_Yval_temp)
+
+        Trt.ID = c(Trt.ID, rep(c("Control", LETTERS[2:length(treatments_hr)])[iTT], length(CDF_Yval_temp)))
+        Tank.ID = c(Tank.ID, rep(Tank_num2, length(CDF_Yval_temp)))
       }
     }
 
@@ -420,26 +450,43 @@ Surv_Simul = function(haz_db,
     #Label Status (1 - dead, or 0 - survived) given TTE, and create survival dataframe
     Surv_simul_DB = data.frame(TTE = TTE,
                                Status = ifelse(TTE == max(haz_db$time), 0, 1),
-                               Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]),
-                                                      each = fish_num_per_tank * tank_num_per_trt, times = n_sim)),
-                               Tank.ID = as.factor(rep(1:(length(treatments_hr) * tank_num_per_trt),
-                                                       each = fish_num_per_tank, times = n_sim)),
+                               Trt.ID = Trt.ID,
+                               Tank.ID = Tank.ID,
                                n_sim = loopnum)
 
-    #Transform TTE and Status in certain rows due to sampling
+    #Transform TTE and Status (to 0) in certain rows due to sampling
     if(!is.null(sampling_specs)) {
 
-      #Repeat for each specified sampling time and each tank
-      for(samp_time in 1:length(sampling_specs$TTE)) {
-        for(tank_num in as.numeric(levels(Surv_simul_DB$Tank.ID))) {
+      if(!"Tank.ID" %in% colnames(sampling_specs)) {
+        Tank_lvls = unique(Surv_simul_DB$Tank.ID)
+        sampling_specs = data.frame(TTE = rep(sampling_specs$TTE, each = length(Tank_lvls)),
+                                    Amount = rep(sampling_specs$Amount, each = length(Tank_lvls)),
+                                    Tank.ID = rep(Tank_lvls, times = nrow(sampling_specs)))
+      }
 
-          rows_sel = sample(x = which(Surv_simul_DB$Tank.ID == tank_num & Surv_simul_DB$TTE > sampling_specs$TTE[samp_time]),
-                            size = sampling_specs$Amount[samp_time],
-                            replace = FALSE)
+      #Run through every row of sampling_specs and sample accordingly
+      for(samp_row in 1:nrow(sampling_specs)) {
 
-          Surv_simul_DB$TTE[rows_sel] = sampling_specs$TTE[samp_time]
-          Surv_simul_DB$Status[rows_sel] = 0
+        rows_samp_space = which(Surv_simul_DB$Tank.ID == sampling_specs$Tank.ID[samp_row] &
+                                  Surv_simul_DB$TTE > sampling_specs$TTE[samp_row])
+
+        #Catch over sampling situation and print message
+        if(length(rows_samp_space) < sampling_specs$Amount[samp_row]) {
+          print(paste(sep = "", "In simulation set-", loopnum, " Trt.ID-", unique(Surv_simul_DB$Trt.ID[rows_samp_space]),
+                      ", Tank.ID-", tank_num, ", you requested more samples than the fish alive! All fish sampled."))
+
+          #Modify sampling amount
+          sampling_specs$Amount[samp_row] = length(rows_samp_space)
         }
+
+        #Select rows that were sampled
+        rows_sel = sample(x = rows_samp_space,
+                          size = sampling_specs$Amount[samp_row],
+                          replace = FALSE)
+
+        #Change Status and Time for sampled individuals
+        Surv_simul_DB$TTE[rows_sel] = sampling_specs$TTE[samp_row]
+        Surv_simul_DB$Status[rows_sel] = 0
       }
     }
 
@@ -482,6 +529,7 @@ Surv_Simul = function(haz_db,
                                  time = summary(surv_obj, time = sampling_specs$TTE)$time,
                                  n_sim = loopnum,
                                  type = as.factor(paste("Sample set (n = ", n_sim, ")", sep = "")))
+
       cens_db = rbind(cens_db, cens_db_temp)
     }
   }
@@ -499,24 +547,6 @@ Surv_Simul = function(haz_db,
                         type = "Population / truth",
                         n_sim = 1,
                         alpha = 1)
-  #methods to get surv_prob stored here below:
-  #option 1 (old):
-  #surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum)))
-
-  #New method (deprecated)
-  # surv_pop = data.frame()
-  # for(pop_trt in levels(factor(surv_pop_old$Trt.ID))) {
-  #   pop_trt_cumhaz = surv_pop_old$cumhaz_prob[surv_pop_old$Trt.ID == pop_trt]
-  #   surv_prob_db = approx(x = haz_db$time, y = pop_trt_cumhaz, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear")
-  #
-  #   surv_pop_temp = data.frame(Trt.ID = pop_trt,
-  #                              time = surv_prob_db$x,
-  #                              surv_prob = exp(-surv_prob_db$y),
-  #                              type = "Population / truth",
-  #                              n_sim = 1,
-  #                              alpha = 1)
-  #   surv_pop = rbind(surv_pop, surv_pop_temp)
-  # }
 
   #To the end of creating survival plots
   surv_comb = rbind(surv_samps, surv_pop)
@@ -538,10 +568,10 @@ Surv_Simul = function(haz_db,
     facet_wrap(~ type) +
     geom_step(aes(alpha = alpha)) +
     scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
-    scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 15), 1))) +
+    scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 12), 1))) +
     ylab("Survival Probability (%)") +
     xlab("Time to Event") +
-    scale_alpha(range = c(min(surv_comb$alpha), 1))+
+    scale_alpha(range = c(min(surv_comb$alpha), 1)) +
     guides(alpha = "none") +
     coord_cartesian(clip = "off") +
     theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
@@ -572,16 +602,21 @@ Surv_Simul = function(haz_db,
   }
 
   #Add censoring points
-  if(!is.null(sampling_specs))
-  {surv_plots = surv_plots + geom_point(data = cens_db, aes(x = time, y = surv_prob, colour = Trt.ID), shape = 3)}
+  if(!is.null(sampling_specs)) {
+    merged_db = merge(sampling_specs, Surv_simul_DB)
+    merged_db = merged_db[merged_db$Status == 0, ]
+    cens_db = cens_db[interaction(cens_db$Trt.ID, cens_db$time) %in% interaction(merged_db$Trt.ID, merged_db$TTE),]
+    surv_plots = surv_plots +
+      geom_point(data = cens_db, aes(x = time, y = surv_prob, colour = Trt.ID), shape = 3, size = 0.7, stroke = 1.15)
+  }
 
   #Plot theme
   if(theme == "prism") {surv_plots = surv_plots + ggprism::theme_prism()}
 
   #Save plots and return outputs
   if(!is.null(plot_name)) {
-    eoffice::topptx(figure = surv_plots, filename = paste(plot_name, ".pptx", sep = ""), width = 6, height = 4)
-    ggsave(paste(plot_name, ".tiff", sep = ""), dpi = 900, width = 6, height = 4, plot = surv_plots)
+    eoffice::topptx(figure = surv_plots, filename = paste(plot_name, ".pptx", sep = ""), width = 7, height = 4)
+    ggsave(paste(plot_name, ".tiff", sep = ""), dpi = 900, width = 7, height = 4, plot = surv_plots)
   }
 
   if(plot_out == FALSE && pop_out == FALSE) {

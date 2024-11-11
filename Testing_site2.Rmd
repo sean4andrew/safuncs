@@ -20,103 +20,41 @@ Surv_Gen(mort_db = mort_db_ex,
          starting_fish_count = 100)
 ```
 
-
-Label generator (script)
-```{r, warning = FALSE}
-study_id = "ONDA01180"
-timepoint = "Baseline"
-trt_tank_id = c("Tk.F01-TrtA", "Tk.F02-TrtA", "Tk.F03-TrtB", "Tk.F04-TrtB")
-animal = "Fish"
-animal_numbers = 1:4
-tissue = c("Spleen", "Liver")
-replic = NA
-n_col = 6
-
-# Formatting (don't mind me):
-replic = paste("Rep", replic, sep = "")
-
-# Actually important stuff (edit me!)
-combin = levels(interaction(study_id, timepoint, trt_tank_id, animal, animal_numbers, tissue, sep = ", ", lex.order = TRUE))
-
-# Resolving printout issues (don't mind me)
-mat = matrix(c(combin, rep("", (ceiling(length(combin)/n_col) * n_col) - length(combin))), ncol = n_col)
-
-# Print outputs (don't mind me)
-View(mat)
-paste("Your total label count is:", length(combin))
-write.csv(x = mat, file = paste(study_id, "labels.csv", sep = " "))
-```
-
-Label generator function demo:
 ```{r}
-Label_Gen(study_id = "ONDA01180",
-          timepoint = "Baseline",
-          trt_tank_id = c("Tk.F01-TrtA", "Tk.F02-TrtA", "Tk.F03-TrtB", "Tk.F04-TrtB"),
-          animal = "Fish",
-          animal_numbers = 1:4,
-          tissue = c("Spleen", "Liver"),
-          repli_num = NA,
-          n_col = 4) # number of columns in label paper
-
-#Also, don't forget to demo what to do if you don't have information for a column (put "NA")
+Surv_Simul(haz_db = haz_db_ex,
+            fish_num_per_tank = c(50, 100, 100), #for Ctrl., Trt.B, C, respectively
+            tank_num_per_trt = c(1, 1, 2),       #Ctrl., B, C
+            treatments_hr = c(1, 0.8, 0.5),      #Ctrl., B, C
+            sampling_specs = data.frame(TTE = c(30, 30, 30, 50),
+                                        Amount = c(0, 20, 5, 5),
+                                        Tank.ID = c(1, 2, 3, 4)), #Ctrl., B, C, C
+            n_sim = 4)$surv_plots
 ```
-
-Label generator function
-```{r}
-Label_Gen = function(study_id,
-                     timepoint,
-                     trt_tank_id,
-                     animal,
-                     animal_numbers,
-                     tissue,
-                     repli_num,
-                     n_col) {
-  
-  # formatting variables
-  if(!is.na(repli_num)[1]){repli_num <<- paste("Rep", repli_num, sep = "")}
-  if(!is.na(animal[1]) & !is.na(animal_numbers[1])){
-    animal <<- levels(interaction(animal, animal_numbers, sep = "-", lex.order = TRUE))
-    animal_numbers <<- NA
-  }
-
-  # remove NA variables from combination
-  v_vec = c("study_id", "timepoint", "trt_tank_id", "animal", "animal_numbers", "tissue", "repli_num")
-  nonNA_vec = v_vec[!is.na(sapply(v_vec, get))]
-  
-  # get combination
-  get_vec = sapply(nonNA_vec, get)
-  combin = levels(interaction(sapply(nonNA_vec, get), sep = ", ", lex.order = TRUE))
-  mat = matrix(c(combin, rep("", (ceiling(length(combin)/n_col) * n_col) - length(combin))), ncol = n_col)
-  
-  # print outputs for double verification purposes
-  View(mat)
-  print(paste("Your total label count is:", length(combin)))
-
-  # save output
-  if(is.na(timepoint)) {
-    write.csv(x = mat, file = paste(study_id, "labels.csv", sep = " "))
-  } else {
-    write.csv(x = mat, file = paste(study_id, timepoint, "labels.csv", sep = " "))
-  }
-}
-```
-
-
 
 
 Test
 ```{r}
 haz_db = haz_db_ex
-fish_num_per_tank = 100
-tank_num_per_trt = 4
+fish_num_per_tank = 70
+tank_num_per_trt = 2
 treatments_hr = c(1, 0.8, 0.5)
 logHR_sd_intertank = 0
-sampling_specs = NULL
+sampling_specs = data.frame(TTE = c(20, 20, 30, 30, 40, 40),
+                            Amount = c(20, 20, 20, 20, 20, 20),
+                            Tank.ID = c(1, 2, 3, 4, 5, 6))
 n_sim = 10
 plot_out = TRUE
 pop_out = TRUE
-plot_name = "Surv_Simul-Plot-Output"
+plot_name = "Surv_Simul-Plot"
 theme = "ggplot2"
+
+  #Validate that tank_num_per_trt and sampling_specs with Tank.IDs are consistent
+  if(("Tank.ID" %in% colnames(sampling_specs)) && (length(sampling_specs$Tank.ID) != 
+                                                   ifelse(length(tank_num_per_trt) > 1, sum(tank_num_per_trt),
+                                                   tank_num_per_trt * length(treatments_hr)))) {
+    stop("The total number of tanks specified in sampling_specs is not equal to that in tank_num_per_trt. Please recheck!")
+  }    
+
 
   #Initialize objects to store loop results
   surv_samps = data.frame()
@@ -129,18 +67,27 @@ theme = "ggplot2"
   for(loopnum in 1:n_sim) {
 
     CDF_Yval = c()
+    Trt.ID = c()
+    Tank.ID = c()
+    Tank_num2 = 0
+    iTT = 0
 
     for(Treatment_Term in treatments_hr) {
+      iTT = iTT + 1
 
-      for(Tank_num in 1:tank_num_per_trt) {
+      for(Tank_num in 1:ifelse(length(tank_num_per_trt) > 1, tank_num_per_trt[iTT], tank_num_per_trt)) {
+        Tank_num2 = Tank_num2 + 1
 
         #Random sampling
         Tank_eff = rnorm(n = 1, mean = 0, sd = logHR_sd_intertank)
 
-        U = runif(n = fish_num_per_tank, min = 0, max = 1)
+        U = runif(n = ifelse(length(fish_num_per_tank) > 1, fish_num_per_tank[iTT], fish_num_per_tank), min = 0, max = 1)
 
         CDF_Yval_temp = -log(U) * exp(-(log(Treatment_Term) + Tank_eff))
         CDF_Yval = append(CDF_Yval, CDF_Yval_temp)
+        
+        Trt.ID = c(Trt.ID, rep(c("Control", LETTERS[2:length(treatments_hr)])[iTT], length(CDF_Yval_temp)))
+        Tank.ID = c(Tank.ID, rep(Tank_num2, length(CDF_Yval_temp)))
       }
     }
 
@@ -154,26 +101,43 @@ theme = "ggplot2"
     #Label Status (1 - dead, or 0 - survived) given TTE, and create survival dataframe
     Surv_simul_DB = data.frame(TTE = TTE,
                                Status = ifelse(TTE == max(haz_db$time), 0, 1),
-                               Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]),
-                                                      each = fish_num_per_tank * tank_num_per_trt, times = n_sim)),
-                               Tank.ID = as.factor(rep(1:(length(treatments_hr) * tank_num_per_trt),
-                                                       each = fish_num_per_tank, times = n_sim)),
+                               Trt.ID = Trt.ID,
+                               Tank.ID = Tank.ID,
                                n_sim = loopnum)
-
-    #Transform TTE and Status in certain rows due to sampling
+    
+    #Transform TTE and Status (to 0) in certain rows due to sampling
     if(!is.null(sampling_specs)) {
+      
+      if(!"Tank.ID" %in% colnames(sampling_specs)) {
+        Tank_lvls = unique(Surv_simul_DB$Tank.ID)
+        sampling_specs = data.frame(TTE = rep(sampling_specs$TTE, each = length(Tank_lvls)),
+                                    Amount = rep(sampling_specs$Amount, each = length(Tank_lvls)),
+                                    Tank.ID = rep(Tank_lvls, times = nrow(sampling_specs)))
+        } 
 
-      #Repeat for each specified sampling time and each tank
-      for(samp_time in 1:length(sampling_specs$TTE)) {
-        for(tank_num in as.numeric(levels(Surv_simul_DB$Tank.ID))) {
-
-          rows_sel = sample(x = which(Surv_simul_DB$Tank.ID == tank_num & Surv_simul_DB$TTE > sampling_specs$TTE[samp_time]),
-                            size = sampling_specs$Amount[samp_time],
+      #Run through every row of sampling_specs and sample accordingly
+      for(samp_row in 1:nrow(sampling_specs)) {
+          
+          rows_samp_space = which(Surv_simul_DB$Tank.ID == sampling_specs$Tank.ID[samp_row] & 
+                                    Surv_simul_DB$TTE > sampling_specs$TTE[samp_row])
+          
+          #Catch over sampling situation and print message
+          if(length(rows_samp_space) < sampling_specs$Amount[samp_row]) {
+            print(paste(sep = "", "In simulation set-", loopnum, " Trt.ID-", unique(Surv_simul_DB$Trt.ID[rows_samp_space]),
+                         ", Tank.ID-", tank_num, ", you requested more samples than the fish alive! All fish sampled."))
+            
+            #Modify sampling amount
+            sampling_specs$Amount[samp_row] = length(rows_samp_space)
+          }
+          
+          #Select rows that were sampled
+          rows_sel = sample(x = rows_samp_space,
+                            size = sampling_specs$Amount[samp_row],
                             replace = FALSE)
 
-          Surv_simul_DB$TTE[rows_sel] = sampling_specs$TTE[samp_time]
+          #Change Status and Time for sampled individuals
+          Surv_simul_DB$TTE[rows_sel] = sampling_specs$TTE[samp_row]
           Surv_simul_DB$Status[rows_sel] = 0
-        }
       }
     }
 
@@ -195,7 +159,7 @@ theme = "ggplot2"
     surv_samps_temp = data.frame(Trt.ID = summary(surv_obj)$strata,
                                  surv_prob = summary(surv_obj)$surv,
                                  time = summary(surv_obj)$time,
-                                 type = paste("Sample (n = ", n_sim, ")", sep = ""),
+                                 type = paste("Sample set (n = ", n_sim, ")", sep = ""),
                                  n_sim = loopnum,
                                  alpha = 1 - (0.0001 ^ (1/n_sim)))
 
@@ -205,7 +169,7 @@ theme = "ggplot2"
                                                   time = c(floor(min(haz_db$time)), ceiling(max(haz_db$time))),
                                                   n_sim = loopnum,
                                                   alpha = 1 - (0.0001 ^ (1/n_sim))))
-    surv_samps_ends$type = paste("Sample (n = ", n_sim, ")", sep = "")
+    surv_samps_ends$type = paste("Sample set (n = ", n_sim, ")", sep = "")
 
     surv_samps = rbind(surv_samps, surv_samps_temp, surv_samps_ends)
 
@@ -215,7 +179,8 @@ theme = "ggplot2"
                                  surv_prob = summary(surv_obj, time = sampling_specs$TTE)$surv,
                                  time = summary(surv_obj, time = sampling_specs$TTE)$time,
                                  n_sim = loopnum,
-                                 type = as.factor(paste("Sample (n = ", n_sim, ")", sep = "")))
+                                 type = as.factor(paste("Sample set (n = ", n_sim, ")", sep = "")))
+
       cens_db = rbind(cens_db, cens_db_temp)
     }
   }
@@ -224,8 +189,8 @@ theme = "ggplot2"
   pop_haz_db = data.frame(approx(x = haz_db$time, y = haz_db$hazard, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear"))
   colnames(pop_haz_db) = c("time", "hazard")
 
-  
-  #For use with old surv_prob method (deprecated)
+
+  #For use with old surv_prob method (revived)
   surv_pop = data.frame(Trt.ID = as.factor(rep(c("Control", LETTERS[2:length(treatments_hr)]), each = length(haz_db$hazard))),
                         #cumhaz_prob = as.vector(apply((haz_db$hazard) %*% t(treatments_hr), 2, cumsum)),
                         surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum))),
@@ -233,28 +198,10 @@ theme = "ggplot2"
                         type = "Population / truth",
                         n_sim = 1,
                         alpha = 1)
-  #methods to get surv_prob stored here below:
-  #option 1 (old):
-  #surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum)))
-  
-  # #New method
-  # surv_pop = data.frame()
-  # for(pop_trt in levels(factor(surv_pop_old$Trt.ID))) {
-  #   pop_trt_cumhaz = surv_pop_old$cumhaz_prob[surv_pop_old$Trt.ID == pop_trt]
-  #   surv_prob_db = approx(x = haz_db$time, y = pop_trt_cumhaz, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear")
-  #   
-  #   surv_pop_temp = data.frame(Trt.ID = pop_trt,
-  #                              time = surv_prob_db$x,
-  #                              surv_prob = exp(-surv_prob_db$y),
-  #                              type = "Population / truth",
-  #                              n_sim = 1,
-  #                              alpha = 1)
-  #   surv_pop = rbind(surv_pop, surv_pop_temp)
-  # }
 
   #To the end of creating survival plots
   surv_comb = rbind(surv_samps, surv_pop)
-  surv_comb$type = factor(surv_comb$type, levels = c(paste("Sample (n = ", n_sim, ")", sep = ""), "Population / truth"))
+  surv_comb$type = factor(surv_comb$type, levels = c(paste("Sample set (n = ", n_sim, ")", sep = ""), "Population / truth"))
   surv_comb$Trt.ID = factor(surv_comb$Trt.ID, levels = rep(c("Control", LETTERS[2:length(treatments_hr)])))
 
   #Get end_sr for population plots and sample plots
@@ -272,10 +219,10 @@ theme = "ggplot2"
     facet_wrap(~ type) +
     geom_step(aes(alpha = alpha)) +
     scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
-    scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 15), 1))) +
+    scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 12), 1))) +
     ylab("Survival Probability (%)") +
     xlab("Time to Event") +
-    scale_alpha(range = c(min(surv_comb$alpha), 1))+
+    scale_alpha(range = c(min(surv_comb$alpha), 1)) +
     guides(alpha = "none") +
     coord_cartesian(clip = "off") +
     theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
@@ -306,16 +253,21 @@ theme = "ggplot2"
   }
 
   #Add censoring points
-  if(!is.null(sampling_specs))
-  {surv_plots = surv_plots + geom_point(data = cens_db, aes(x = time, y = surv_prob, colour = Trt.ID), shape = 3)}
+  if(!is.null(sampling_specs)) {
+    merged_db = merge(sampling_specs, Surv_simul_DB)
+    merged_db = merged_db[merged_db$Status == 0, ]
+    cens_db = cens_db[interaction(cens_db$Trt.ID, cens_db$time) %in% interaction(merged_db$Trt.ID, merged_db$TTE),]
+    surv_plots = surv_plots + 
+      geom_point(data = cens_db, aes(x = time, y = surv_prob, colour = Trt.ID), shape = 3, size = 0.7, stroke = 1.2)
+  }
 
   #Plot theme
   if(theme == "prism") {surv_plots = surv_plots + ggprism::theme_prism()}
 
   #Save plots and return outputs
   if(!is.null(plot_name)) {
-    eoffice::topptx(figure = surv_plots, filename = paste(plot_name, ".pptx", sep = ""), width = 6, height = 4)
-    ggsave(paste(plot_name, ".tiff", sep = ""), dpi = 900, width = 6, height = 4, plot = surv_plots)
+    eoffice::topptx(figure = surv_plots, filename = paste(plot_name, ".pptx", sep = ""), width = 7, height = 4)
+    ggsave(paste(plot_name, ".tiff", sep = ""), dpi = 900, width = 7, height = 4, plot = surv_plots)
   }
 
   if(plot_out == FALSE && pop_out == FALSE) {
@@ -327,7 +279,7 @@ theme = "ggplot2"
     output = list(simul_surv_db = Surv_simul_outDB)
     if(plot_out == TRUE) {output$surv_plots <- surv_plots}
     if(pop_out == TRUE) {output$population_surv_db <- surv_pop}
-    #return(output)
+    return(output)
   }
 ```
 
@@ -504,3 +456,25 @@ Label_Gen(list_input = input_variables,
           fill_by_row = TRUE,
           save_name = NULL)
 ```
+Methods to get surv_prob in Surv_Simul()
+```{r}
+  #methods to get surv_prob stored here below:
+  #option 1 (old):
+  #surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum)))
+
+  #New method (deprecated)
+  # surv_pop = data.frame()
+  # for(pop_trt in levels(factor(surv_pop_old$Trt.ID))) {
+  #   pop_trt_cumhaz = surv_pop_old$cumhaz_prob[surv_pop_old$Trt.ID == pop_trt]
+  #   surv_prob_db = approx(x = haz_db$time, y = pop_trt_cumhaz, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear")
+  #
+  #   surv_pop_temp = data.frame(Trt.ID = pop_trt,
+  #                              time = surv_prob_db$x,
+  #                              surv_prob = exp(-surv_prob_db$y),
+  #                              type = "Population / truth",
+  #                              n_sim = 1,
+  #                              alpha = 1)
+  #   surv_pop = rbind(surv_pop, surv_pop_temp)
+  # }
+```
+

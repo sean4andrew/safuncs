@@ -21,15 +21,15 @@ Surv_Simul(
 \arguments{
 \item{haz_db}{A dataframe representing the reference hazard curve; can be generated from \code{bshazard()} or \code{Surv_Plots()}.}
 
-\item{fish_num_per_tank}{The number of fish to simulate per tank. Defaults to 100.}
+\item{fish_num_per_tank}{The number of fish to simulate per tank. If the number differs by treatment, use a vector of numbers ordered according to \code{treatments_hr}. Defaults to 100 fish per tank.}
 
-\item{tank_num_per_trt}{The number of tanks to simulate per treatment group. Defaults to 4.}
+\item{tank_num_per_trt}{The number of tanks to simulate per treatment group. If the number differs by treatment, use a vector ordered according to \code{treamtnets_hr}. Defaults to 4 tank per treatment.}
 
 \item{treatments_hr}{A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1). Length of the vector represents the number of treatment groups. Defaults to \code{c(1, 1, 1, 1)}.}
 
 \item{logHR_sd_intertank}{The standard deviation of inter-tank variation in the log(HR) scale according to the \code{coxme} framework. Defaults to 0 (no inter-tank variation) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low inter-tank variation situation, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets.}
 
-\item{sampling_specs}{A dataframe representing the number / amount of right censored data (e.g. sampled fish) per tank at different times represented by two columns "Amount" and "TTE", respectively. See \bold{Examples} for example of use. Defaults to NULL (no sampling).}
+\item{sampling_specs}{A dataframe containing at least 2 columns; "Amount" representing the number of right censored data (e.g. sampled fish) per tank; "TTE" representing the time the sampling occurred; optionally a "Tank.ID" column to account for different sampling conditions per tank. Tank.IDs start from 1 until the total number of tanks. Its correspondence with treatment groups are based on \code{tank_num_per_trt} and \code{treatments_hr}. See \bold{Examples} for example of use. Defaults to NULL (no sampling).}
 
 \item{n_sim}{Number of survival dataset to simulate. Defaults to 1.}
 
@@ -42,14 +42,14 @@ Surv_Simul(
 \item{theme}{Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".}
 }
 \value{
-At minimum, returns a simulated survival dataframe consisting of 5 columns: TTE (Time to Event), Status (0 / 1), Trt.ID, Tank.ID, and n_sim which represents the simulation number for the data subsets.
+Returns a list that, at minimum, contains the simulated survival dataframe which has 5 columns: TTE (Time to Event), Status (0 / 1), Trt.ID, Tank.ID, and n_sim which represents the simulation number for the data subsets.
 
-If \code{plot_out = TRUE}, outputs a list that additionally contains a Kaplan-Meier survival plot. The plot illustrates the survival curve with end survival rates for the simulated dataset as well as the population. If the number of simulated dataset is greater than 1, multiple curves are drawn representing each and a statement is provided regarding the power to detect the effect of Treatment -- specifically, the percent positive (p < 0.05) from a global log-rank test using \code{survival::survdiff()}.
+If \code{plot_out = TRUE}, the list additionally contains a Kaplan-Meier survival plot. The plot illustrates the survival curve with end survival rates for the simulated dataset as well as the population. If the number of simulated dataset is greater than 1, multiple curves are drawn representing each and a statement is provided regarding the power to detect the effect of Treatment -- specifically, the percent positive (p < 0.05) from a global log-rank test using \code{survival::survdiff()}.
 
-If \code{pop_out = TRUE}, outputs a list that additionally contains a dataframe representing the survival probability values for the population / truth from which the sample is supposedly taken.
+If \code{pop_out = TRUE}, the list additionally contains a dataframe representing the survival probability values for the population / truth from which the sample is supposedly taken.
 }
 \description{
-Simulates survival data based on a set of user-specified experimental parameters and a reference hazard curve (e.g. hazard curve from the control group). Able to simulate data with inter-cluster (e.g. tank) variation which is added based on the framework of the mixed cox proportional hazards model (\code{coxme::coxme}). Able to simulate right censored data (e.g. sampled fish) using \code{sampling_specs} argument. Optionally produces a plot illustrating the characteristics of the simulated data and that of the population / truth from which the data (sample) is simulated.
+Simulates survival data based on a set of user-specified experimental parameters and a reference hazard curve (e.g. hazard curve from the control group). Able to simulate data with inter-cluster (e.g. tank) variation which is added based on the framework of the mixed cox proportional hazards model (\code{coxme::coxme}). Able to simulate right censored data (e.g. sampled fish) using \code{sampling_specs} argument. Able to simulate treatment- and tank- specific fish numbers. Optionally produces a plot illustrating the characteristics of the simulated data and that of the population / truth from which the data (sample) is simulated.
 }
 \details{
 Simulations are based on uniform-probability draws (\emph{U} ~ (0, 1)) from a set of events which can be expressed as a function of time using the cumulative density function of failures (\emph{F(t)}, i.e. cumulative mort. curve). \emph{F(t)} can be transformed to the cumulative hazard function \emph{H(t)}, hence the relationship between \emph{H(t)} and uniform draws (from \emph{U}) is also known (derivation and equation in \href{https://epub.ub.uni-muenchen.de/1716/1/paper_338.pdf}{Bender et al. (2003)}. Because \emph{H(t)} is related (as the integral) to the hazard function \emph{h(t)}, and since \emph{h(t)} is related to effects (e.g. treatment or tank) based on the cox proportional hazards model, such effects can now be incorporated into the simulation process as they can be interacted with \emph{U}. The simulation process is as follows:
@@ -96,13 +96,27 @@ Surv_Simul(haz_db = ref_haz_route_safuncs,
            sampling_specs = data.frame(Amount = 10,
                                        TTE = 45))$surv_plots
 
-#Simulate multiple times to better answer the question: are my future samples
-#likely to be good approximates of the truth / population
+#Below I show the results of simulating multiple times to better understand the
+#chance that future samples accurately capture the truth/population. Specify n_sim!
 Surv_Simul(haz_db = ref_haz_route_safuncs,
            treatments_hr = c(1, 0.8, 0.5),
            sampling_specs = data.frame(Amount = 10,
                                        TTE = 45),
            n_sim = 4)$surv_plots
+
+
+#To show that Surv_Simul() can handle even more complicated experimental designs,
+#below I use different fish numbers per tank, different tank numbers per treatment,
+#and different multi-sampling designs for each tank.
+Surv_Simul(haz_db = ref_haz_route_safuncs,
+           fish_num_per_tank = c(50, 100, 100), #for Ctrl., Trt.B, C, respectively
+           tank_num_per_trt = c(1, 1, 2),       #Ctrl., B, C
+           treatments_hr = c(1, 0.8, 0.5),      #Ctrl., B, C
+           sampling_specs = data.frame(TTE = c(30, 30, 30, 50),
+                                       Amount = c(0, 20, 5, 5),
+                                       Tank.ID = c(1, 2, 3, 4)), #Ctrl., B, C, C
+           n_sim = 4)$surv_plots
+
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Simul.html}{Link} for executed \bold{Examples} which includes any figure outputs.
