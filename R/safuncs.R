@@ -373,9 +373,9 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'                                        TTE = 45),
 #'            n_sim = 4)$surv_plots
 #'
-#' #To show that Surv_Simul() can handle even more complicated experimental designs,
-#' #below I use different fish numbers per tank, different tank numbers per treatment,
-#' #and different multi-sampling protocols per tank.
+#' #Surv_Simul() can handle even more complicated experimental designs. Below, I use
+#' #different treatment-specific fish numbers per tank and tank numbers per treatment,
+#' #and different sampling designs per tank.
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
 #'            fish_num_per_tank = c(50, 100, 100), #for Ctrl., Trt.B, C, respectively
 #'            tank_num_per_trt = c(1, 1, 2),       #Ctrl., B, C
