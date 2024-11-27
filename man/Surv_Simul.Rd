@@ -14,7 +14,6 @@ Surv_Simul(
   n_sim = 1,
   plot_out = TRUE,
   pop_out = TRUE,
-  plot_name = "Surv_Simul-Plot-Output",
   theme = "ggplot2"
 )
 }
@@ -27,7 +26,7 @@ Surv_Simul(
 
 \item{treatments_hr}{A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1). Length of the vector represents the number of treatment groups. Defaults to \code{c(1, 1, 1, 1)}.}
 
-\item{logHR_sd_intertank}{The standard deviation of inter-tank variation in the log(HR) scale according to the \code{coxme} framework. Defaults to 0 (no inter-tank variation) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low inter-tank variation situation, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets.}
+\item{logHR_sd_intertank}{The standard deviation of inter-tank variation (which contributes to overall data variation) in the log-HR scale according to the \code{coxme} framework. Defaults to 0 (no tank effect) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low tank effect, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets.}
 
 \item{sampling_specs}{A dataframe containing at least 2 columns; "Amount" representing the number of right censored data (e.g. sampled fish) per tank; "TTE" representing the time the sampling occurred; optionally a "Tank.ID" column to account for different sampling conditions per tank. Tank.IDs start from 1 until the total number of tanks. Its correspondence with treatment groups are based on \code{tank_num_per_trt} and \code{treatments_hr}. See \bold{Examples} for example of use. Defaults to NULL (no sampling).}
 
@@ -36,8 +35,6 @@ Surv_Simul(
 \item{plot_out}{Whether to output the information plot (further details in \bold{Value}). Defaults to TRUE.}
 
 \item{pop_out}{Whether to output a dataframe containing the survival probability values for the population. Defaults to TRUE.}
-
-\item{plot_name}{Character string specifying the name of the saved plot. Defaults to "Surv_Simul-Plot-Output".}
 
 \item{theme}{Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".}
 }

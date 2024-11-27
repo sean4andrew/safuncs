@@ -314,12 +314,11 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @param fish_num_per_tank The number of fish to simulate per tank. If the number differs by treatment, use a vector of numbers ordered according to \code{treatments_hr}. Defaults to 100 fish per tank.
 #' @param tank_num_per_trt The number of tanks to simulate per treatment group. If the number differs by treatment, use a vector ordered according to \code{treatments_hr}. Defaults to 4 tank per treatment.
 #' @param treatments_hr A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1). Length of the vector represents the number of treatment groups. Defaults to \code{c(1, 1, 1, 1)}.
-#' @param logHR_sd_intertank The standard deviation of inter-tank variation in the log(HR) scale according to the \code{coxme} framework. Defaults to 0 (no inter-tank variation) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low inter-tank variation situation, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets.
+#' @param logHR_sd_intertank The standard deviation of inter-tank variation (which contributes to overall data variation) in the log-HR scale according to the \code{coxme} framework. Defaults to 0 (no tank effect) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low tank effect, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets.
 #' @param sampling_specs A dataframe containing at least 2 columns; "Amount" representing the number of right censored data (e.g. sampled fish) per tank; "TTE" representing the time the sampling occurred; optionally a "Tank.ID" column to account for different sampling conditions per tank. Tank.IDs start from 1 until the total number of tanks. Its correspondence with treatment groups are based on \code{tank_num_per_trt} and \code{treatments_hr}. See \bold{Examples} for example of use. Defaults to NULL (no sampling).
 #' @param n_sim Number of survival dataset to simulate. Defaults to 1.
 #' @param plot_out Whether to output the information plot (further details in \bold{Value}). Defaults to TRUE.
 #' @param pop_out Whether to output a dataframe containing the survival probability values for the population. Defaults to TRUE.
-#' @param plot_name Character string specifying the name of the saved plot. Defaults to "Surv_Simul-Plot-Output".
 #' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
 #'
 #'
@@ -394,7 +393,6 @@ Surv_Simul = function(haz_db,
                       n_sim = 1,
                       plot_out = TRUE,
                       pop_out = TRUE,
-                      plot_name = "Surv_Simul-Plot-Output",
                       theme = "ggplot2") {
 
   #Validate that tank_num_per_trt and sampling_specs with Tank.IDs are consistent
@@ -612,11 +610,10 @@ Surv_Simul = function(haz_db,
   #Plot theme
   if(theme == "prism") {surv_plots = surv_plots + ggprism::theme_prism()}
 
-  #Save plots and return outputs
-  if(!is.null(plot_name)) {
-    eoffice::topptx(figure = surv_plots, filename = paste(plot_name, ".pptx", sep = ""), width = 7, height = 4)
-    ggsave(paste(plot_name, ".tiff", sep = ""), dpi = 900, width = 7, height = 4, plot = surv_plots)
-  }
+  #Save plot
+  ggsave(paste("Simul_Surv_Plot",
+               ifelse(length(list_var) == 1, "_", paste("_Element", ele_num, "_", sep ="")),
+               Sys.Date(), ".tiff", sep = ""), dpi = 900, width = 7, height = 4, plot = surv_plots)
 
   if(plot_out == FALSE && pop_out == FALSE) {
 
