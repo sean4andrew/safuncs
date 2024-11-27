@@ -611,8 +611,7 @@ Surv_Simul = function(haz_db,
   if(theme == "prism") {surv_plots = surv_plots + ggprism::theme_prism()}
 
   #Save plot
-  ggsave(paste("Simul_Surv_Plot",
-               ifelse(length(list_var) == 1, "_", paste("_Element", ele_num, "_", sep ="")),
+  ggsave(paste("Simul_Surv_Plot_",
                Sys.Date(), ".tiff", sep = ""), dpi = 900, width = 7, height = 4, plot = surv_plots)
 
   if(plot_out == FALSE && pop_out == FALSE) {
