@@ -63,9 +63,18 @@ Surv_Simul2 = function(haz_db = haz_db_ex,
   
   #Initialize objects to store second output type (across list elements and loops)
   output2 = list(surv_plots = list(), simul_surv_db = data.frame(), population_surv_db = data.frame())
+  list_var_check = c()
 
   #Finding the input variable (var_name) that is a list and store info in var_list
+  #First we stop the function if we find more than 1 list
   var_names = c("fish_num_per_tank", "tank_num_per_trt", "treatments_hr", "logHR_sd_intertank", "sampling_specs")
+  for (var_name_check in var_names) {
+    if(is.list(get(var_name_check, envir = environment())) & !is.data.frame(get(var_name_check, envir = environment()))){
+      list_var_check = c(list_var_check, var_name_check)
+    } 
+  }
+  if(length(list_var_check) > 1) {stop("You specified more than 1 argument/parameter as a list. Currently, this is not allowed.")}
+  
   for (var_name in var_names) {
   ifelse(is.list(get(var_name, envir = environment())) 
          & !is.data.frame(get(var_name, envir = environment())), 

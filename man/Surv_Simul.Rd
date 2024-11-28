@@ -11,6 +11,7 @@ Surv_Simul(
   treatments_hr = c(1, 1, 1, 1),
   logHR_sd_intertank = 0,
   sampling_specs = NULL,
+  exp_design = "between-tank",
   n_sim = 1,
   plot_out = TRUE,
   pop_out = TRUE,
@@ -20,15 +21,17 @@ Surv_Simul(
 \arguments{
 \item{haz_db}{A dataframe representing the reference hazard curve; can be generated from \code{bshazard::bshazard()} or \code{Surv_Plots()}.}
 
-\item{fish_num_per_tank}{The number of fish to simulate per tank. If the number differs by treatment, use a vector of numbers ordered according to \code{treatments_hr}. Defaults to 100 fish per tank.}
+\item{fish_num_per_tank}{The number of fish to simulate per tank, defaults to 100. If this differs by treatment, specify a vector of numbers ordered according to \code{treatments_hr}. When there is a need to compare experiments with different setups (fish numbers), specify the setups as elements in a list (see \bold{Examples}). This is useful for assessing power (for calculations see \code{Surv_Power()}). Only 1 parameter/argument can be specified as a list in \code{Surv_Simul()}.}
 
-\item{tank_num_per_trt}{The number of tanks to simulate per treatment group. If the number differs by treatment, use a vector ordered according to \code{treatments_hr}. Defaults to 4 tank per treatment.}
+\item{tank_num_per_trt}{The number of tanks to simulate per treatment group, defaults to 4. If this differs by treatment, specify a vector of numbers ordered according to \code{treatments_hr}. Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.}
 
-\item{treatments_hr}{A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1). Length of the vector represents the number of treatment groups. Defaults to \code{c(1, 1, 1, 1)}.}
+\item{treatments_hr}{A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1), defaults to \code{c(1, 1, 1, 1)}. Length of the vector represents the number of treatment groups. Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.}
 
-\item{logHR_sd_intertank}{The standard deviation of inter-tank variation (which contributes to overall data variation) in the log-HR scale according to the \code{coxme} framework. Defaults to 0 (no tank effect) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low tank effect, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets.}
+\item{logHR_sd_intertank}{The standard deviation of inter-tank variation (which contributes to overall data variation) in the log-HR scale according to the \code{coxme} framework. Defaults to 0 (no tank effect) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low tank effect, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets. Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.}
 
-\item{sampling_specs}{A dataframe containing at least 2 columns; "Amount" representing the number of right censored data (e.g. sampled fish) per tank; "TTE" representing the time the sampling occurred; optionally a "Tank.ID" column to account for different sampling conditions per tank. Tank.IDs start from 1 until the total number of tanks. Its correspondence with treatment groups are based on \code{tank_num_per_trt} and \code{treatments_hr}. See \bold{Examples} for example of use. Defaults to NULL (no sampling).}
+\item{sampling_specs}{A dataframe containing at least 2 columns; "Amount" representing the number of right censored data (e.g. sampled fish) per tank; "TTE" representing the time the sampling occurred; optionally a "Tank.ID" column to account for different sampling conditions per tank. Tank.IDs start from 1 until the total number of tanks. Its correspondence with treatment groups are based on \code{tank_num_per_trt} and \code{treatments_hr}. See \bold{Examples} for example of use. Defaults to NULL (no sampling). Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.}
+
+\item{exp_design}{A string specifying the type of experimental design. Can be "between-tank" which indicates each tank has a unique treatment hence the treatment effect occurs "between-tanks". Or, "within-tank" where each tank contains fish exposed to various treatments.}
 
 \item{n_sim}{Number of survival dataset to simulate. Defaults to 1.}
 
