@@ -315,7 +315,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @param tank_num_per_trt The number of tanks to simulate per treatment group, defaults to 4. If this differs by treatment, specify a vector of numbers ordered according to \code{treatments_hr}. Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.
 #' @param treatments_hr A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1), defaults to \code{c(1, 1, 1, 1)}. Length of the vector represents the number of treatment groups. Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.
 #' @param logHR_sd_intertank The standard deviation of inter-tank variation (which contributes to overall data variation) in the log-HR scale according to the \code{coxme} framework. Defaults to 0 (no tank effect) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low tank effect, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets. Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.
-#' @param sampling_specs A dataframe containing at least 2 columns; "Amount" representing the number of right censored data (e.g. sampled fish) per tank; "TTE" representing the time the sampling occurred; optionally a "Tank.ID" column to account for different sampling conditions per tank. Tank.IDs start from 1 until the total number of tanks. Its correspondence with treatment groups are based on \code{tank_num_per_trt} and \code{treatments_hr}. See \bold{Examples} for example of use. Defaults to NULL (no sampling). Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.
+#' @param sampling_specs A dataframe containing at least 2 columns; "Amount" representing the number of right censored data (e.g. sampled fish) per tank; "TTE" representing the time the sampling occurred; optionally a "Trt.ID" column to account for different sampling conditions per tank per treatment. Trt.IDs must start with "Control", then capitalized letters (see \bold{Examples}). Defaults to NULL (no sampling). Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.
 #' @param exp_design A string specifying the type of experimental design. Can be "between-tank" which indicates each tank has a unique treatment hence the treatment effect occurs "between-tanks". Or, "within-tank" where each tank contains fish exposed to various treatments.
 #' @param n_sim Number of survival dataset to simulate. Defaults to 1.
 #' @param plot_out Whether to output the information plot (further details in \bold{Value}). Defaults to TRUE.
@@ -374,17 +374,31 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'            n_sim = 4)$surv_plots
 #'
 #' #Surv_Simul() can handle even more complicated experimental designs. Below, I use
-#' #different treatment-specific fish numbers per tank and tank numbers per treatment,
-#' #and different sampling designs per tank.
+#' #different (across treatments) fish numbers per tank, tank numbers, and sampling
+#' #designs.
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
-#'            fish_num_per_tank = c(50, 100, 100), #for Ctrl., Trt.B, C, respectively
-#'            tank_num_per_trt = c(1, 1, 2),       #Ctrl., B, C
-#'            treatments_hr = c(1, 0.8, 0.5),      #Ctrl., B, C
-#'            sampling_specs = data.frame(TTE = c(30, 30, 30, 50),
-#'                                        Amount = c(0, 20, 5, 5),
-#'                                        Tank.ID = c(1, 2, 3, 4)), #Ctrl., B, C, C
+#'            fish_num_per_tank = c(50, 100, 100), #for Ctrl., Trt.A, B, respectively
+#'            tank_num_per_trt = c(1, 1, 2),       #Ctrl., A, B
+#'            treatments_hr = c(1, 0.8, 0.5),      #Ctrl., A, B
+#'            sampling_specs = data.frame(TTE = c(20, 40, 50),
+#'                                        Amount = c(0, 20, 5), #0 sample for Ctrl.
+#'                                        Trt.ID = c("Control", "A", "B")),
 #'            n_sim = 4)$surv_plots
 #'
+#' #What if we want to compare power of the global log-rank test (shown in the plot)
+#' #across different experimental setups with different fish numbers per treatment?
+#' #Below, I setup a Surv_Simul() to answer this question.
+#' Surv_Simul(haz_db = haz_db_ex,
+#'            fish_num_per_tank = list(30, 100),
+#'            tank_num_per_trt = 3,
+#'            treatments_hr = c(1, 0.6),
+#'            n_sim = 30)$surv_plots
+#'
+#' #Plot[[1]] and [[2]] shows the results from fish_num_per_tank = 30 and 100,
+#' #respectively. Additionally, the simulated data output (...$surv_simul_db) can be
+#' #supplied to safuncs::Surv_Power() (under development) to calculate power for
+#' #various tests (e.g. log-rank global, pairwise with(out) correction) or tests based
+#' #on statistical models with various forms (e.g. with(out) tank-variation)).
 Surv_Simul = function(haz_db,
                       fish_num_per_tank = 100,
                       tank_num_per_trt = 4,
@@ -520,8 +534,8 @@ Surv_Simul = function(haz_db,
 
         if(!"Trt.ID" %in% colnames(sampling_specs)) {
           Trt_levels = unique(Surv_simul_DB$Trt.ID)
-          sampling_specs = data.frame(TTE = rep(sampling_specs$TTE, each = length(Trt_lvls)),
-                                      Amount = rep(sampling_specs$Amount, each = length(Trt_lvls)),
+          sampling_specs = data.frame(TTE = rep(sampling_specs$TTE, each = length(Trt_levels)),
+                                      Amount = rep(sampling_specs$Amount, each = length(Trt_levels)),
                                       Trt.ID = rep(unique(Trt_levels, times = nrow(sampling_specs))))
         }
 

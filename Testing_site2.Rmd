@@ -26,14 +26,12 @@ Label_Gen(input_list = list(study_id = "ONDA01180",
 ```
 
 ```{r}
-Surv_Simul(haz_db = haz_db_ex,
-            fish_num_per_tank = c(50, 100, 100), #for Ctrl., Trt.B, C, respectively
-            tank_num_per_trt = c(1, 1, 2),       #Ctrl., B, C
-            treatments_hr = c(1, 0.8, 0.5),      #Ctrl., B, C
-            sampling_specs = data.frame(TTE = c(30, 30, 30, 50),
-                                        Amount = c(0, 20, 5, 5),
-                                        Tank.ID = c(1, 2, 3, 4)), #Ctrl., B, C, C
-            n_sim = 4)$surv_plots
+data(haz_db_ex)
+safuncs::Surv_Simul(haz_db = haz_db_ex,
+          fish_num_per_tank = list(30, 100),
+          tank_num_per_trt = 3,
+            treatments_hr = c(1, 0.6),
+            n_sim = 30)$surv_plots
 ```
 
 #### Ok finished testing with the list for between-tank designs. Now I need to do the same with within-tank designs. Also need to
@@ -408,7 +406,13 @@ Surv_Simul2 = function(haz_db = haz_db_ex,
 
 
 ```{r}
-output = Surv_Simul2()
+#output = Surv_Simul2()
+
+safuncs::Surv_Simul(haz_db = haz_db_ex,
+            fish_num_per_tank = list(50, 200),
+            tank_num_per_trt = 3,
+            treatments_hr = c(1, 0.6),
+            n_sim = 20)$surv_plots
 ```
 
 ```{r, fig.width = 6.3, fig.height = 4}
