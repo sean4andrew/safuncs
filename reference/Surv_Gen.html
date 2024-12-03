@@ -104,7 +104,9 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># First, we load an example mortality database available from the safuncs package</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mort_db_ex</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Next, we input this data into Surv_Gen() as well as the study details to generate entries (rows) for survivors in the output - a "complete" dataframe for further survival analysis and data visualization.</span></span></span>
+<span class="r-in"><span><span class="co"># Next, we input this data into Surv_Gen() as well as the study details to generate</span></span></span>
+<span class="r-in"><span><span class="co"># entries (rows) for survivors in the output - a "complete" dataframe for further</span></span></span>
+<span class="r-in"><span><span class="co"># survival analysis and data visualization.</span></span></span>
 <span class="r-in"><span><span class="va">Surv_Data_Output</span> <span class="op">=</span> <span class="fu">Surv_Gen</span><span class="op">(</span>mort_db <span class="op">=</span> <span class="va">mort_db_ex</span>,</span></span>
 <span class="r-in"><span>                   starting_fish_count <span class="op">=</span> <span class="fl">100</span>,</span></span>
 <span class="r-in"><span>                   last_tte <span class="op">=</span> <span class="fl">54</span>,</span></span>
@@ -114,7 +116,8 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of treatment groups is: 4"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of fish in the output data is: 1400"</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Below, the bottom 5 rows of the output is displayed to show the rows of survivor data generated.</span></span></span>
+<span class="r-in"><span><span class="co"># Below, the bottom 5 rows of the output is displayed to show the rows of survivor</span></span></span>
+<span class="r-in"><span><span class="co"># data generated.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">Surv_Data_Output</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      Tank.ID Trt.ID TTE Status</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1396    C100      B  54      0</span>
@@ -122,6 +125,27 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1398    C100      B  54      0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1399    C100      B  54      0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1400    C100      B  54      0</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Below is another example, this time showing how to specify tank-specific fish</span></span></span>
+<span class="r-in"><span><span class="co"># numbers. First, create the database containing information on the starting fish</span></span></span>
+<span class="r-in"><span><span class="co"># counts for the different tanks. You must include all tanks that are in your mort</span></span></span>
+<span class="r-in"><span><span class="co"># database to get a proper output. For the example below, we will later trim down</span></span></span>
+<span class="r-in"><span><span class="co"># the mort database to only 4 tanks for simplicity. Use these 3 column names:</span></span></span>
+<span class="r-in"><span><span class="co"># starting_fish_count, Tank.ID and Trt.ID.</span></span></span>
+<span class="r-in"><span><span class="va">count_db</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>starting_fish_count <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">100</span>, <span class="fl">120</span>, <span class="fl">120</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                      Tank.ID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C1"</span>, <span class="st">"C6"</span>, <span class="st">"C5"</span>, <span class="st">"C8"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                      Trt.ID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B"</span>, <span class="st">"B"</span>, <span class="st">"D"</span>, <span class="st">"D"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">filtered_mort_db</span> <span class="op">=</span> <span class="va">mort_db_ex</span><span class="op">[</span><span class="va">mort_db_ex</span><span class="op">$</span><span class="va">Tank.ID</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C1"</span>, <span class="st">"C6"</span>, <span class="st">"C5"</span>, <span class="st">"C8"</span><span class="op">)</span>,<span class="op">]</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># We then use 'count_db' as input to the argument 'starting_fish_count' in Surv_Gen():</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">Surv_Data_Output</span> <span class="op">=</span> <span class="fu">Surv_Gen</span><span class="op">(</span>mort_db <span class="op">=</span> <span class="va">filtered_mort_db</span>,</span></span>
+<span class="r-in"><span>                            starting_fish_count <span class="op">=</span> <span class="va">count_db</span>,</span></span>
+<span class="r-in"><span>                            last_tte <span class="op">=</span> <span class="fl">54</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of tanks is: 4"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of treatment groups is: 2"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of fish in the output data is: 440"</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -92,13 +92,14 @@
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## Below I show how we can perform a simple power calculation using this tool.</span></span></span>
-<span class="r-in"><span><span class="co">## Suppose I want to calculate power for Treatment B which halves the lesions in category 2 and 3.</span></span></span>
-<span class="r-in"><span><span class="co">## I then specify the following probability matrix and feed it into Con_Simul():</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Below I show how we can perform a simple power calculation using this tool.</span></span></span>
+<span class="r-in"><span><span class="co"># Suppose I want to calculate power for Treatment B which halves the lesions in</span></span></span>
+<span class="r-in"><span><span class="co"># category 2 and 3. I then specify the following probability matrix and feed it into</span></span></span>
+<span class="r-in"><span><span class="co"># Con_Simul():</span></span></span>
 <span class="r-in"><span><span class="va">probs_mat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>nrow <span class="op">=</span> <span class="fl">2</span>, ncol <span class="op">=</span> <span class="fl">3</span>, data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">6</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">6</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">12</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">6</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">12</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">sim_tab</span> <span class="op">=</span> <span class="fu"><a href="Con_Simul.html">Con_Simul</a></span><span class="op">(</span><span class="va">probs_mat</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">## Next, I feed the output into Con_Simul_PR():</span></span></span>
+<span class="r-in"><span><span class="co"># Next, I feed the output into Con_Simul_PR():</span></span></span>
 <span class="r-in"><span><span class="fu">Con_Simul_PR</span><span class="op">(</span><span class="va">sim_tab</span>, sample_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">100</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $pos_rate</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Total_Count Percent_of_Significant_Results Statistical_Test Class</span>
@@ -122,10 +123,12 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> $plot</span>
 <span class="r-plt img"><img src="Con_Simul_PR-1.png" alt="" width="700" height="433"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="co">## Results: Power is ~55, 86, and 97% for the Chi-square test using total counts of 50, 100, and 150, respectively.</span></span></span>
+<span class="r-in"><span><span class="co"># Results: Power is ~55, 86, and 97% for the Chi-square test using total counts of</span></span></span>
+<span class="r-in"><span><span class="co"># 50, 100, and 150, respectively.</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">## The same power for Chi-square test can be calculated using Cohen's omega (w) method which is faster but has its own limitations;</span></span></span>
-<span class="r-in"><span><span class="co">## e.g. assumes one data generating process for the contingency table (the no fixed marginals).</span></span></span>
+<span class="r-in"><span><span class="co"># The same power for Chi-square test can be calculated using Cohen's omega (w) method</span></span></span>
+<span class="r-in"><span><span class="co"># which is faster but has its own limitations; e.g. assumes one data generating</span></span></span>
+<span class="r-in"><span><span class="co"># process for the contingency table (the no fixed marginals).</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/heliosdrm/pwr" class="external-link">pwr</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">pwr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pwr/man/pwr.chisq.test.html" class="external-link">pwr.chisq.test</a></span><span class="op">(</span>w <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/pwr/man/ES.w2.html" class="external-link">ES.w2</a></span><span class="op">(</span><span class="va">probs_mat</span><span class="op">)</span>, df <span class="op">=</span> <span class="fl">2</span>, sig.level <span class="op">=</span> <span class="fl">0.05</span>, N <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -139,7 +142,7 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NOTE: N is the number of observations</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-in"><span><span class="co">## Results: Power is 85.6% for the Chi-square test at the total count of 100.</span></span></span>
+<span class="r-in"><span><span class="co"># Results: Power is 85.6% for the Chi-square test at the total count of 100.</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
