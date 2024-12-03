@@ -78,7 +78,6 @@ count_db = data.frame(starting_fish_count = c(100, 100, 120, 120),
 filtered_mort_db = mort_db_ex[mort_db_ex$Tank.ID \%in\% c("C1", "C6", "C5", "C8"),]
 
 # We then use 'count_db' as input to the argument 'starting_fish_count' in Surv_Gen():
-
 Surv_Data_Output = Surv_Gen(mort_db = filtered_mort_db,
                             starting_fish_count = count_db,
                             last_tte = 54)
