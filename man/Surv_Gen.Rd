@@ -52,15 +52,36 @@ For an example dataframe, execute \code{data(mort_db_ex)} and view.
 # First, we load an example mortality database available from the safuncs package
 data(mort_db_ex)
 
-# Next, we input this data into Surv_Gen() as well as the study details to generate entries (rows) for survivors in the output - a "complete" dataframe for further survival analysis and data visualization.
+# Next, we input this data into Surv_Gen() as well as the study details to generate
+# entries (rows) for survivors in the output - a "complete" dataframe for further
+# survival analysis and data visualization.
 Surv_Data_Output = Surv_Gen(mort_db = mort_db_ex,
                    starting_fish_count = 100,
                    last_tte = 54,
                    tank_without_mort = c("C99", "C100"),
                    trt_without_mort = c("A", "B"))
 
-# Below, the bottom 5 rows of the output is displayed to show the rows of survivor data generated.
+# Below, the bottom 5 rows of the output is displayed to show the rows of survivor
+# data generated.
 tail(Surv_Data_Output, n = 5)
+
+# Below is another example, this time showing how to specify tank-specific fish
+# numbers. First, create the database containing information on the starting fish
+# counts for the different tanks. You must include all tanks that are in your mort
+# database to get a proper output. For the example below, we will later trim down
+# the mort database to only 4 tanks for simplicity. Use these 3 column names:
+# starting_fish_count, Tank.ID and Trt.ID.
+count_db = data.frame(starting_fish_count = c(100, 100, 120, 120),
+                      Tank.ID = c("C1", "C6", "C5", "C8"),
+                      Trt.ID = c("B", "B", "D", "D"))
+
+filtered_mort_db = mort_db_ex[mort_db_ex$Tank.ID \%in\% c("C1", "C6", "C5", "C8"),]
+
+# We then use 'count_db' as input to the argument 'starting_fish_count' in Surv_Gen():
+
+Surv_Data_Output = Surv_Gen(mort_db = filtered_mort_db,
+                            starting_fish_count = count_db,
+                            last_tte = 54)
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Gen.html}{Link} for executed \bold{Examples} which includes any figure outputs.

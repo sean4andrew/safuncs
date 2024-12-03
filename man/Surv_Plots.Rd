@@ -74,13 +74,14 @@ For details on the statistical methodology used by \code{bshazard::bshazard()}, 
 General concept: h(t) the hazard function is considered in an count model with the number of deaths as the response variable. I.e, death_count(t) = h(t) * P(t) where P(t) is the number alive as a function of time and h(t) is modeled over time using basis splines. The basis spline curvature\bold{s} is assumed to have a normal distribution with mean 0 (a random effect). Based on this assumption, the author found that the variance of curvatures (i.e. smoothness) is equal to the over-dispersion (phi) of the death counts related (divided) by some smoothness parameter (lambda). Phi and lambda can be estimated from the data or specified by the user. Specification can be helpful in low sample size situations where overdispersion (phi) estimates have been found to be unreliable and clearly wrong (based on my understanding of realistic estimates and what was estimated in past data with adequate, large sample sizes).
 }
 \examples{
-#Starting from an example mortality database, we first generate the complete survivor data using Surv_Gen()
+# Starting from an example mortality database, we first generate the complete survivor
+# data using Surv_Gen()
 data(mort_db_ex)
 surv_dat = Surv_Gen(mort_db = mort_db_ex,
                     starting_fish_count = 100,
                     last_tte = 54)
 
-#Create plot by inputting surv_dat into Surv_Plots()!
+# Create plot by inputting surv_dat into Surv_Plots()!
 Surv_Plots(surv_db = surv_dat,
            plot_prefix = "QCATC777",
            xlim = c(0, 54),

@@ -117,21 +117,24 @@ Con_Simul = function(probs = "equal",
 #' @export
 #'
 #' @examples
-#' ## Below I show how we can perform a simple power calculation using this tool.
-#' ## Suppose I want to calculate power for Treatment B which halves the lesions in category 2 and 3.
-#' ## I then specify the following probability matrix and feed it into Con_Simul():
+#' # Below I show how we can perform a simple power calculation using this tool.
+#' # Suppose I want to calculate power for Treatment B which halves the lesions in
+#' # category 2 and 3. I then specify the following probability matrix and feed it into
+#' # Con_Simul():
 #' probs_mat = matrix(nrow = 2, ncol = 3, data = c(1/6, 1/3, 1/6, 1/12, 1/6, 1/12))
 #' sim_tab = Con_Simul(probs_mat)
 #'
-#' ## Next, I feed the output into Con_Simul_PR():
+#' # Next, I feed the output into Con_Simul_PR():
 #' Con_Simul_PR(sim_tab, sample_sizes = c(50, 100, 150))
-#' ## Results: Power is ~55, 86, and 97% for the Chi-square test using total counts of 50, 100, and 150, respectively.
+#' # Results: Power is ~55, 86, and 97% for the Chi-square test using total counts of
+#' # 50, 100, and 150, respectively.
 #'
-#' ## The same power for Chi-square test can be calculated using Cohen's omega (w) method which is faster but has its own limitations;
-#' ## e.g. assumes one data generating process for the contingency table (the no fixed marginals).
+#' # The same power for Chi-square test can be calculated using Cohen's omega (w) method
+#' # which is faster but has its own limitations; e.g. assumes one data generating
+#' # process for the contingency table (the no fixed marginals).
 #' library(pwr)
 #' pwr::pwr.chisq.test(w = ES.w2(probs_mat), df = 2, sig.level = 0.05, N = 100)
-#' ## Results: Power is 85.6% for the Chi-square test at the total count of 100.
+#' # Results: Power is 85.6% for the Chi-square test at the total count of 100.
 Con_Simul_PR = function(Con_Simul_Object = Con_Simul(),
                         add_fisher_exact = FALSE,
                         add_ord = FALSE,
@@ -338,18 +341,18 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @export
 #'
 #' @examples
-#' #Starting from an example mortality database, we first generate the complete survivor
-#' #data using Surv_Gen()
+#' # Starting from an example mortality database, we first generate the complete survivor
+#' # data using Surv_Gen()
 #' data(mort_db_ex)
 #' surv_dat = Surv_Gen(mort_db = mort_db_ex,
 #'                     starting_fish_count = 100,
 #'                     last_tte = 54)
 #'
-#' #Filter for the control group ("A") to get a reference hazard curve for simulations
+#' # Filter for the control group ("A") to get a reference hazard curve for simulations
 #' surv_dat_A = surv_dat[surv_dat$Trt.ID == "A", ]
 #'
-#' #Estimate the hazard curve of the control group and get the associated hazard
-#' #dataframe using bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB
+#' # Estimate the hazard curve of the control group and get the associated hazard
+#' # dataframe using bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB
 #' ref_haz_route_bshazard = bshazard::bshazard(data = surv_dat_A,
 #'                                             survival::Surv(TTE, Status) ~ Tank.ID,
 #'                                             nbin = max(surv_dat_A$TTE),
@@ -359,23 +362,23 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' ref_haz_route_safuncs = safuncs::Surv_Plots(surv_db = surv_dat_A,
 #'                                             data_out = TRUE)$Hazard_DB
 #'
-#' #Simulate! Sampled 10 fish per tank at 45 DPC, but otherwise default conditions.
+#' # Simulate! Sampled 10 fish per tank at 45 DPC, but otherwise default conditions.
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
 #'            treatments_hr = c(1, 0.8, 0.5),
 #'            sampling_specs = data.frame(Amount = 10,
 #'                                        TTE = 45))$surv_plots
 #'
-#' #Further, results of simulating multiple times are shown to better understand the
-#' #chance that future samples accurately capture the truth/population. Specify n_sim!
+#' # Further, results of simulating multiple times are shown to better understand the
+#' # chance that future samples accurately capture the truth/population. Specify n_sim!
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
 #'            treatments_hr = c(1, 0.8, 0.5),
 #'            sampling_specs = data.frame(Amount = 10,
 #'                                        TTE = 45),
 #'            n_sim = 4)$surv_plots
 #'
-#' #Surv_Simul() can handle even more complicated experimental designs. Below, I use
-#' #different (across treatments) fish numbers per tank, tank numbers, and sampling
-#' #designs.
+#' # Surv_Simul() can handle even more complicated experimental designs. Below, I use
+#' # different (across treatments) fish numbers per tank, tank numbers, and sampling
+#' # designs.
 #' Surv_Simul(haz_db = ref_haz_route_safuncs,
 #'            fish_num_per_tank = c(50, 100, 100), #for Ctrl., Trt.A, B, respectively
 #'            tank_num_per_trt = c(1, 1, 2),       #Ctrl., A, B
@@ -385,20 +388,20 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'                                        Trt.ID = c("Control", "A", "B")),
 #'            n_sim = 4)$surv_plots
 #'
-#' #What if we want to compare power of the global log-rank test (shown in the plot)
-#' #across different experimental setups with different fish numbers per treatment?
-#' #Below, I setup a Surv_Simul() to answer this question.
+#' # What if we want to compare power of the global log-rank test (shown in the plot)
+#' # across different experimental setups with different fish numbers per treatment?
+#' # Below, I setup a Surv_Simul() to answer this question.
 #' Surv_Simul(haz_db = haz_db_ex,
 #'            fish_num_per_tank = list(30, 100),
 #'            tank_num_per_trt = 3,
 #'            treatments_hr = c(1, 0.6),
 #'            n_sim = 30)$surv_plots
 #'
-#' #Plot[[1]] and [[2]] shows the results from fish_num_per_tank = 30 and 100,
-#' #respectively. Additionally, the simulated data output (...$surv_simul_db) can be
-#' #supplied to safuncs::Surv_Power() (under development) to calculate power for
-#' #various tests (e.g. log-rank global, pairwise with(out) correction) or tests based
-#' #on statistical models with various forms (e.g. with(out) tank-variation)).
+#' # Plot[[1]] and [[2]] shows the results from fish_num_per_tank = 30 and 100,
+#' # respectively. Additionally, the simulated data output (...$surv_simul_db) can be
+#' # supplied to safuncs::Surv_Power() (under development) to calculate power for
+#' # various tests (e.g. log-rank global, pairwise with(out) correction) or tests based
+#' # on statistical models with various forms (e.g. with(out) tank-variation)).
 Surv_Simul = function(haz_db,
                       fish_num_per_tank = 100,
                       tank_num_per_trt = 4,
@@ -777,10 +780,10 @@ Surv_Simul = function(haz_db,
 #' @export
 #'
 #' @examples
-#' #Load an example dataset
+#' # Load an example dataset
 #' data(iris)
 #'
-#' #Create a ggplot modified with theme_Publication()
+#' # Create a ggplot modified with theme_Publication()
 #' library(ggplot2)
 #' ggplot(data = iris, aes(x = Species, colour = Species, y = Petal.Length)) +
 #'    geom_boxplot() +
@@ -983,15 +986,36 @@ Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted.
 #' # First, we load an example mortality database available from the safuncs package
 #' data(mort_db_ex)
 #'
-#' # Next, we input this data into Surv_Gen() as well as the study details to generate entries (rows) for survivors in the output - a "complete" dataframe for further survival analysis and data visualization.
+#' # Next, we input this data into Surv_Gen() as well as the study details to generate
+#' # entries (rows) for survivors in the output - a "complete" dataframe for further
+#' # survival analysis and data visualization.
 #' Surv_Data_Output = Surv_Gen(mort_db = mort_db_ex,
 #'                    starting_fish_count = 100,
 #'                    last_tte = 54,
 #'                    tank_without_mort = c("C99", "C100"),
 #'                    trt_without_mort = c("A", "B"))
 #'
-#' # Below, the bottom 5 rows of the output is displayed to show the rows of survivor data generated.
+#' # Below, the bottom 5 rows of the output is displayed to show the rows of survivor
+#' # data generated.
 #' tail(Surv_Data_Output, n = 5)
+#'
+#' # Below is another example, this time showing how to specify tank-specific fish
+#' # numbers. First, create the database containing information on the starting fish
+#' # counts for the different tanks. You must include all tanks that are in your mort
+#' # database to get a proper output. For the example below, we will later trim down
+#' # the mort database to only 4 tanks for simplicity. Use these 3 column names:
+#' # starting_fish_count, Tank.ID and Trt.ID.
+#' count_db = data.frame(starting_fish_count = c(100, 100, 120, 120),
+#'                       Tank.ID = c("C1", "C6", "C5", "C8"),
+#'                       Trt.ID = c("B", "B", "D", "D"))
+#'
+#' filtered_mort_db = mort_db_ex[mort_db_ex$Tank.ID %in% c("C1", "C6", "C5", "C8"),]
+#'
+#' # We then use 'count_db' as input to the argument 'starting_fish_count' in Surv_Gen():
+#'
+#' Surv_Data_Output = Surv_Gen(mort_db = filtered_mort_db,
+#'                             starting_fish_count = count_db,
+#'                             last_tte = 54)
 Surv_Gen = function(mort_db,
                     starting_fish_count,
                     last_tte,
@@ -1108,13 +1132,14 @@ Surv_Gen = function(mort_db,
 #' @export
 #'
 #' @examples
-#' #Starting from an example mortality database, we first generate the complete survivor data using Surv_Gen()
+#' # Starting from an example mortality database, we first generate the complete survivor
+#' # data using Surv_Gen()
 #' data(mort_db_ex)
 #' surv_dat = Surv_Gen(mort_db = mort_db_ex,
 #'                     starting_fish_count = 100,
 #'                     last_tte = 54)
 #'
-#' #Create plot by inputting surv_dat into Surv_Plots()!
+#' # Create plot by inputting surv_dat into Surv_Plots()!
 #' Surv_Plots(surv_db = surv_dat,
 #'            plot_prefix = "QCATC777",
 #'            xlim = c(0, 54),

@@ -45,21 +45,24 @@ False Positive Rate is defined as the percentage of tests yielding positive resu
 P-values for the Chi-square test are computed using \code{stats::chisq.test()} with default parameters. P-values for Fisher's exact test are computed using \code{stats::fisher.test()} with \code{simulate.p.value} set to TRUE, alongside default parameters. P-values for ordinal regression are computed from \code{stats::anova()} applied to the output of \code{ordinal::clm()}.
 }
 \examples{
-## Below I show how we can perform a simple power calculation using this tool.
-## Suppose I want to calculate power for Treatment B which halves the lesions in category 2 and 3.
-## I then specify the following probability matrix and feed it into Con_Simul():
+# Below I show how we can perform a simple power calculation using this tool.
+# Suppose I want to calculate power for Treatment B which halves the lesions in
+# category 2 and 3. I then specify the following probability matrix and feed it into
+# Con_Simul():
 probs_mat = matrix(nrow = 2, ncol = 3, data = c(1/6, 1/3, 1/6, 1/12, 1/6, 1/12))
 sim_tab = Con_Simul(probs_mat)
 
-## Next, I feed the output into Con_Simul_PR():
+# Next, I feed the output into Con_Simul_PR():
 Con_Simul_PR(sim_tab, sample_sizes = c(50, 100, 150))
-## Results: Power is ~55, 86, and 97\% for the Chi-square test using total counts of 50, 100, and 150, respectively.
+# Results: Power is ~55, 86, and 97\% for the Chi-square test using total counts of
+# 50, 100, and 150, respectively.
 
-## The same power for Chi-square test can be calculated using Cohen's omega (w) method which is faster but has its own limitations;
-## e.g. assumes one data generating process for the contingency table (the no fixed marginals).
+# The same power for Chi-square test can be calculated using Cohen's omega (w) method
+# which is faster but has its own limitations; e.g. assumes one data generating
+# process for the contingency table (the no fixed marginals).
 library(pwr)
 pwr::pwr.chisq.test(w = ES.w2(probs_mat), df = 2, sig.level = 0.05, N = 100)
-## Results: Power is 85.6\% for the Chi-square test at the total count of 100.
+# Results: Power is 85.6\% for the Chi-square test at the total count of 100.
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Con_Simul_PR.html}{Link} for executed \bold{Examples} which includes any figure outputs.

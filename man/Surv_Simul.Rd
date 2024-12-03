@@ -69,18 +69,18 @@ Simulations are based on uniform-probability draws (\emph{U} ~ (0, 1)) from a se
 To verify the correct "randomness" is produced in the simulated survival data, given that adding "randomness" is the whole point of simulations (to me), 5 different validation checks have been performed (documented in a pdf to be uploaded to github). Those checks showed that the HR estimated by fitting two curves sampled from the same population, converges to a mean of 1 (as should be) over many simulations, and across simulations the HR varies as expected (SD of simulated HRs = SE of HR as supposed by the cox model). Those checks also showed that the p-value obtained by applying log-rank test to null (no-effect) simulated datasets, has a distribution that is uniform (as should be), with a false positive rate of 0.05 given the alpha used was 0.05 (as should be). Additionally, power calculated from the simulations equal to the power calculated from an \href{https://homepage.univie.ac.at/robin.ristl/samplesize.php?test=logrank}{online calculator}. Last, the checks showed that the variations in a simulated survival curve is similar to that observed in curves simulated using a different, more limited, method (bootstraping / re-sampling with replacement).
 }
 \examples{
-#Starting from an example mortality database, we first generate the complete survivor
-#data using Surv_Gen()
+# Starting from an example mortality database, we first generate the complete survivor
+# data using Surv_Gen()
 data(mort_db_ex)
 surv_dat = Surv_Gen(mort_db = mort_db_ex,
                     starting_fish_count = 100,
                     last_tte = 54)
 
-#Filter for the control group ("A") to get a reference hazard curve for simulations
+# Filter for the control group ("A") to get a reference hazard curve for simulations
 surv_dat_A = surv_dat[surv_dat$Trt.ID == "A", ]
 
-#Estimate the hazard curve of the control group and get the associated hazard
-#dataframe using bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB
+# Estimate the hazard curve of the control group and get the associated hazard
+# dataframe using bshazard::bshazard() or safuncs::Surv_Plots()$Hazard_DB
 ref_haz_route_bshazard = bshazard::bshazard(data = surv_dat_A,
                                             survival::Surv(TTE, Status) ~ Tank.ID,
                                             nbin = max(surv_dat_A$TTE),
@@ -90,23 +90,23 @@ ref_haz_route_bshazard = data.frame(summary(ref_haz_route_bshazard)$HazardEstima
 ref_haz_route_safuncs = safuncs::Surv_Plots(surv_db = surv_dat_A,
                                             data_out = TRUE)$Hazard_DB
 
-#Simulate! Sampled 10 fish per tank at 45 DPC, but otherwise default conditions.
+# Simulate! Sampled 10 fish per tank at 45 DPC, but otherwise default conditions.
 Surv_Simul(haz_db = ref_haz_route_safuncs,
            treatments_hr = c(1, 0.8, 0.5),
            sampling_specs = data.frame(Amount = 10,
                                        TTE = 45))$surv_plots
 
-#Further, results of simulating multiple times are shown to better understand the
-#chance that future samples accurately capture the truth/population. Specify n_sim!
+# Further, results of simulating multiple times are shown to better understand the
+# chance that future samples accurately capture the truth/population. Specify n_sim!
 Surv_Simul(haz_db = ref_haz_route_safuncs,
            treatments_hr = c(1, 0.8, 0.5),
            sampling_specs = data.frame(Amount = 10,
                                        TTE = 45),
            n_sim = 4)$surv_plots
 
-#Surv_Simul() can handle even more complicated experimental designs. Below, I use
-#different (across treatments) fish numbers per tank, tank numbers, and sampling
-#designs.
+# Surv_Simul() can handle even more complicated experimental designs. Below, I use
+# different (across treatments) fish numbers per tank, tank numbers, and sampling
+# designs.
 Surv_Simul(haz_db = ref_haz_route_safuncs,
            fish_num_per_tank = c(50, 100, 100), #for Ctrl., Trt.A, B, respectively
            tank_num_per_trt = c(1, 1, 2),       #Ctrl., A, B
@@ -116,20 +116,20 @@ Surv_Simul(haz_db = ref_haz_route_safuncs,
                                        Trt.ID = c("Control", "A", "B")),
            n_sim = 4)$surv_plots
 
-#What if we want to compare power of the global log-rank test (shown in the plot)
-#across different experimental setups with different fish numbers per treatment?
-#Below, I setup a Surv_Simul() to answer this question.
+# What if we want to compare power of the global log-rank test (shown in the plot)
+# across different experimental setups with different fish numbers per treatment?
+# Below, I setup a Surv_Simul() to answer this question.
 Surv_Simul(haz_db = haz_db_ex,
            fish_num_per_tank = list(30, 100),
            tank_num_per_trt = 3,
            treatments_hr = c(1, 0.6),
            n_sim = 30)$surv_plots
 
-#Plot[[1]] and [[2]] shows the results from fish_num_per_tank = 30 and 100,
-#respectively. Additionally, the simulated data output (...$surv_simul_db) can be
-#supplied to safuncs::Surv_Power() (under development) to calculate power for
-#various tests (e.g. log-rank global, pairwise with(out) correction) or tests based
-#on statistical models with various forms (e.g. with(out) tank-variation)).
+# Plot[[1]] and [[2]] shows the results from fish_num_per_tank = 30 and 100,
+# respectively. Additionally, the simulated data output (...$surv_simul_db) can be
+# supplied to safuncs::Surv_Power() (under development) to calculate power for
+# various tests (e.g. log-rank global, pairwise with(out) correction) or tests based
+# on statistical models with various forms (e.g. with(out) tank-variation)).
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Simul.html}{Link} for executed \bold{Examples} which includes any figure outputs.
