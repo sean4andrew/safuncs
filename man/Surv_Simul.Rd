@@ -15,7 +15,8 @@ Surv_Simul(
   n_sim = 1,
   plot_out = TRUE,
   pop_out = TRUE,
-  theme = "ggplot2"
+  theme = "ggplot2",
+  plot_save = TRUE
 )
 }
 \arguments{
@@ -39,7 +40,9 @@ Surv_Simul(
 
 \item{pop_out}{Whether to output a dataframe containing the survival probability values for the population. Defaults to TRUE.}
 
-\item{theme}{Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".}
+\item{theme}{A string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".}
+
+\item{plot_save}{Whether to save plot as .tiff in the working directory. Defaults to TRUE.}
 }
 \value{
 Returns a list that, at minimum, contains the simulated survival dataframe which has 5 columns: TTE (Time to Event), Status (0 / 1), Trt.ID, Tank.ID, and n_sim which represents the simulation number for the data subsets.
@@ -52,7 +55,7 @@ If \code{pop_out = TRUE}, the list additionally contains a dataframe representin
 Simulates survival data based on a set of user-specified experimental parameters and a reference hazard curve (e.g. hazard curve from the control group). Able to simulate data with inter-cluster (e.g. tank) variation which is added based on the framework of the mixed cox proportional hazards model (\code{coxme::coxme}). Able to simulate right censored data (e.g. sampled fish) using \code{sampling_specs} argument. Able to simulate treatment- and tank- specific fish numbers. Optionally produces a plot illustrating the characteristics of the simulated data and that of the population / truth from which the data (sample) is simulated.
 }
 \details{
-Simulations are based on uniform-probability draws (\emph{U} ~ (0, 1)) from a set of events which can be expressed as a function of time using the cumulative density function of failures (\emph{F(t)}, i.e. cumulative mort. curve). Because the cumulative mort curve (\emph{F(t)}) can be expressed in terms of the cumulative hazard function \emph{H(t)}, the relationship between \emph{H(t)} and random draws from \emph{U} is also known (derivation and equation in \href{https://epub.ub.uni-muenchen.de/1716/1/paper_338.pdf}{Bender et al. (2003)}. Because \emph{H(t)} is related (as the integral) to the hazard function \emph{h(t)}, and since \emph{h(t)} is related to effects (e.g. treatment or tank) based on the cox proportional hazards model, such effects can now be incorporated into the simulation process as they can be interacted with \emph{U}. The simulation process is as follows:
+Simulations are based on uniform-probability draws (\emph{U} ~ (0, 1)) from a set of events which can be expressed as a function of time using the cumulative density function of failures (\emph{F(t)}, i.e. cumulative mort. curve). Because the cumulative mort curve (\emph{F(t)}) can be expressed in terms of the cumulative hazard function \emph{H(t)}, the relationship between \emph{H(t)} and \emph{U} draws is known (for derivation and equation, see \href{https://epub.ub.uni-muenchen.de/1716/1/paper_338.pdf}{Bender et al. (2003)}. Because \emph{H(t)} is related (as the integral) to the hazard function \emph{h(t)}, and since \emph{h(t)} is related to effects (e.g. treatment or tank) based on the cox proportional hazards model, such effects can now be incorporated into the simulation process as they interact with \emph{U}. The simulation process is as follows:
 
 \enumerate{
 \item \code{Surv_Simul()} takes a random sample from \emph{U} (e.g. 0.7).

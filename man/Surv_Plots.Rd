@@ -42,7 +42,7 @@ Surv_Plots(
 
 \item{colours}{Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.}
 
-\item{theme}{Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".}
+\item{theme}{A string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".}
 
 \item{trt_order}{Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.}
 

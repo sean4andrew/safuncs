@@ -15,14 +15,326 @@ upercent_signif_seackage()
 
 
 ```{r}
-Label_Gen(input_list = list(study_id = "ONDA01180",
-                            timepoint = "100 dd",
-                            animal = "salmon",
-                            number = paste(1:20, "A", sep = ""),
-                            tank = c("Tk.1", "Tk.2", "Tk.3", "Tk.4"),
-                            tissue = c("Liver", "Spleen"),
-                            solvent = "RNA"),
-          sort_by = "tank")
+##################################################### Function 10 - Surv_Power() ####################################################
+
+#' Calculate Power for Survival Experiments
+#'
+#' @description Calculates power of global and/or pairwise hypothesis tests for survival studies with a wide range of experimental designs. This flexibility is enabled by the simulation-based nature of the power calculation, using the modular \code{Surv_Simul()} to simulate survival data. Power calculations can account for inter-tank variation by using a mixed cox proportional hazards model (set argument \code{model = "coxph_glmm"}). Additionally, power calculations can account for multiplicity of pairwise comparisons using the argument \code{pairwise_corr}. Users may compare power across different experimental designs by specifying each design as list elements in \code{Surv_Simul()}. Power values are returned as dataframes and plots.
+#'
+#' @details The power calculation here follows the standard procedure for power calculation using simulations. Initially, hypothetical future sample sets were simulated using \code{Surv_Simul()}. For each sample set, a p-value is calculated. The percentage of p-values below 0.05 (positives) were then calculated, representing power. The percent positives may also represent false positive rate if the population/truth in the simulation process are identical between treatments.
+#'
+#'
+#' @param simul_db The simulated survival dataframe from \code{Surv_Simul()}.
+#' @param global_test A character vector representing the method(s) used for global hypothesis testing of significance of Trt.ID. Methods available are: 'logrank', 'wald', 'score', 'LRT'. 'logrank' represents the global logrank test of significance. The latter three methods are standard global hypothesis testing methods for model fits. They are only available when the argument \code{model} is specified (i.e. not NULL).'wald' represents the Wald Chisquare Test (also known as joint test) which assesses whether model parameters (log(hazard ratios)) are significantly different than 0 (i.e. HRs =/= 1). This test can be done for various cox-proportional hazards model that could be relevant to our studies (coxph_glm, coxph_glmm, coxph_gee). Due to its wide applicability, while also producing practically the same p-value (most of the time) compared to the other two test for models, 'wald' is recommended of the three. 'score' represents the Lagrange multiplier or Score test. 'LRT' represents the likelihood ratio test. Defaults to 'logrank' for now since it is the most commonly used by our researchers.
+#' @param model A character vector representing the model(s) to fit for hypothesis testing. Models available are: 'coxph_glm' and 'coxph_glmm'. 'coxph_glm' represents the standard cox proportional hazard model fitted using \code{survival::coxph()} with Trt.ID as a fixed factor. 'coxph_glmm' represents the mixed cox proportional hazard model fitted using \code{coxme::coxme()} with Trt.ID as a fixed factor and Tank.ID as a random factor to account for inter-tank variation. Defaults to NULL where no model is used for hypothesis tests.
+#' @param pairwise_test A character vector representing the method(s) used for pairwise comparisons. Use "logrank" to calculate power for logrank tests comparing different treatments. Use "EMM" to calculate power using Estimated Marginal Means based on model estimates (from 'coxph_glm' and/or 'coxph_glmm'). Defaults to "logrank".
+#' @param pairwise_corr A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. The adjustment method affects power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". In \bold{Details}, I discuss categories of the adjustment methods and provided a recommendation for "BH". Defaults to "none" for now.
+#' @param data_out Whether to output dataframe(s) containing the power values calculated for the global and/or pairwise hypothesis tests. Defaults to TRUE.
+#' @param plot_out Whether to display plot(s) illustrating power from global and/or pairwise hypothesis tests. Defaults to TRUE
+#' @param plot_lines Whether to plot lines connecting points of the same "group" in the plot output. Defaults to TRUE.
+#' @param xlab A string representing the x-axis title. Defaults to "List Element #".
+#' @param xnames Vector of names for x-axis labels. Defaults to NULL where names are the list element numbers from \code{Surv_Gen()}.
+#' @param plot_save Whether to save plots as a .tiff. Defaults to TRUE.
+#'
+#' @return Output. An SE for proportions (calculated using the binomial formula)
+#'
+#' @import magrittr
+#' @import ggplot2
+#'
+#' @export
+#'
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Power.html}{Link} for web documentation.
+#'
+#' @examples
+Surv_Power = function(simul_db = simul_db_ex,
+                      global_test = "logrank", #selection(s) c("wald", "score", "LRT", "logrank")
+                      model = NULL, #selection(s) from c("coxph_glm", "coxph_glmm", NULL). Defaults to NULL
+                      pairwise_test = "logrank", #selection(s) c("EMM" or "logrank")
+                      pairwise_corr = "none", #selection of c("tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "none").
+                      plot_out = TRUE,
+                      plot_lines = FALSE,
+                      xlab = "List Element #",
+                      xnames = NULL,
+                      plot_save = TRUE){
+
+  #Track time elapsed
+  time_start = Sys.time()
+
+  #Convert NULL pairwise_corr into "none"
+  if(is.null(pairwise_corr)){pairwise_corr <- "none"}
+
+  #Standardize simul_db as dataframe
+  if(!is.data.frame(simul_db)){simul_db = data.frame(simul_db$simul_surv_db)}
+
+  #Add a value of 1 for column list_element_num in case no value is present in simul_db
+  if(!"list_element_num" %in% colnames(simul_db)){simul_db$list_element_num <- 1}
+
+  #Validation checks (stops)
+  if(sum(!global_test %in% c("logrank", "wald", "score", "LRT")) > 0) {
+    stop(paste("The", global_test[!global_test %in% c("logrank", "wald", "score", "LRT")][1], "global test method is not in the list supported by Surv_Power(). Select any amount from 'logrank', 'wald', 'score', and/or 'LRT'. For no global test to be done, select NULL. "))
+  }
+
+  if(sum(!model %in% c("coxph_glm", "coxph_glmm")) > 0) {
+    stop(paste("The", model[!model %in% c("coxph_glm", "coxph_glmm")][1], "model is currently not in the list supported by Surv_Power(). Select any amount from 'coxph_glm' and/or 'coxph_glmm'. For no model to be fitted, select NULL."))
+  }
+
+  if(sum(!pairwise_test %in% c("logrank", "EMM")) > 0) {
+    stop(paste("The", pairwise_test[!pairwise_test %in% c("logrank", "EMM")][1], "pairwise test method is not in the list supported by Surv_Power(). Select any amount from 'logrank' and/or 'EMM'. For no pairwise test to be done, select NULL."))
+  }
+
+  pairwise_corr_options = c("tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "none")
+  if(sum(!pairwise_corr %in% pairwise_corr_options) > 0) {
+    stop(paste("The", pairwise_corr[!pairwise_corr %in% pairwise_corr_options][1], "pairwise correction method is not in the list supported by Surv_Power(). Select any amount from 'tukey', 'holm', 'hochberg', 'hommel', 'bonferroni', 'BH', 'BY', and/or 'none'."))
+  }
+
+  #Initialize objects to store values
+  power_glob = data.frame()
+  power_pair = data.frame()
+  prog = 0
+
+  #Subset data by list_element_num. Loop through each.
+  for(ele_num in unique(simul_db$list_element_num)) {
+    simul_db_temp0 = simul_db[simul_db$list_element_num == ele_num,] #filter for ele_num
+
+    #Clear stored p_values for every ele_num
+    p_pair = data.frame()
+    p_glob = list()
+
+    #Calculate a p-value for every loopnum
+    for(simnum in unique(simul_db_temp0$n_sim)) {
+      simul_db_temp = simul_db_temp0[simul_db_temp0$n_sim == simnum,] #filter for loopnum
+
+      #Logrank tests
+      #Global
+      if("logrank" %in% global_test){
+        p_glob[["N/Ap"]][["logrank"]][simnum] = survival::survdiff(survival::Surv(TTE, Status) ~ Trt.ID, simul_db_temp)$pvalue
+      }
+
+      #Pairwise
+      for(pairwise_corr_id0 in pairwise_corr[pairwise_corr %in% c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none")]){
+        if("logrank" %in% pairwise_test) {
+          pair_lr_res = survminer::pairwise_survdiff(survival::Surv(TTE, Status) ~ Trt.ID,
+                                                     simul_db_temp, p.adjust.method = pairwise_corr_id0)
+          temp_pair2 = data.frame(as.table(pair_lr_res$p.value))
+          temp_pair2 = temp_pair2[-which(is.na(temp_pair2$Freq)),]
+
+          p_pair = rbind(p_pair, data.frame(pair = interaction(temp_pair2$Var2, temp_pair2$Var1, sep = " - "),
+                                            pvalues = temp_pair2$Freq,
+                                            model = "N/Ap",
+                                            pairwise_test = "logrank",
+                                            corr = pairwise_corr_id0))
+        }
+      }
+
+      #Model fits
+      if("coxph_glm" %in% model){
+        coxph_glm = survival::coxph(survival::Surv(TTE, Status) ~ Trt.ID, simul_db_temp)
+        coxph_glm_sum = summary(coxph_glm)
+      }
+      if("coxph_glmm" %in% model){coxph_glmm <- coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID), simul_db_temp)}
+
+      #Repeat for every model
+      for(mod_id in model){ #for every model...
+
+        #Repeat for every pairwise comparison correction setting
+        for(pairwise_corr_id in pairwise_corr) { #for every pairwise comparison setting..
+          if("EMM" %in% pairwise_test) {
+            temp_pair = data.frame(emmeans::emmeans(mget(mod_id, envir = environment())[[1]],
+                                                    pairwise ~ Trt.ID, adjust = pairwise_corr_id)$contrasts)
+
+            p_pair = rbind(p_pair, data.frame(pair = temp_pair$contrast,
+                                              pvalues = temp_pair$p.value,
+                                              model = mod_id,
+                                              pairwise_test = "EMM",
+                                              corr = pairwise_corr_id))
+          }
+        }
+
+        #Repeat for every global_test setting
+        for(glob_id in global_test){
+          if(glob_id == "wald"){p_glob[[mod_id]][[glob_id]][simnum] <- emmeans::joint_tests(mget(mod_id,
+                                                                                                 envir = environment())[[1]])$p.value}
+          if(glob_id == "score"){
+            if(mod_id == "coxph_glm"){p_glob[[mod_id]][[glob_id]][simnum] <- coxph_glm_sum$waldtest["pvalue"]}
+            if(mod_id == "coxph_glmm"){p_glob[[mod_id]][[glob_id]][simnum] <- NA} #Method not available/allowed
+          }
+
+          if(glob_id == "LRT"){
+            if(mod_id == "coxph_glm"){p_glob[[mod_id]][[glob_id]][simnum] <- coxph_glm_sum$logtest["pvalue"]}
+            if(mod_id == "coxph_glmm"){
+              p_glob[[mod_id]][[glob_id]][simnum] =
+                anova(coxph_glmm, coxme::coxme(survival::Surv(TTE, Status) ~ 1 + (1|Tank.ID), simul_db_temp))$`P(>|Chi|)`[2]
+            }
+          }
+        }
+      }
+
+      #Print progress
+      cat("\rCalculated p-values for", prog <- prog + 1, "of",
+          max(simul_db$list_element_num) * max(simul_db_temp0$n_sim), "sample sets")
+    } #Close loop for simnum
+
+    #Create power tables from p-values for each ele_num
+    #For global test pvalues
+    if(length(p_glob) > 0){
+      p_glob_unlist = stack(unlist(p_glob))
+      p_glob_unlist$ind = gsub(pattern = "[0-9]", x = p_glob_unlist$ind, replacement = "")
+      p_glob_db = data.frame(tidyr::separate(data = p_glob_unlist, col = "ind",
+                                             into = c("model", "global_test"), sep = "\\."))
+      power_glob_temp = data.frame(p_glob_db %>%
+                                     dplyr::group_by(model, global_test) %>%
+                                     dplyr::summarise(percent_signif = 100 * sum(values < 0.05)/length(values),
+                                                      datasets_n = length(values), .groups = "drop"))
+      power_glob_temp$percent_signif_se = sqrt(power_glob_temp$percent_signif *
+                                                 (100-power_glob_temp$percent_signif) /
+                                                 (power_glob_temp$datasets_n))
+      power_glob_temp = power_glob_temp[, c("model", "global_test", "percent_signif", "percent_signif_se", "datasets_n")]
+      power_glob_temp$element_num = ele_num
+      power_glob = rbind(power_glob, power_glob_temp)
+    }
+
+    #For pairwise test pvalues
+    if(length(p_pair) > 0){
+      power_pair_temp = data.frame(p_pair %>%
+                                     dplyr::group_by(pair, model, pairwise_test, corr) %>%
+                                     dplyr::summarise(percent_signif = 100 * sum(pvalues < 0.05)/length(pvalues),
+                                                      datasets_n = length(pvalues), .groups = "drop"))
+      power_pair_temp$percent_signif_se = sqrt(power_pair_temp$percent_signif *
+                                                 (100-power_pair_temp$percent_signif) /
+                                                 (power_pair_temp$datasets_n))
+      power_pair_temp = power_pair_temp[, c("pair", "model", "pairwise_test", "corr", "percent_signif",
+                                            "percent_signif_se", "datasets_n")]
+      power_pair_temp$element_num = ele_num
+      power_pair = rbind(power_pair, power_pair_temp)
+    }
+  } #Close loop for ele_num
+
+  #Outermost steps
+  #Plot #1 (global test)
+  if(length(p_glob) > 0){
+    mod_col = c("N/Ap" = "#F8766D", "coxph_glm" = "#00BA38", "coxph_glmm" = "#00BFC4")
+    power_glob$model = factor(power_glob$model, levels = c("N/Ap", "coxph_glm", "coxph_glmm"))
+    power_glob$global_test = factor(power_glob$global_test, levels = c("logrank", "wald", "score", "LRT"))
+    test_shapes = c(15:18)
+    names(test_shapes) = c("logrank", "wald", "score", "LRT")
+
+    glob_plot = ggplot(data = na.omit(power_glob), aes(x = as.numeric(element_num), y = percent_signif/100,
+                                                       colour = model, group = interaction(model, global_test))) +
+      geom_errorbar(aes(ymin = (percent_signif - percent_signif_se)/100,
+                        ymax = (percent_signif + percent_signif_se)/100),
+                    position = position_dodge(width = 0.12), width = 0.1) +
+      geom_point(aes(shape = global_test), position = position_dodge(width = 0.12)) +
+      scale_y_continuous(labels = scales::percent, breaks = seq(0, 1, 0.1), limits = c(0, 1),
+                         name = "% of significant results (p<0.05)") +
+      scale_x_continuous(breaks = seq(1, max(power_glob$element_num), 1),
+                         name = ifelse(is.null(xlab), "List Element #", xlab),
+                         labels = if(is.null(xnames)){waiver()}
+                         else{stringr::str_wrap(xnames, width = round(24/max(power_pair$element_num)))}) +
+      labs(color = "Model", shape = "Test", title = "Global Test of Significance") +
+      theme(plot.title = element_text(hjust = 0)) +
+      guides(linetype = "none",
+             shape = guide_legend(order = 2),
+             colour = guide_legend(order = 1)) +
+      scale_color_manual(values = mod_col) +
+      scale_shape_manual(values = test_shapes)
+
+    if(plot_lines == TRUE) {glob_plot <- glob_plot + geom_line(aes(linetype = global_test), position = position_dodge(width = 0.12))}
+
+  } else {glob_plot <- NULL}
+
+  #Plot #2 (pairwise test)
+  if(length(p_pair) > 0){
+    power_pair$pair = gsub(" - ", " vs. ", power_pair$pair)
+    u_pairs = length(unique(power_pair$pair))
+    n_col = ceiling(u_pairs/2)
+    test_and_corr_combos = rev(levels(interaction(c("logrank", "EMM"), pairwise_corr_options, sep = " & ")))[-1]
+    power_pair$test_and_corr = interaction(power_pair$pairwise_test, power_pair$corr, sep = " & ")
+    power_pair$test_and_corr = factor(power_pair$test_and_corr, levels = test_and_corr_combos)
+    power_pair$model = factor(power_pair$model, levels = c("N/Ap", "coxph_glm", "coxph_glmm", "coxph_gee"))
+    test_and_corr_shapes = c(3, rep(c(15:18, 4, 7, 25), each = 2))
+    names(test_and_corr_shapes) = test_and_corr_combos
+
+    pair_plot = ggplot(data = power_pair, aes(x = as.numeric(element_num), y = percent_signif/100, colour = model,
+                                              group = interaction(model, test_and_corr))) +
+      facet_wrap(~pair, ncol = n_col) +
+      geom_errorbar(aes(ymin = (percent_signif - percent_signif_se)/100,
+                        ymax = (percent_signif + percent_signif_se)/100),
+                    position = position_dodge(width = 0.30), width = 0.1) +
+      geom_point(aes(shape = test_and_corr), position = position_dodge(width = 0.30)) +
+      scale_y_continuous(labels = scales::percent, breaks = seq(0, 1, 0.1), limits = c(0, 1),
+                         name = "% of significant results (p<0.05)") +
+      scale_x_continuous(breaks = seq(1, max(power_pair$element_num), 1),
+                         name = ifelse(is.null(xlab), "List Element #", xlab),
+                         labels = if(is.null(xnames)){waiver()}
+                         else{stringr::str_wrap(xnames, width = round(48/(max(power_pair$element_num) * n_col)))}) +
+      labs(color = "Model", shape = "Test & Correction", title = "Pairwise Test of Significance") +
+      theme(plot.title = element_text(hjust = 0)) +
+      guides(linetype = "none",
+             shape = guide_legend(order = 2),
+             colour = guide_legend(order = 1)) +
+      scale_color_manual(values = mod_col) +
+      scale_shape_manual(values = test_and_corr_shapes)
+
+
+    if(plot_lines == TRUE) {pair_plot <- pair_plot + geom_line(aes(linetype = test_and_corr), position = position_dodge(width = 0.30))}
+  } else {pair_plot <- NULL}
+
+  #Return output
+  output = list()
+  if(!is.null(global_test)){
+    output[["power_global_db"]] = power_glob
+    if(plot_out == TRUE & length(power_glob) > 0) {
+      output[["power_global_plot"]] = glob_plot
+      if(plot_save == TRUE) {
+        ggsave(paste("Power_Global_Test_", Sys.Date(), ".tiff", sep =""),
+               dpi = 900, width = 7, height = 5.5, plot = glob_plot)
+      }
+    }
+  }
+  if(!is.null(pairwise_test)){
+    output[["power_pairwise_db"]] = power_pair[, -which((colnames(power_pair) == "test_and_corr"))]
+    if(plot_out == TRUE & length(pair_plot) > 0) {
+      output[["power_pairwise_plot"]] = pair_plot
+      if(plot_save == TRUE) {
+        ggsave(paste("Power_Pairwise_Test_", Sys.Date(), ".tiff", sep =""),
+               dpi = 900, width = 1.5 + (2.75 * ceiling(u_pairs / n_col)),
+               height = 2.75 * n_col, plot = pair_plot)
+      }
+    }
+  }
+
+  #Validation checks (print notes)
+  ##For global tests
+  if("coxph_glmm" %in% model & "score" %in% global_test){
+    print("NOTE: No off-the-shelf function for conducting a Likelihood Ratio Test on 'coxph_glmm' models in R. No power value is returned for the global test using LRT on 'coxph_glmm' model.")
+  }
+
+  ##For pairwise tests
+  if("logrank" %in% pairwise_test & "tukey" %in% pairwise_corr) {
+    print("NOTE: Tukey pairwise correction is not available for log-rank tests. No power value is returned for such a combination of test and correction.")
+  }
+
+  if(is.null(model)){
+    if("EMM" %in% pairwise_test){
+      print("NOTE: No pairwise comparison of type 'EMM' was done since no model was specified.")
+    }
+    if(sum(global_test %in% c("wald", "score", "LRT")) > 0){
+      print(paste("NOTE: No global_test of type", global_test, "was done since no model was specified."))
+    }
+  }
+
+  if(is.null(pairwise_test)){
+    print("NOTE: No pairwise test was done since pairwise_test was set to NULL.")
+  }
+  if(is.null(global_test)){
+    print("NOTE: No global test was done since global_test was set to NULL.")
+  }
+
+  #Print time elapsed
+  print(paste("Time elapsed:", substr(hms::as_hms(Sys.time() - time_start), 1, 8), "(hh:mm:ss)"))
+  return(output)
+}
+
 ```
 
 ```{r}
