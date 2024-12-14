@@ -297,7 +297,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'
 #' @description Simulates survival data based on a set of user-specified experimental parameters and a reference hazard curve (e.g. hazard curve from the control group). Able to simulate data with inter-cluster (e.g. tank) variation which is added based on the framework of the mixed cox proportional hazards model (\code{coxme::coxme}). Able to simulate right censored data (e.g. sampled fish) using \code{sampling_specs} argument. Able to simulate treatment- and tank- specific fish numbers. Optionally produces a plot illustrating the characteristics of the simulated data and that of the population / truth from which the data (sample) is simulated.
 #'
-#' @details Simulations are based on uniform-probability draws (\emph{U} ~ (0, 1)) from a set of events which can be expressed as a function of time using the cumulative density function of failures (\emph{F(t)}, i.e. cumulative mort. curve). Because the cumulative mort curve (\emph{F(t)}) can be expressed in terms of the cumulative hazard function \emph{H(t)}, the relationship between \emph{H(t)} and random draws from \emph{U} is also known (derivation and equation in \href{https://epub.ub.uni-muenchen.de/1716/1/paper_338.pdf}{Bender et al. (2003)}. Because \emph{H(t)} is related (as the integral) to the hazard function \emph{h(t)}, and since \emph{h(t)} is related to effects (e.g. treatment or tank) based on the cox proportional hazards model, such effects can now be incorporated into the simulation process as they can be interacted with \emph{U}. The simulation process is as follows:
+#' @details Simulations are based on uniform-probability draws (\emph{U} ~ (0, 1)) from a set of events which can be expressed as a function of time using the cumulative density function of failures (\emph{F(t)}, i.e. cumulative mort. curve). Because the cumulative mort curve (\emph{F(t)}) can be expressed in terms of the cumulative hazard function \emph{H(t)}, the relationship between \emph{H(t)} and \emph{U} draws is known (for derivation and equation, see \href{https://epub.ub.uni-muenchen.de/1716/1/paper_338.pdf}{Bender et al. (2003)}. Because \emph{H(t)} is related (as the integral) to the hazard function \emph{h(t)}, and since \emph{h(t)} is related to effects (e.g. treatment or tank) based on the cox proportional hazards model, such effects can now be incorporated into the simulation process as they interact with \emph{U}. The simulation process is as follows:
 #'
 #' \enumerate{
 #' \item \code{Surv_Simul()} takes a random sample from \emph{U} (e.g. 0.7).
@@ -314,17 +314,17 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' To verify the correct "randomness" is produced in the simulated survival data, given that adding "randomness" is the whole point of simulations (to me), 5 different validation checks have been performed (documented in a pdf to be uploaded to github). Those checks showed that the HR estimated by fitting two curves sampled from the same population, converges to a mean of 1 (as should be) over many simulations, and across simulations the HR varies as expected (SD of simulated HRs = SE of HR as supposed by the cox model). Those checks also showed that the p-value obtained by applying log-rank test to null (no-effect) simulated datasets, has a distribution that is uniform (as should be), with a false positive rate of 0.05 given the alpha used was 0.05 (as should be). Additionally, power calculated from the simulations equal to the power calculated from an \href{https://homepage.univie.ac.at/robin.ristl/samplesize.php?test=logrank}{online calculator}. Last, the checks showed that the variations in a simulated survival curve is similar to that observed in curves simulated using a different, more limited, method (bootstraping / re-sampling with replacement).
 #'
 #' @param haz_db A dataframe representing the reference hazard curve; can be generated from \code{bshazard::bshazard()} or \code{Surv_Plots()}.
-#' @param fish_num_per_tank The number of fish to simulate per tank, defaults to 100. If this differs by treatment, specify a vector of numbers ordered according to \code{treatments_hr}. When there is a need to compare experiments with different setups (fish numbers), specify the setups as elements in a list (see \bold{Examples}). This is useful for assessing power (for calculations see \code{Surv_Power()}). Only 1 parameter/argument can be specified as a list in \code{Surv_Simul()}.
-#' @param tank_num_per_trt The number of tanks to simulate per treatment group, defaults to 4. If this differs by treatment, specify a vector of numbers ordered according to \code{treatments_hr}. Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.
-#' @param treatments_hr A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1), defaults to \code{c(1, 1, 1, 1)}. Length of the vector represents the number of treatment groups. Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.
-#' @param logHR_sd_intertank The standard deviation of inter-tank variation (which contributes to overall data variation) in the log-HR scale according to the \code{coxme} framework. Defaults to 0 (no tank effect) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low tank effect, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets. Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.
-#' @param sampling_specs A dataframe containing at least 2 columns; "Amount" representing the number of right censored data (e.g. sampled fish) per tank; "TTE" representing the time the sampling occurred; optionally a "Trt.ID" column to account for different sampling conditions per tank per treatment. Trt.IDs must start with "Control", then capitalized letters (see \bold{Examples}). Defaults to NULL (no sampling). Input can be specified as elements in a list to compare different experimental setups as described for \code{fish_num_per_tank}.
+#' @param fish_num_per_tank The number of fish to simulate per tank, defaults to 100. If this differs by treatment, specify a vector of numbers ordered according to \code{treatments_hr}. When there is a need to compare experiments with different setups (fish numbers), specify the different setups as elements in a list (see \bold{Examples}). This is useful for comparing power between experimental setups (for calculations see \code{Surv_Power()}). Only 1 input parameter in \code{Surv_Simul()} can be specified as a list.
+#' @param tank_num_per_trt The number of tanks to simulate per treatment group, defaults to 4. If this differs by treatment, specify a vector of numbers ordered according to \code{treatments_hr}. Input can be specified as elements in a list, with each element representing different experimental setups as described for \code{fish_num_per_tank}.
+#' @param treatments_hr A vector representing the hazard ratios of the treatment groups starting with the reference/control (HR = 1), defaults to \code{c(1, 1, 1, 1)}. Length of the vector represents the number of treatment groups. Input can be specified as elements in a list, with each element representing different experimental setups as described for \code{fish_num_per_tank}.
+#' @param logHR_sd_intertank The standard deviation of inter-tank variation (which contributes to overall data variation) in the log-HR scale according to the \code{coxme} framework. Defaults to 0 (no tank effect) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low tank effect, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets. Input can be specified as elements in a list, with each element representing different experimental setups as described for \code{fish_num_per_tank}.
+#' @param sampling_specs A dataframe containing at least 2 columns; "Amount" representing the number of right censored data (e.g. sampled fish) per tank; "TTE" representing the time the sampling occurred; optionally a "Trt.ID" column to account for different sampling conditions per tank per treatment. Trt.IDs must start with "Control", then capitalized letters (see \bold{Examples}). Defaults to NULL (no sampling). Input can be specified as elements in a list, with each element representing different experimental setups as described for \code{fish_num_per_tank}.
 #' @param exp_design A string specifying the type of experimental design. Can be "between-tank" which indicates each tank has a unique treatment hence the treatment effect occurs "between-tanks". Or, "within-tank" where each tank contains fish exposed to various treatments.
 #' @param n_sim Number of survival dataset to simulate. Defaults to 1.
 #' @param plot_out Whether to output the information plot (further details in \bold{Value}). Defaults to TRUE.
 #' @param pop_out Whether to output a dataframe containing the survival probability values for the population. Defaults to TRUE.
-#' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
-#'
+#' @param theme A string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
+#' @param plot_save Whether to save plot as .tiff in the working directory. Defaults to TRUE.
 #'
 #' @return Returns a list that, at minimum, contains the simulated survival dataframe which has 5 columns: TTE (Time to Event), Status (0 / 1), Trt.ID, Tank.ID, and n_sim which represents the simulation number for the data subsets.
 #'
@@ -412,7 +412,10 @@ Surv_Simul = function(haz_db,
                       n_sim = 1,
                       plot_out = TRUE,
                       pop_out = TRUE,
-                      theme = "ggplot2") {
+                      theme = "ggplot2",
+                      plot_save = TRUE) {
+  #Track time elapsed
+  time_start = Sys.time()
 
   #Making sure input data has correct (lower case) column names
   colnames(haz_db) = tolower(colnames(haz_db))
@@ -420,6 +423,13 @@ Surv_Simul = function(haz_db,
   #Initialize objects to store second output type (across list elements and loops)
   output2 = list(surv_plots = list(), simul_surv_db = data.frame(), population_surv_db = data.frame())
   list_var_check = c()
+
+  #Validation Check(s)
+  if(plot_out == TRUE) {
+    if(logHR_sd_intertank > 0) {
+      print("NOTE: You specified a tank effect/contribution to variation, but the power shown in the plot is based of the logrank test. This test assumes no such tank effects. Adding tank-variation tends to decrease power of the logrank when the treatment effect is strong-modest (see Examples in Surv_Simul()'s documentation). Despite the decrease, power of the logrank will still be greater than that of other statistical tests which considers tank variation (assuming the experimental design is 'between-tank' because this matters). At the cost of having the greater power, logrank suffers from a greater false positive rate (> 5%). To calculate power of other tests that account for tank variation (hence keeping FPR at ~5%), use the coxph_glmm model option in the function Surv_Power() from package safuncs.")
+    }
+  }
 
   #Finding the input variable (var_name) that is a list and store info in var_list
   #First we stop the function if we find more than 1 list
@@ -441,17 +451,15 @@ Surv_Simul = function(haz_db,
     }
   }
 
+  #Track progress
+  prog = 0
+
   #Change var_name based on list_var elements
   for (ele_num in 1:length(list_var)) {
 
     #if you have list elements, assign and print. If not just jump straight to old code
     if(length(list_var) > 1) { #if you have list elements, assign and print, otherwise just go to old code.
       assign(var_name, list_var[[ele_num]]) #assign
-      print(paste("Simulating for ", #print
-                  paste(var_name),
-                  " list element #",
-                  ele_num,
-                  sep = ""))
     }
 
     #Old code below. Will only run once if there is no list (i.e. length(list_var) = 1)
@@ -617,7 +625,11 @@ Surv_Simul = function(haz_db,
                                    type = as.factor(paste("Sample set (n = ", n_sim, ")", sep = "")))
         cens_db = rbind(cens_db, cens_db_temp)
       }
-    }
+
+      #Print progress
+      cat("\rSimulated", prog <- prog + 1, "of",
+          n_sim * length(list_var), "sample sets")
+    } #close loopnum
 
     #Get "population" survival dataset by exponentiating the negative cumulative hazard
     pop_haz_db = data.frame(approx(x = haz_db$time, y = haz_db$hazard, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear"))
@@ -698,32 +710,38 @@ Surv_Simul = function(haz_db,
     #Plot theme
     if(theme == "prism") {surv_plots = surv_plots + ggprism::theme_prism()}
 
+    #Plot title
+    if(length(list_var > 1)) {
+
+      surv_plots = surv_plots + labs(title = paste("List Element", ele_num))
+    }
+
     #Save plot
-    ggsave(paste("Simul_Surv_Plot",
-                 ifelse(length(list_var) == 1, "_", paste("_Element", ele_num, "_", sep ="")),
-                 Sys.Date(), ".tiff", sep = ""), dpi = 900, width = 7, height = 4, plot = surv_plots)
-    surv_pop = surv_pop[, -6] #remove "alpha" column from data output
+    if(plot_save == TRUE){
+      ggsave(paste("Simul_Surv_Plot",
+                   ifelse(length(list_var) == 1, "_", paste("_Element", ele_num, "_", sep ="")),
+                   Sys.Date(), ".tiff", sep = ""), dpi = 900, width = 7, height = 4, plot = surv_plots)
+    }
+
+    #remove "alpha" column from data output
+    surv_pop = surv_pop[, -6]
 
     #Return R output if list_var length = 1 (i.e. no list)
     if(length(list_var) == 1) {
       if(plot_out == FALSE & pop_out == FALSE) {
+        #Print time elapsed
+        print(paste("Time elapsed:", substr(hms::as_hms(Sys.time() - time_start), 1, 8), "(hh:mm:ss)"))
         return(simul_surv_db = Surv_simul_outDB)
 
       } else {
 
         output = list(simul_surv_db = Surv_simul_outDB)
 
-        if(plot_out == TRUE) {
-          output$surv_plots <- surv_plots
-          if(logHR_sd_intertank > 0 & exp_design == "between-tank") {
-            print("NOTE: You specified a tank effect/contribution to variation, but the power shown in the figure is based of the log-rank test which assumes no such effects. Additionally, you specified a between-tank experimental design. As a result, the power of the log-rank test can increase/decrease. Meanwhile its false positive rate (FPR) will increase. Importantly, FPR could rise far above 5% which is implied when researchers preset their test's alpha to 0.05 (hence the claim of 5% FPR is untrue). To calculate power of more appropriate statistical test(s) see safuncs::Surv_Power().")
-          }
-          if(logHR_sd_intertank > 0 & exp_design == "within-tank") {
-            print("NOTE: You specified a tank effect/contribution to variation, but the power shown in the figure is based of the log-rank test which assumes no such effects. Additionally, you specified a within-tank experimental design. As a result, the power of the log-rank test could be less than what is deserved given the data structure in a within-tank design. To calculate power of more appropriate statistical test(s) see safuncs::Surv_Power().")
-          }
-        }
-
         if(pop_out == TRUE) {output$population_surv_db <- surv_pop}
+        if(plot_out == TRUE) {output$surv_plots <- surv_plots}
+
+        #Print time elapsed
+        print(paste("Time elapsed:", substr(hms::as_hms(Sys.time() - time_start), 1, 8), "(hh:mm:ss)"))
         return(output)
       }
     }
@@ -744,19 +762,14 @@ Surv_Simul = function(haz_db,
 
     if(plot_out == FALSE) {
       output2$surv_plots = NULL
-    } else {
-      if(logHR_sd_intertank > 0 & exp_design == "within-tank") {
-        print("NOTE: You specified a tank effect/contribution to variation, but the power shown in the figure is based of the log-rank test which assumes no such effects. Additionally, you specified a within-tank experimental design. As a result, the power of the log-rank test could be less than what is deserved given the data structure in a within-tank design. To calculate power of more appropriate statistical test(s) see safuncs::Surv_Power().")
-      }
-      if(logHR_sd_intertank > 0 & exp_design == "between-tank") {
-        print("NOTE: You specified a tank effect/contribution to variation, but the power shown in the figure is based of the log-rank test which assumes no such effects. Additionally, you specified a between-tank experimental design. As a result, the power of the log-rank test can increase/decrease. Meanwhile its false positive rate (FPR) will increase. Importantly, FPR could rise far above 5% which is implied when researchers preset their test's alpha to 0.05 (hence the claim of 5% FPR is untrue). To calculate power of more appropriate statistical test(s) see safuncs::Surv_Power().")
-      }
     }
 
     if(pop_out == FALSE) {
       output2$population_surv_db = NULL
     }
 
+    #Print time elapsed
+    print(paste("Time elapsed:", substr(hms::as_hms(Sys.time() - time_start), 1, 8), "(hh:mm:ss)"))
     return(output2)
   }
 }
@@ -1116,16 +1129,16 @@ Surv_Gen = function(mort_db,
 #' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE for large sample sizes (often with tank replication), although at large sample sizes either TRUE or FALSE produces similar results usually. Defaults to TRUE.
 #' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
 #' @param colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
-#' @param theme Character string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
+#' @param theme A string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
 #' @param trt_order Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.
 #' @param data_out Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.
 #' @param plot_dim Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.
 #'
 #' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 #'
-#' @return With argument {\code{plot = "both"}}, returns the Kaplan-Meier Survival Curve and the Hazard Curve. Output can be trimmed by setting \code{plot = "haz"} or \code{plot = "surv"}.
+#' @return Rturns a list containing the Kaplan-Meier Survival Curve and the Hazard Curve if {\code{plot = "both"}}. If only one plot is to be calculated and shown, set either \code{plot = "haz"} or \code{plot = "surv"}.
 #'
-#' If \code{data_out = TRUE}, returns a list of the plot(s) and the associated dataframes to create them.
+#' If \code{data_out = TRUE}, returns dataframes associated with the survival plots.
 #'
 #' @import ggplot2
 #' @export

@@ -51,9 +51,9 @@ Surv_Plots(
 \item{plot_dim}{Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.}
 }
 \value{
-With argument {\code{plot = "both"}}, returns the Kaplan-Meier Survival Curve and the Hazard Curve. Output can be trimmed by setting \code{plot = "haz"} or \code{plot = "surv"}.
+Rturns a list containing the Kaplan-Meier Survival Curve and the Hazard Curve if {\code{plot = "both"}}. If only one plot is to be calculated and shown, set either \code{plot = "haz"} or \code{plot = "surv"}.
 
-If \code{data_out = TRUE}, returns a list of the plot(s) and the associated dataframes to create them.
+If \code{data_out = TRUE}, returns dataframes associated with the survival plots.
 }
 \description{
 Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.
