@@ -39,12 +39,12 @@ Surv_Power(
 
 \item{xnames}{A character vector of names for x-axis labels. Defaults to NULL where names are the list element numbers from \code{Surv_Simul()}.}
 
-\item{plot_save}{Whether to save plots as a .tiff. Defaults to TRUE.}
+\item{plot_save}{Whether to save plots as a .tiff in the working directory. Defaults to TRUE.}
 }
 \value{
 Outputs a list containing any of the following four items depending on input arguments:
 \itemize{
-\item When \code{global_test ≠ NULL}, a dataframe named \code{power_glob_db} containing power values for global hypothesis tests. The dataframe consists of six columns: \tabular{lll}{
+\item When \code{global_test ≠ NULL}, outputs a dataframe named \code{power_glob_db} containing power values calculated for global hypothesis tests. The dataframe consists of six columns: \tabular{lll}{
  \code{model} \tab \tab The type of model being evaluated in power calculations \cr
  \code{global_test} \tab \tab The global hypothesis test being evaluated \cr
  \code{power} \tab \tab The percentage of p-values below 0.05, i.e. power \cr
@@ -53,7 +53,7 @@ Outputs a list containing any of the following four items depending on input arg
  \code{list_element_num} \tab \tab The list element number associated with the power value calculated \cr
  }
 \item When \code{global_test ≠ NULL} and \code{plot_out = TRUE}, a plot showing power values for global hypothesis test. Plot corresponds to \code{power_glob_db}.
-\item When \code{pairwise_test ≠ NULL}, a dataframe named \code{power_pair_db} containing power values for pairwise hypothesis tests. The dataframe consists of eight columns: \tabular{lll}{
+\item When \code{pairwise_test ≠ NULL}, outputs a dataframe named \code{power_pair_db} containing power values for pairwise hypothesis tests. The dataframe consists of eight columns: \tabular{lll}{
  \code{pair} \tab \tab The treatment groups to be compared \cr
  \code{model} \tab \tab The type of model being evaluated in power calculations \cr
  \code{pairwise_test} \tab \tab The type of pairwise_test being evaluated \cr
