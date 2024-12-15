@@ -48,6 +48,7 @@
 <span>  sampling_specs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  exp_design <span class="op">=</span> <span class="st">"between-tank"</span>,</span>
 <span>  n_sim <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  prog_notes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  plot_out <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  pop_out <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"ggplot2"</span>,</span>
@@ -89,6 +90,10 @@
 
 <dt id="arg-n-sim">n_sim<a class="anchor" aria-label="anchor" href="#arg-n-sim"></a></dt>
 <dd><p>Number of survival dataset to simulate. Defaults to 1.</p></dd>
+
+
+<dt id="arg-prog-notes">prog_notes<a class="anchor" aria-label="anchor" href="#arg-prog-notes"></a></dt>
+<dd><p>Whether to print the number of simulations completed. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-plot-out">plot_out<a class="anchor" aria-label="anchor" href="#arg-plot-out"></a></dt>
@@ -171,8 +176,8 @@
 <span class="r-in"><span>           treatments_hr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.8</span>, <span class="fl">0.5</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>           sampling_specs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Amount <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span>                                       TTE <span class="op">=</span> <span class="fl">45</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>           prog_notes <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co">#hide simulation progress notes for cleaner output</span></span></span>
 <span class="r-in"><span>           n_sim <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">$</span><span class="va">surv_plots</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Simulated 1 of 4 sample setsSimulated 2 of 4 sample setsSimulated 3 of 4 sample setsSimulated 4 of 4 sample sets</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Time elapsed: 00:00:00 (hh:mm:ss)"</span>
 <span class="r-plt img"><img src="Surv_Simul-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
@@ -186,8 +191,8 @@
 <span class="r-in"><span>           sampling_specs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>TTE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">40</span>, <span class="fl">50</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                                       Amount <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">20</span>, <span class="fl">5</span><span class="op">)</span>, <span class="co">#0 sample for Ctrl.</span></span></span>
 <span class="r-in"><span>                                       Trt.ID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span>, <span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>           prog_notes <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>           n_sim <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">$</span><span class="va">surv_plots</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Simulated 1 of 4 sample setsSimulated 2 of 4 sample setsSimulated 3 of 4 sample setsSimulated 4 of 4 sample sets</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Time elapsed: 00:00:00 (hh:mm:ss)"</span>
 <span class="r-plt img"><img src="Surv_Simul-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
@@ -198,9 +203,8 @@
 <span class="r-in"><span>           fish_num_per_tank <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">100</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>           tank_num_per_trt <span class="op">=</span> <span class="fl">3</span>,</span></span>
 <span class="r-in"><span>           treatments_hr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.6</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>           prog_notes <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>           n_sim <span class="op">=</span> <span class="fl">30</span><span class="op">)</span><span class="op">$</span><span class="va">surv_plots</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Simulated 1 of 60 sample setsSimulated 2 of 60 sample setsSimulated 3 of 60 sample setsSimulated 4 of 60 sample setsSimulated 5 of 60 sample setsSimulated 6 of 60 sample setsSimulated 7 of 60 sample setsSimulated 8 of 60 sample setsSimulated 9 of 60 sample setsSimulated 10 of 60 sample setsSimulated 11 of 60 sample setsSimulated 12 of 60 sample setsSimulated 13 of 60 sample setsSimulated 14 of 60 sample setsSimulated 15 of 60 sample setsSimulated 16 of 60 sample setsSimulated 17 of 60 sample setsSimulated 18 of 60 sample setsSimulated 19 of 60 sample setsSimulated 20 of 60 sample setsSimulated 21 of 60 sample setsSimulated 22 of 60 sample setsSimulated 23 of 60 sample setsSimulated 24 of 60 sample setsSimulated 25 of 60 sample setsSimulated 26 of 60 sample setsSimulated 27 of 60 sample setsSimulated 28 of 60 sample setsSimulated 29 of 60 sample setsSimulated 30 of 60 sample sets</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Simulated 31 of 60 sample setsSimulated 32 of 60 sample setsSimulated 33 of 60 sample setsSimulated 34 of 60 sample setsSimulated 35 of 60 sample setsSimulated 36 of 60 sample setsSimulated 37 of 60 sample setsSimulated 38 of 60 sample setsSimulated 39 of 60 sample setsSimulated 40 of 60 sample setsSimulated 41 of 60 sample setsSimulated 42 of 60 sample setsSimulated 43 of 60 sample setsSimulated 44 of 60 sample setsSimulated 45 of 60 sample setsSimulated 46 of 60 sample setsSimulated 47 of 60 sample setsSimulated 48 of 60 sample setsSimulated 49 of 60 sample setsSimulated 50 of 60 sample setsSimulated 51 of 60 sample setsSimulated 52 of 60 sample setsSimulated 53 of 60 sample setsSimulated 54 of 60 sample setsSimulated 55 of 60 sample setsSimulated 56 of 60 sample setsSimulated 57 of 60 sample setsSimulated 58 of 60 sample setsSimulated 59 of 60 sample setsSimulated 60 of 60 sample sets</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Time elapsed: 00:00:01 (hh:mm:ss)"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
 <span class="r-plt img"><img src="Surv_Simul-4.png" alt="" width="700" height="433"></span>
