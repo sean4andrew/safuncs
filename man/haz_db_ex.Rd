@@ -16,6 +16,6 @@ data(haz_db_ex)
 view(haz_db_ex)
 }
 \description{
-A reference hazard dataframe created using \code{Surv_Plots(data_out = TRUE)$Hazard_DB} which uses \code{bshazard::bshazard()}. Contains hazard rates over time.
+A reference hazard dataframe created using \code{Surv_Plots(..., dailybin = TRUE, data_out = TRUE)$Hazard_DB} which uses \code{bshazard::bshazard()} inside. Contains hazard rates over time.
 }
 \keyword{datasets}

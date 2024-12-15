@@ -3,7 +3,7 @@
 # Available functions with documentation:
 # 1. Con_Simul() -- simulates contingency tables based on the multinomial distribution.
 # 1b. Con_Simul_PR() -- calculates positive rates for statistical tests on contingency tables.
-# 3. Simul_Surv() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
+# 3. Surv_Simul() -- simulate survival data based on a reference hazard function, the specified hazard ratio(s), and inter-tank variation.
 # 4. theme_Publication() -- ggplot theme for generating publication-ready plots.
 # 6. Surv_Gen() -- generate rows of survivors given a starting number of fish per tank and data containing morts and sampled fish.
 # 7. Surv_Plots() -- generate Kaplan-Meier survival curve and hazard curve from survival data.
@@ -327,11 +327,11 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @param theme A string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
 #' @param plot_save Whether to save plot as .tiff in the working directory. Defaults to TRUE.
 #'
-#' @return Returns a list that, at minimum, contains the simulated survival dataframe which has 5 columns: TTE (Time to Event), Status (0 / 1), Trt.ID, Tank.ID, and n_sim which represents the simulation number for the data subsets.
+#' @return Returns a list that, at minimum, contains the simulated survival dataframe (\code{surv_simul_db}) which has at least 5 columns: TTE (Time to Event), Status (0 / 1), Trt.ID, Tank.ID, and n_sim which represents the simulation number for the data subsets. Additionally, can contain a column named "list_element_num" which represents the list element number when an input argument to \code{Surv_Simul()} is specified as a list.
 #'
-#' If \code{plot_out = TRUE}, the list additionally contains a Kaplan-Meier survival plot. The plot illustrates the survival curve with end survival rates for the simulated dataset as well as the population. If the number of simulated dataset is greater than 1, multiple curves are drawn representing each and a statement is provided regarding the power to detect the effect of Treatment -- specifically, the percent positive (p < 0.05) from a global log-rank test using \code{survival::survdiff()}.
+#' If \code{plot_out = TRUE}, the list includes Kaplan-Meier survival plots. The left faceted plot represents the survival curves for the simulated sample set, while the right represents that for the population/truth. Numbers at the end of survival curves represent the end survival rate for that treatment. If the number of simulated sample sets exceed 1, multiple survival curves are drawn with each representing a sample set. In such cases, a statement is also provided informing of the probability to detect the effect of Treatment using a global logrank test from \code{survival::survdiff()}, i.e. the power or false positive rate.
 #'
-#' If \code{pop_out = TRUE}, the list additionally contains a dataframe representing the survival probability values for the population / truth from which the sample is supposedly taken.
+#' If \code{pop_out = TRUE}, the list includes a dataframe (\code{surv_pop_db}) representing the survival rates (probabilities) for the population / truth from which the sample is simulated. The dataframe contains three columns: Trt.ID, surv_prob which represents the survival probabilities, and TTE.
 #'
 #' @import ggplot2
 #' @import magrittr
@@ -425,8 +425,14 @@ Surv_Simul = function(haz_db,
   #Making sure input data has correct (lower case) column names
   colnames(haz_db) = tolower(colnames(haz_db))
 
+  #Validation check
+  if(length(levels(factor(haz_db$tr.id))) > 1) {stop("Please use only one Trt.ID in the supplied hazard dataframe.")}
+
+  #Add blank for last time point in haz_db, for convenience on later calculations
+  haz_db = rbind(haz_db, data.frame(trt.id = haz_db$trt.id[1], hazard = last(cumsum(haz_db$hazard)) * .Machine$double.eps * 10,
+                                    time = round(last(haz_db$time))))
   #Initialize objects to store second output type (across list elements and loops)
-  output2 = list(surv_plots = list(), simul_surv_db = data.frame(), population_surv_db = data.frame())
+  output2 = list(surv_plots = list(), surv_simul_db = data.frame(), surv_pop_db = data.frame())
   list_var_check = c()
 
   #Validation Check(s)
@@ -552,7 +558,7 @@ Surv_Simul = function(haz_db,
           Trt_levels = unique(Surv_simul_DB$Trt.ID)
           sampling_specs = data.frame(TTE = rep(sampling_specs$TTE, each = length(Trt_levels)),
                                       Amount = rep(sampling_specs$Amount, each = length(Trt_levels)),
-                                      Trt.ID = rep(unique(Trt_levels, times = nrow(sampling_specs))))
+                                      Trt.ID = rep(unique(Trt_levels), times = nrow(sampling_specs)))
         }
 
         #Put in Tank.ID and replicate accordingly
@@ -591,6 +597,7 @@ Surv_Simul = function(haz_db,
 
       #Simulated survival data to be provided as output
       if(length(list_var) > 1){Surv_simul_DB$list_element_num <- ele_num}
+
       Surv_simul_outDB = rbind(Surv_simul_outDB, Surv_simul_DB)
 
       #Transform simulated survival data for plotting purposes
@@ -674,7 +681,7 @@ Surv_Simul = function(haz_db,
       xlab("Time to Event") +
       scale_alpha(range = c(min(surv_comb$alpha), 1)) +
       guides(alpha = "none") +
-      coord_cartesian(clip = "off") +
+      coord_cartesian(clip = "off", xlim = c(min(haz_db$time), max(haz_db$time) - 0.5)) +
       theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
 
     if(n_sim == 1) {
@@ -722,26 +729,28 @@ Surv_Simul = function(haz_db,
 
     #Save plot
     if(plot_save == TRUE){
-      ggsave(paste("Simul_Surv_Plot",
+      ggsave(paste("Surv_Simul_Plot",
                    ifelse(length(list_var) == 1, "_", paste("_Element", ele_num, "_", sep ="")),
                    Sys.Date(), ".tiff", sep = ""), dpi = 900, width = 7, height = 4, plot = surv_plots)
     }
 
-    #remove "alpha" column from data output
-    surv_pop = surv_pop[, -6]
+    #remove columns "alpha", "type", and "n_sim" from data output
+    surv_pop = surv_pop[, -c(4:6)]
+    colnames(surv_pop) = c("Trt.ID", "surv_prob", "TTE")
 
     #Return R output if list_var length = 1 (i.e. no list)
+    Surv_simul_outDB = dplyr::arrange(Surv_simul_outDB, n_sim, Tank.ID, Trt.ID, TTE)
     if(length(list_var) == 1) {
       if(plot_out == FALSE & pop_out == FALSE) {
         #Print time elapsed
         print(paste("Time elapsed:", substr(hms::as_hms(Sys.time() - time_start), 1, 8), "(hh:mm:ss)"))
-        return(simul_surv_db = Surv_simul_outDB)
+        return(surv_simul_db = Surv_simul_outDB)
 
       } else {
 
-        output = list(simul_surv_db = Surv_simul_outDB)
+        output = list(surv_simul_db = Surv_simul_outDB)
 
-        if(pop_out == TRUE) {output$population_surv_db <- surv_pop}
+        if(pop_out == TRUE) {output$surv_pop_db <- surv_pop}
         if(plot_out == TRUE) {output$surv_plots <- surv_plots}
 
         #Print time elapsed
@@ -754,8 +763,8 @@ Surv_Simul = function(haz_db,
 
       #Store 2nd output if list_var length >1
       output2$surv_plots[[ele_num]] = surv_plots
-      output2$simul_surv_db = rbind(output2$simul_surv_db, Surv_simul_outDB)
-      output2$population_surv_db = rbind(output2$population_surv_db, surv_pop)
+      output2$surv_simul_db = rbind(output2$surv_simul_db, Surv_simul_outDB)
+      output2$surv_pop_db = rbind(output2$surv_pop_db, surv_pop)
     }
 
     #Old code (non-lists stuff) ends here
@@ -769,7 +778,7 @@ Surv_Simul = function(haz_db,
     }
 
     if(pop_out == FALSE) {
-      output2$population_surv_db = NULL
+      output2$surv_pop_db = NULL
     }
 
     #Print time elapsed
@@ -1370,19 +1379,24 @@ Label_Gen = function(input_list,
 #'
 #' @details Power calculation follows the standard procedure for simulation-based approaches. First, the user simulates hypothetical future sample sets using \code{Surv_Simul()}. For each sample set, a p-value is calculated by \code{Surv_Power()}. The percentage of p-values below 0.05 (positives) were then calculated, representing power. The percent positives can also represent false positive rate if the population/truth from which different treatments are simulated are identical.
 #'
-#' @param simul_db The simulated survival dataframe from \code{Surv_Simul()} with the desired experimental design parameters.
+#' @param simul_db An output from \code{Surv_Simul()} which includes the survival dataframe simulated with the desired experimental design parameters.
 #' @param global_test A character vector representing the method(s) to use for global hypothesis testing of significance of treatment. Methods available are: "logrank", "wald", "score", "LRT". "logrank" represents the global logrank test of significance. The latter three methods are standard global hypothesis testing methods for models. They are only available when the argument \code{model} is specified (i.e. not NULL)."wald" represents the Wald Chisquare Test (also known as joint test) which assesses whether model parameters (log(hazard ratios)) jointly are significantly different from 0 (i.e. HRs ≠ 1). Wald test can be done for various cox-proportional hazard models that could be relevant to our studies (glm, glmm, and gee). Due to its broad applicability, while also producing practically the same p-value most of the time compared to the other model tests, "wald" is the recommended option of the three. "score" represents the Lagrange multiplier or Score test. 'LRT' represents the likelihood ratio test. Defaults to "logrank" for now due to its ubiquity of use.
 #' @param model A character vector representing the model(s) to fit for hypothesis testing. Models available are: "coxph_glm" and "coxph_glmm". "coxph_glm" represents the standard cox proportional hazard model fitted using \code{survival::coxph()} with Trt.ID as a fixed factor. "coxph_glmm" represents the mixed cox proportional hazard model fitted using \code{coxme::coxme()} with Trt.ID as a fixed factor and Tank.ID as a random factor to account for inter-tank variation. Defaults to NULL where no model is fitted for hypothesis testing.
 #' @param pairwise_test A character vector representing the method(s) used for pairwise hypothesis tests. Use "logrank" to calculate power for logrank tests comparing different treatments. Use "EMM" to calculate power using Estimated Marginal Means based on model estimates (from 'coxph_glm' and/or 'coxph_glmm'). Defaults to "logrank".
 #' @param pairwise_corr A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. For clarification, this affects the power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". Under \bold{Details}, I discuss the common categories of adjustment methods and provided a recommendation for "BH". Defaults to "none" for now.
 #' @param prog_show Whether to display the progress of \code{Surv_Power()} by printing the number of sample sets with p-values calculated. Defaults to TRUE.
-#' @param plot_out Whether to display plot(s) illustrating power from global and/or pairwise hypothesis tests. Defaults to TRUE.
-#' @param plot_lines Whether to plot lines connecting points of the same "group" in the plot output. Defaults to TRUE.
+#' @param plot_out Whether to output plots illustrating the power of global and/or pairwise hypothesis tests. Defaults to TRUE.
+#' @param plot_lines Whether to plot lines connecting points of the same hypothesis test in the plot output. Defaults to TRUE.
 #' @param xlab A string representing the x-axis title. Defaults to "List Element #".
-#' @param xnames Vector of names for x-axis labels. Defaults to NULL where names are the list element numbers from \code{Surv_Gen()}.
+#' @param xnames A character vector of names for x-axis labels. Defaults to NULL where names are the list element numbers from \code{Surv_Simul()}.
 #' @param plot_save Whether to save plots as a .tiff. Defaults to TRUE.
 #'
-#' @return Output. An SE for proportions (calculated using the binomial formula)
+#' @return Outputs a list containing any of the following depending on input arguments:
+#' \itemize{
+#' \item power_glob_db
+#' }
+#'
+#'   #Return output
 #'
 #' @import magrittr
 #' @import ggplot2
@@ -1411,7 +1425,7 @@ Surv_Power = function(simul_db = simul_db_ex,
   if(is.null(pairwise_corr)){pairwise_corr <- "none"}
 
   #Standardize simul_db as dataframe
-  if(!is.data.frame(simul_db)){simul_db = data.frame(simul_db$simul_surv_db)}
+  if(!is.data.frame(simul_db)){simul_db = data.frame(simul_db$surv_simul_db)}
 
   #Add a value of 1 for column list_element_num in case no value is present in simul_db
   if(!"list_element_num" %in% colnames(simul_db)){simul_db$list_element_num <- 1}
@@ -1462,8 +1476,7 @@ Surv_Power = function(simul_db = simul_db_ex,
         if("logrank" %in% pairwise_test) {
           pair_lr_res = survminer::pairwise_survdiff(survival::Surv(TTE, Status) ~ Trt.ID,
                                                      simul_db_temp, p.adjust.method = pairwise_corr_id0)
-          temp_pair2 = data.frame(as.table(pair_lr_res$p.value))
-          temp_pair2 = temp_pair2[-which(is.na(temp_pair2$Freq)),]
+          temp_pair2 = na.omit(data.frame(as.table(pair_lr_res$p.value)))
 
           p_pair = rbind(p_pair, data.frame(pair = interaction(temp_pair2$Var2, temp_pair2$Var1, sep = " - "),
                                             pvalues = temp_pair2$Freq,
@@ -1722,7 +1735,7 @@ Surv_Power = function(simul_db = simul_db_ex,
 
 #' Example Hazard Data
 #'
-#' @description A reference hazard dataframe created using \code{Surv_Plots(data_out = TRUE)$Hazard_DB} which uses \code{bshazard::bshazard()}. Contains hazard rates over time.
+#' @description A reference hazard dataframe created using \code{Surv_Plots(..., dailybin = TRUE, data_out = TRUE)$Hazard_DB} which uses \code{bshazard::bshazard()} inside. Contains hazard rates over time.
 #' @usage
 #' data(haz_db_ex)
 #' view(haz_db_ex)

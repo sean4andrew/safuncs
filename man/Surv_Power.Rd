@@ -19,7 +19,7 @@ Surv_Power(
 )
 }
 \arguments{
-\item{simul_db}{The simulated survival dataframe from \code{Surv_Simul()} with the desired experimental design parameters.}
+\item{simul_db}{An output from \code{Surv_Simul()} which includes the survival dataframe simulated with the desired experimental design parameters.}
 
 \item{global_test}{A character vector representing the method(s) to use for global hypothesis testing of significance of treatment. Methods available are: "logrank", "wald", "score", "LRT". "logrank" represents the global logrank test of significance. The latter three methods are standard global hypothesis testing methods for models. They are only available when the argument \code{model} is specified (i.e. not NULL)."wald" represents the Wald Chisquare Test (also known as joint test) which assesses whether model parameters (log(hazard ratios)) jointly are significantly different from 0 (i.e. HRs ≠ 1). Wald test can be done for various cox-proportional hazard models that could be relevant to our studies (glm, glmm, and gee). Due to its broad applicability, while also producing practically the same p-value most of the time compared to the other model tests, "wald" is the recommended option of the three. "score" represents the Lagrange multiplier or Score test. 'LRT' represents the likelihood ratio test. Defaults to "logrank" for now due to its ubiquity of use.}
 
@@ -31,18 +31,23 @@ Surv_Power(
 
 \item{prog_show}{Whether to display the progress of \code{Surv_Power()} by printing the number of sample sets with p-values calculated. Defaults to TRUE.}
 
-\item{plot_out}{Whether to display plot(s) illustrating power from global and/or pairwise hypothesis tests. Defaults to TRUE.}
+\item{plot_out}{Whether to output plots illustrating the power of global and/or pairwise hypothesis tests. Defaults to TRUE.}
 
-\item{plot_lines}{Whether to plot lines connecting points of the same "group" in the plot output. Defaults to TRUE.}
+\item{plot_lines}{Whether to plot lines connecting points of the same hypothesis test in the plot output. Defaults to TRUE.}
 
 \item{xlab}{A string representing the x-axis title. Defaults to "List Element #".}
 
-\item{xnames}{Vector of names for x-axis labels. Defaults to NULL where names are the list element numbers from \code{Surv_Gen()}.}
+\item{xnames}{A character vector of names for x-axis labels. Defaults to NULL where names are the list element numbers from \code{Surv_Simul()}.}
 
 \item{plot_save}{Whether to save plots as a .tiff. Defaults to TRUE.}
 }
 \value{
-Output. An SE for proportions (calculated using the binomial formula)
+Outputs a list containing any of the following depending on input arguments:
+\itemize{
+\item power_glob_db
+}
+
+  #Return output
 }
 \description{
 Calculates the power of global and/or pairwise hypothesis tests for survival studies with support over a range of experimental designs. This versatility is enabled by the simulation-based approach of the power calculation, using the modular \code{Surv_Simul()} to simulate survival data of various experimental designs. Power calculations can be made to account for inter-tank variation using a mixed cox proportional hazards model (set argument \code{model = "coxph_glmm"}). Additionally, power calculations can account for the multiplicity of pairwise comparisons using \code{pairwise_corr}. Users can compare power across different experimental designs by specifying each as a list element in \code{Surv_Simul()}. The results are returned as dataframes and plots.
