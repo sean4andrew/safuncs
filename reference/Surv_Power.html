@@ -62,7 +62,11 @@
 
 
 <dt id="arg-global-test">global_test<a class="anchor" aria-label="anchor" href="#arg-global-test"></a></dt>
-<dd><p>A character vector representing the method(s) used for global hypothesis testing of significance of Trt.ID. Methods available are: 'logrank', 'wald', 'score', 'LRT'. 'logrank' represents the global logrank test of significance. The latter three methods are standard global hypothesis testing methods for model fits. They are only available when the argument <code>model</code> is specified (i.e. not NULL).'wald' represents the Wald Chisquare Test (also known as joint test) which assesses whether model parameters (log(hazard ratios)) are significantly different than 0 (i.e. HRs =/= 1). This test can be done for various cox-proportional hazards model that could be relevant to our studies (coxph_glm, coxph_glmm, coxph_gee). Due to its wide applicability, while also producing practically the same p-value (most of the time) compared to the other two test for models, 'wald' is recommended of the three. 'score' represents the Lagrange multiplier or Score test. 'LRT' represents the likelihood ratio test. Defaults to 'logrank' for now since it is the most commonly used by our researchers.</p></dd>
+<dd><p>A character vector specifying the method(s) to use for the global hypothesis test of Trt.ID.</p><ul><li><p>'logrank' = the global logrank test. The default for <code>global_test</code>.</p></li>
+<li><p>'wald' = the Wald Chisquare test for models. The Wald test can be computed for various models relevant to our experiments and generally produces practically the same p-values as the other two model tests. Hence, the wald test is recommended for model tests. Brief description: the wald test assesses whether model parameters (<em>log(HR)</em>) are jointly significantly different from 0 (i.e. <em>HR</em> != 1).</p></li>
+<li><p>'score' = Lagrange multiplier or Score test for models.</p></li>
+<li><p>'LRT' = Likelihood ratio test for models.</p></li>
+</ul><p>For 'wald', 'score', and 'LRT' options, at least one model must be specified in the <code>model</code> argument.</p></dd>
 
 
 <dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
@@ -107,7 +111,7 @@
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Power calculation follows the standard procedure for simulation approaches. First, the user simulates hypothetical future sample sets using <code><a href="Surv_Simul.html">Surv_Simul()</a></code>. For each sample set, a p-value is calculated by <code>Surv_Power()</code>. The percentage of p-values below 0.05 (positives) were then calculated, representing power. The percent positives can also represent false positive rate if the population/truth from which different treatments are simulated are identical.</p>
+    <p>Power calculation follows the standard procedure for simulation-based approaches. First, the user simulates hypothetical future sample sets using <code><a href="Surv_Simul.html">Surv_Simul()</a></code>. For each sample set, a p-value is calculated by <code>Surv_Power()</code>. The percentage of p-values below 0.05 (positives) were then calculated, representing power. The percent positives can also represent false positive rate if the population/truth from which different treatments are simulated are identical.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
