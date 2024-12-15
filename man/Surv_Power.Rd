@@ -18,16 +18,9 @@ Surv_Power(
 )
 }
 \arguments{
-\item{simul_db}{The simulated survival dataframe from \code{Surv_Simul()}.}
+\item{simul_db}{The simulated survival dataframe from \code{Surv_Simul()} with the desired experimental design parameters.}
 
-\item{global_test}{A character vector specifying the method(s) to use for the global hypothesis test of Trt.ID.
-\itemize{
-\item 'logrank' = the global logrank test. The default for \code{global_test}.
-\item 'wald' = the Wald Chisquare test for models. The Wald test can be computed for various models relevant to our experiments and generally produces practically the same p-values as the other two model tests. Hence, the wald test is recommended for model tests. Brief description: the wald test assesses whether model parameters (\emph{log(HR)}) are jointly significantly different from 0 (i.e. \emph{HR} != 1).
-\item 'score' = Lagrange multiplier or Score test for models.
-\item 'LRT' = Likelihood ratio test for models.
-}
-For 'wald', 'score', and 'LRT' options, at least one model must be specified in the \code{model} argument.}
+\item{global_test}{A character vector representing the method(s) used for global hypothesis testing of significance of treatments. Methods available are: 'logrank', 'wald', 'score', 'LRT'. 'logrank' represents the global logrank test of significance. The latter three methods are standard global hypothesis tests for models. They are only available when the argument \code{model} is specified (i.e. not NULL).'wald' represents the Wald Chisquare Test (also known as joint test) which assesses whether model parameters (log(hazard ratios)) are significantly different than 0 (i.e. HRs ≠ 1). Wald test can be done for various cox-proportional hazards model that could be relevant to our studies (glm, glmm, and gee). Due to its broad applicability, while also producing practically the same p-value most of the time compared to the other model tests, 'wald' is the recommended option out of the three. 'score' represents the Lagrange multiplier or Score test. 'LRT' represents the likelihood ratio test. Defaults to 'logrank' for now due to its ubiquity of use.}
 
 \item{model}{A character vector representing the model(s) to fit for hypothesis testing. Models available are: 'coxph_glm' and 'coxph_glmm'. 'coxph_glm' represents the standard cox proportional hazard model fitted using \code{survival::coxph()} with Trt.ID as a fixed factor. 'coxph_glmm' represents the mixed cox proportional hazard model fitted using \code{coxme::coxme()} with Trt.ID as a fixed factor and Tank.ID as a random factor to account for inter-tank variation. Defaults to NULL where no model is used for hypothesis tests.}
 
