@@ -48,7 +48,7 @@
 <span>  sampling_specs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  exp_design <span class="op">=</span> <span class="st">"between-tank"</span>,</span>
 <span>  n_sim <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  prog_notes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  prog_show <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  plot_out <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  pop_out <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"ggplot2"</span>,</span>
@@ -92,8 +92,8 @@
 <dd><p>Number of survival dataset to simulate. Defaults to 1.</p></dd>
 
 
-<dt id="arg-prog-notes">prog_notes<a class="anchor" aria-label="anchor" href="#arg-prog-notes"></a></dt>
-<dd><p>Whether to print the number of simulations completed by <code>Surv_Simul()</code> as it is working. Defaults to TRUE.</p></dd>
+<dt id="arg-prog-show">prog_show<a class="anchor" aria-label="anchor" href="#arg-prog-show"></a></dt>
+<dd><p>Whether to display the progress of <code>Surv_Simul()</code> by printing the number of simulations completed. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-plot-out">plot_out<a class="anchor" aria-label="anchor" href="#arg-plot-out"></a></dt>
@@ -176,7 +176,7 @@
 <span class="r-in"><span>           treatments_hr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.8</span>, <span class="fl">0.5</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>           sampling_specs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Amount <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span>                                       TTE <span class="op">=</span> <span class="fl">45</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>           prog_notes <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co">#hide simulation progress notes for cleaner output</span></span></span>
+<span class="r-in"><span>           prog_show <span class="op">=</span> <span class="cn">FALSE</span>, <span class="co">#hide simulation progress notes for cleaner output</span></span></span>
 <span class="r-in"><span>           n_sim <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">$</span><span class="va">surv_plots</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Time elapsed: 00:00:00 (hh:mm:ss)"</span>
 <span class="r-plt img"><img src="Surv_Simul-2.png" alt="" width="700" height="433"></span>
@@ -191,7 +191,7 @@
 <span class="r-in"><span>           sampling_specs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>TTE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">40</span>, <span class="fl">50</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                                       Amount <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">20</span>, <span class="fl">5</span><span class="op">)</span>, <span class="co">#0 sample for Ctrl.</span></span></span>
 <span class="r-in"><span>                                       Trt.ID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span>, <span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>           prog_notes <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>           prog_show <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>           n_sim <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">$</span><span class="va">surv_plots</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Time elapsed: 00:00:00 (hh:mm:ss)"</span>
 <span class="r-plt img"><img src="Surv_Simul-3.png" alt="" width="700" height="433"></span>
@@ -203,7 +203,7 @@
 <span class="r-in"><span>           fish_num_per_tank <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">100</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>           tank_num_per_trt <span class="op">=</span> <span class="fl">3</span>,</span></span>
 <span class="r-in"><span>           treatments_hr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.6</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>           prog_notes <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>           prog_show <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>           n_sim <span class="op">=</span> <span class="fl">30</span><span class="op">)</span><span class="op">$</span><span class="va">surv_plots</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Time elapsed: 00:00:01 (hh:mm:ss)"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>

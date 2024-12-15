@@ -45,7 +45,7 @@
 <span>  model <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pairwise_test <span class="op">=</span> <span class="st">"logrank"</span>,</span>
 <span>  pairwise_corr <span class="op">=</span> <span class="st">"none"</span>,</span>
-<span>  prog_notes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  prog_show <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  plot_out <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  plot_lines <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"List Element #"</span>,</span>
@@ -75,15 +75,15 @@
 
 
 <dt id="arg-pairwise-corr">pairwise_corr<a class="anchor" aria-label="anchor" href="#arg-pairwise-corr"></a></dt>
-<dd><p>A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. For clarification, this affects the power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". In <b>Details</b>, I discuss categories of the adjustment methods and provided a recommendation for "BH". Defaults to "none" for now.</p></dd>
+<dd><p>A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. For clarification, this affects the power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". Under <b>Details</b>, I discuss the common categories of adjustment methods and provided a recommendation for "BH". Defaults to "none" for now.</p></dd>
 
 
-<dt id="arg-prog-notes">prog_notes<a class="anchor" aria-label="anchor" href="#arg-prog-notes"></a></dt>
-<dd><p>Whether to print the number of sample sets calculated as <code>Surv_Power()</code> is working. Defaults to TRUE.</p></dd>
+<dt id="arg-prog-show">prog_show<a class="anchor" aria-label="anchor" href="#arg-prog-show"></a></dt>
+<dd><p>Whether to display the progress of <code>Surv_Power()</code> by printing the number of sample sets with p-values calculated. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-plot-out">plot_out<a class="anchor" aria-label="anchor" href="#arg-plot-out"></a></dt>
-<dd><p>Whether to display plot(s) illustrating power from global and/or pairwise hypothesis tests. Defaults to TRUE</p></dd>
+<dd><p>Whether to display plot(s) illustrating power from global and/or pairwise hypothesis tests. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-plot-lines">plot_lines<a class="anchor" aria-label="anchor" href="#arg-plot-lines"></a></dt>
