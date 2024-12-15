@@ -59,7 +59,7 @@
 
 
 <dl><dt id="arg-simul-db">simul_db<a class="anchor" aria-label="anchor" href="#arg-simul-db"></a></dt>
-<dd><p>The simulated survival dataframe from <code><a href="Surv_Simul.html">Surv_Simul()</a></code> with the desired experimental design parameters.</p></dd>
+<dd><p>An output from <code><a href="Surv_Simul.html">Surv_Simul()</a></code> which includes the survival dataframe simulated with the desired experimental design parameters.</p></dd>
 
 
 <dt id="arg-global-test">global_test<a class="anchor" aria-label="anchor" href="#arg-global-test"></a></dt>
@@ -83,11 +83,11 @@
 
 
 <dt id="arg-plot-out">plot_out<a class="anchor" aria-label="anchor" href="#arg-plot-out"></a></dt>
-<dd><p>Whether to display plot(s) illustrating power from global and/or pairwise hypothesis tests. Defaults to TRUE.</p></dd>
+<dd><p>Whether to output plots illustrating the power of global and/or pairwise hypothesis tests. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-plot-lines">plot_lines<a class="anchor" aria-label="anchor" href="#arg-plot-lines"></a></dt>
-<dd><p>Whether to plot lines connecting points of the same "group" in the plot output. Defaults to TRUE.</p></dd>
+<dd><p>Whether to plot lines connecting points of the same hypothesis test in the plot output. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-xlab">xlab<a class="anchor" aria-label="anchor" href="#arg-xlab"></a></dt>
@@ -95,7 +95,7 @@
 
 
 <dt id="arg-xnames">xnames<a class="anchor" aria-label="anchor" href="#arg-xnames"></a></dt>
-<dd><p>Vector of names for x-axis labels. Defaults to NULL where names are the list element numbers from <code><a href="Surv_Gen.html">Surv_Gen()</a></code>.</p></dd>
+<dd><p>A character vector of names for x-axis labels. Defaults to NULL where names are the list element numbers from <code><a href="Surv_Simul.html">Surv_Simul()</a></code>.</p></dd>
 
 
 <dt id="arg-plot-save">plot_save<a class="anchor" aria-label="anchor" href="#arg-plot-save"></a></dt>
@@ -104,7 +104,8 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Output. An SE for proportions (calculated using the binomial formula)</p>
+    <p>Outputs a list containing any of the following depending on input arguments:</p><ul><li><p>power_glob_db</p></li>
+</ul><p>#Return output</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
