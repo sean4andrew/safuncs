@@ -29,7 +29,7 @@ Surv_Power(
 
 \item{pairwise_corr}{A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. For clarification, this affects the power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". In \bold{Details}, I discuss categories of the adjustment methods and provided a recommendation for "BH". Defaults to "none" for now.}
 
-\item{prog_notes}{Whether to print the number of sample sets with p-values calculated. Defaults to TRUE.}
+\item{prog_notes}{Whether to print the number of sample sets calculated as \code{Surv_Power()} is working. Defaults to TRUE.}
 
 \item{plot_out}{Whether to display plot(s) illustrating power from global and/or pairwise hypothesis tests. Defaults to TRUE}
 

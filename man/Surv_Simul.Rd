@@ -37,7 +37,7 @@ Surv_Simul(
 
 \item{n_sim}{Number of survival dataset to simulate. Defaults to 1.}
 
-\item{prog_notes}{Whether to print the number of simulations completed. Defaults to TRUE.}
+\item{prog_notes}{Whether to print the number of simulations completed by \code{Surv_Simul()} as it is working. Defaults to TRUE.}
 
 \item{plot_out}{Whether to output the information plot (further details in \bold{Value}). Defaults to TRUE.}
 
