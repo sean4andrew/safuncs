@@ -42,12 +42,29 @@ Surv_Power(
 \item{plot_save}{Whether to save plots as a .tiff. Defaults to TRUE.}
 }
 \value{
-Outputs a list containing any of the following depending on input arguments:
+Outputs a list containing any of the following four items depending on input arguments:
 \itemize{
-\item power_glob_db
+\item When \code{global_test ≠ NULL}, a dataframe named \code{power_glob_db} containing power values for global hypothesis tests. The dataframe consists of six columns: \tabular{lll}{
+ \code{model} \tab \tab The type of model being evaluated in power calculations \cr
+ \code{global_test} \tab \tab The global hypothesis test being evaluated \cr
+ \code{power} \tab \tab The percentage of p-values below 0.05, i.e. power \cr
+ \code{power_se} \tab \tab Standard error for percentages \cr
+ \code{sample_sets_n} \tab \tab Number of sample sets used in calculating power \cr
+ \code{list_element_num} \tab \tab The list element number associated with the power value calculated \cr
+ }
+\item When \code{global_test ≠ NULL} and \code{plot_out = TRUE}, a plot showing power values for global hypothesis test. Plot corresponds to \code{power_glob_db}.
+\item When \code{pairwise_test ≠ NULL}, a dataframe named \code{power_pair_db} containing power values for pairwise hypothesis tests. The dataframe consists of eight columns: \tabular{lll}{
+ \code{pair} \tab \tab The treatment groups to be compared \cr
+ \code{model} \tab \tab The type of model being evaluated in power calculations \cr
+ \code{pairwise_test} \tab \tab The type of pairwise_test being evaluated \cr
+ \code{pairwise_corr} \tab \tab The method of p-value correction/adjustments for paiwrise comparisons \cr
+ \code{power} \tab \tab The percentage of p-values below 0.05, i.e. power \cr
+ \code{power_se} \tab \tab Standard error for percentages \cr
+ \code{sample_sets_n} \tab \tab Number of sample sets used in calculating power \cr
+ \code{list_element_num} \tab \tab The list element number associated with the power value calculated \cr
+ }
+\item When \code{pairwise_test ≠ NULL} and \code{plot_out = TRUE}, a plot showing power values across list elements. Plot corresponds to \code{power_pair_db}.
 }
-
-  #Return output
 }
 \description{
 Calculates the power of global and/or pairwise hypothesis tests for survival studies with support over a range of experimental designs. This versatility is enabled by the simulation-based approach of the power calculation, using the modular \code{Surv_Simul()} to simulate survival data of various experimental designs. Power calculations can be made to account for inter-tank variation using a mixed cox proportional hazards model (set argument \code{model = "coxph_glmm"}). Additionally, power calculations can account for the multiplicity of pairwise comparisons using \code{pairwise_corr}. Users can compare power across different experimental designs by specifying each as a list element in \code{Surv_Simul()}. The results are returned as dataframes and plots.
@@ -56,7 +73,7 @@ Calculates the power of global and/or pairwise hypothesis tests for survival stu
 Power calculation follows the standard procedure for simulation-based approaches. First, the user simulates hypothetical future sample sets using \code{Surv_Simul()}. For each sample set, a p-value is calculated by \code{Surv_Power()}. The percentage of p-values below 0.05 (positives) were then calculated, representing power. The percent positives can also represent false positive rate if the population/truth from which different treatments are simulated are identical.
 }
 \examples{
-To be made..
+#To be made..
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Power.html}{Link} for web documentation.

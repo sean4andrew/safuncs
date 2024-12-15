@@ -1391,12 +1391,29 @@ Label_Gen = function(input_list,
 #' @param xnames A character vector of names for x-axis labels. Defaults to NULL where names are the list element numbers from \code{Surv_Simul()}.
 #' @param plot_save Whether to save plots as a .tiff. Defaults to TRUE.
 #'
-#' @return Outputs a list containing any of the following depending on input arguments:
+#' @return Outputs a list containing any of the following four items depending on input arguments:
 #' \itemize{
-#' \item power_glob_db
+#' \item When \code{global_test ≠ NULL}, a dataframe named \code{power_glob_db} containing power values for global hypothesis tests. The dataframe consists of six columns: \tabular{lll}{
+#'  \code{model} \tab \tab The type of model being evaluated in power calculations \cr
+#'  \code{global_test} \tab \tab The global hypothesis test being evaluated \cr
+#'  \code{power} \tab \tab The percentage of p-values below 0.05, i.e. power \cr
+#'  \code{power_se} \tab \tab Standard error for percentages \cr
+#'  \code{sample_sets_n} \tab \tab Number of sample sets used in calculating power \cr
+#'  \code{list_element_num} \tab \tab The list element number associated with the power value calculated \cr
+#'  }
+#' \item When \code{global_test ≠ NULL} and \code{plot_out = TRUE}, a plot showing power values for global hypothesis test. Plot corresponds to \code{power_glob_db}.
+#' \item When \code{pairwise_test ≠ NULL}, a dataframe named \code{power_pair_db} containing power values for pairwise hypothesis tests. The dataframe consists of eight columns: \tabular{lll}{
+#'  \code{pair} \tab \tab The treatment groups to be compared \cr
+#'  \code{model} \tab \tab The type of model being evaluated in power calculations \cr
+#'  \code{pairwise_test} \tab \tab The type of pairwise_test being evaluated \cr
+#'  \code{pairwise_corr} \tab \tab The method of p-value correction/adjustments for paiwrise comparisons \cr
+#'  \code{power} \tab \tab The percentage of p-values below 0.05, i.e. power \cr
+#'  \code{power_se} \tab \tab Standard error for percentages \cr
+#'  \code{sample_sets_n} \tab \tab Number of sample sets used in calculating power \cr
+#'  \code{list_element_num} \tab \tab The list element number associated with the power value calculated \cr
+#'  }
+#' \item When \code{pairwise_test ≠ NULL} and \code{plot_out = TRUE}, a plot showing power values across list elements. Plot corresponds to \code{power_pair_db}.
 #' }
-#'
-#'   #Return output
 #'
 #' @import magrittr
 #' @import ggplot2
@@ -1405,7 +1422,7 @@ Label_Gen = function(input_list,
 #'
 #' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Power.html}{Link} for web documentation.
 #'
-#' @examples To be made..
+#' @examples #To be made..
 Surv_Power = function(simul_db = simul_db_ex,
                       global_test = "logrank",
                       model = NULL,
@@ -1585,7 +1602,7 @@ Surv_Power = function(simul_db = simul_db_ex,
                     position = position_dodge(width = 0.12), width = 0.1) +
       geom_point(aes(shape = global_test), position = position_dodge(width = 0.12)) +
       scale_y_continuous(labels = scales::percent, breaks = seq(0, 1, 0.1), limits = c(0, 1),
-                         name = "% of significant results (p<0.05)") +
+                         name = "Power (%)") +
       scale_x_continuous(breaks = seq(1, max(power_glob$element_num), 1),
                          name = ifelse(is.null(xlab), "List Element #", xlab),
                          labels = if(is.null(xnames)){waiver()}
@@ -1622,7 +1639,7 @@ Surv_Power = function(simul_db = simul_db_ex,
                     position = position_dodge(width = 0.30), width = 0.1) +
       geom_point(aes(shape = test_and_corr), position = position_dodge(width = 0.30)) +
       scale_y_continuous(labels = scales::percent, breaks = seq(0, 1, 0.1), limits = c(0, 1),
-                         name = "% of significant results (p<0.05)") +
+                         name = "Power (%)") +
       scale_x_continuous(breaks = seq(1, max(power_pair$element_num), 1),
                          name = ifelse(is.null(xlab), "List Element #", xlab),
                          labels = if(is.null(xnames)){waiver()}
@@ -1639,9 +1656,16 @@ Surv_Power = function(simul_db = simul_db_ex,
     if(plot_lines == TRUE) {pair_plot <- pair_plot + geom_line(aes(linetype = test_and_corr), position = position_dodge(width = 0.30))}
   } else {pair_plot <- NULL}
 
+  if(length(power_pair) == 8) {
+    colnames(power_pair) = c("pair", "model", "pairwise_test", "pairwise_corr", "power", "power_se", "sample_sets_n", "list_element_num")
+  }
+
   #Return output
   output = list()
   if(!is.null(global_test)){
+    #Rename columns
+    colnames(power_glob) = c("model", "global_test", "power", "power_se", "sample_sets_n", "list_element_num")
+    #Create output
     output[["power_global_db"]] = power_glob
     if(plot_out == TRUE & length(power_glob) > 0) {
       output[["power_global_plot"]] = glob_plot
@@ -1652,7 +1676,11 @@ Surv_Power = function(simul_db = simul_db_ex,
     }
   }
   if(!is.null(pairwise_test)){
-    output[["power_pairwise_db"]] = power_pair[, -which((colnames(power_pair) == "test_and_corr"))]
+    power_pair = power_pair[, -which((colnames(power_pair) == "test_and_corr"))]
+    #Rename columns
+    colnames(power_pair) = c("pair", "model", "pairwise_test", "pairwise_corr", "power", "power_se", "sample_sets_n", "list_element_num")
+    #Create output
+    output[["power_pairwise_db"]] = power_pair
     if(plot_out == TRUE & length(pair_plot) > 0) {
       output[["power_pairwise_plot"]] = pair_plot
       if(plot_save == TRUE) {

@@ -1054,7 +1054,7 @@ simul_db = simul_db_ex
 
 Surv_Power()
 ```{r}
-Surv_Power(simul_db = simul_db_ex,
+z = Surv_Power(simul_db = simul_db_ex,
            model = c("coxph_glmm")           , #selection(s) from c("coxph_glm", "coxph_glmm", NULL). Defaults to NULL 
            global_test = c("logrank", "wald"), #selection(s) c("wald", "score", "LRT", "logrank")
            pairwise_test = c("logrank", "EMM"), #selection(s) c("EMM" or "logrank")
