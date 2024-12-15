@@ -13,7 +13,7 @@ Surv_Simul(
   sampling_specs = NULL,
   exp_design = "between-tank",
   n_sim = 1,
-  prog_notes = TRUE,
+  prog_show = TRUE,
   plot_out = TRUE,
   pop_out = TRUE,
   theme = "ggplot2",
@@ -37,7 +37,7 @@ Surv_Simul(
 
 \item{n_sim}{Number of survival dataset to simulate. Defaults to 1.}
 
-\item{prog_notes}{Whether to print the number of simulations completed by \code{Surv_Simul()} as it is working. Defaults to TRUE.}
+\item{prog_show}{Whether to display the progress of \code{Surv_Simul()} by printing the number of simulations completed. Defaults to TRUE.}
 
 \item{plot_out}{Whether to output the information plot (further details in \bold{Value}). Defaults to TRUE.}
 
@@ -108,7 +108,7 @@ Surv_Simul(haz_db = ref_haz_route_safuncs,
            treatments_hr = c(1, 0.8, 0.5),
            sampling_specs = data.frame(Amount = 10,
                                        TTE = 45),
-           prog_notes = FALSE, #hide simulation progress notes for cleaner output
+           prog_show = FALSE, #hide simulation progress notes for cleaner output
            n_sim = 4)$surv_plots
 
 # Surv_Simul() can handle even more complicated experimental designs. Below, I use
@@ -121,7 +121,7 @@ Surv_Simul(haz_db = ref_haz_route_safuncs,
            sampling_specs = data.frame(TTE = c(20, 40, 50),
                                        Amount = c(0, 20, 5), #0 sample for Ctrl.
                                        Trt.ID = c("Control", "A", "B")),
-           prog_notes = FALSE,
+           prog_show = FALSE,
            n_sim = 4)$surv_plots
 
 # What if we want to compare power of the global log-rank test (shown in the plot)
@@ -131,7 +131,7 @@ Surv_Simul(haz_db = haz_db_ex,
            fish_num_per_tank = list(30, 100),
            tank_num_per_trt = 3,
            treatments_hr = c(1, 0.6),
-           prog_notes = FALSE,
+           prog_show = FALSE,
            n_sim = 30)$surv_plots
 
 # Plot[[1]] and [[2]] shows the results from fish_num_per_tank = 30 and 100,

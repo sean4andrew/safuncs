@@ -10,7 +10,7 @@ Surv_Power(
   model = NULL,
   pairwise_test = "logrank",
   pairwise_corr = "none",
-  prog_notes = TRUE,
+  prog_show = TRUE,
   plot_out = TRUE,
   plot_lines = FALSE,
   xlab = "List Element #",
@@ -27,11 +27,11 @@ Surv_Power(
 
 \item{pairwise_test}{A character vector representing the method(s) used for pairwise hypothesis tests. Use "logrank" to calculate power for logrank tests comparing different treatments. Use "EMM" to calculate power using Estimated Marginal Means based on model estimates (from 'coxph_glm' and/or 'coxph_glmm'). Defaults to "logrank".}
 
-\item{pairwise_corr}{A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. For clarification, this affects the power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". In \bold{Details}, I discuss categories of the adjustment methods and provided a recommendation for "BH". Defaults to "none" for now.}
+\item{pairwise_corr}{A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. For clarification, this affects the power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". Under \bold{Details}, I discuss the common categories of adjustment methods and provided a recommendation for "BH". Defaults to "none" for now.}
 
-\item{prog_notes}{Whether to print the number of sample sets calculated as \code{Surv_Power()} is working. Defaults to TRUE.}
+\item{prog_show}{Whether to display the progress of \code{Surv_Power()} by printing the number of sample sets with p-values calculated. Defaults to TRUE.}
 
-\item{plot_out}{Whether to display plot(s) illustrating power from global and/or pairwise hypothesis tests. Defaults to TRUE}
+\item{plot_out}{Whether to display plot(s) illustrating power from global and/or pairwise hypothesis tests. Defaults to TRUE.}
 
 \item{plot_lines}{Whether to plot lines connecting points of the same "group" in the plot output. Defaults to TRUE.}
 

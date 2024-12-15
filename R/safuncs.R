@@ -320,7 +320,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @param logHR_sd_intertank The standard deviation of inter-tank variation (which contributes to overall data variation) in the log-HR scale according to the \code{coxme} framework. Defaults to 0 (no tank effect) which has been and quite oftenly, the estimate for injected Trojan fish data. For reference 0.1 reflects a low tank effect, while 0.35 is fairly high but can and has occurred in some immersion challenged fish datasets. Input can be specified as elements in a list, with each element representing different experimental setups as described for \code{fish_num_per_tank}.
 #' @param sampling_specs A dataframe containing at least 2 columns; "Amount" representing the number of right censored data (e.g. sampled fish) per tank; "TTE" representing the time the sampling occurred; optionally a "Trt.ID" column to account for different sampling conditions per tank per treatment. Trt.IDs must start with "Control", then capitalized letters (see \bold{Examples}). Defaults to NULL (no sampling). Input can be specified as elements in a list, with each element representing different experimental setups as described for \code{fish_num_per_tank}.
 #' @param exp_design A string specifying the type of experimental design. Can be "between-tank" which indicates each tank has a unique treatment hence the treatment effect occurs "between-tanks". Or, "within-tank" where each tank contains fish exposed to various treatments.
-#' @param prog_notes Whether to print the number of simulations completed by \code{Surv_Simul()} as it is working. Defaults to TRUE.
+#' @param prog_show Whether to display the progress of \code{Surv_Simul()} by printing the number of simulations completed. Defaults to TRUE.
 #' @param n_sim Number of survival dataset to simulate. Defaults to 1.
 #' @param plot_out Whether to output the information plot (further details in \bold{Value}). Defaults to TRUE.
 #' @param pop_out Whether to output a dataframe containing the survival probability values for the population. Defaults to TRUE.
@@ -375,7 +375,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'            treatments_hr = c(1, 0.8, 0.5),
 #'            sampling_specs = data.frame(Amount = 10,
 #'                                        TTE = 45),
-#'            prog_notes = FALSE, #hide simulation progress notes for cleaner output
+#'            prog_show = FALSE, #hide simulation progress notes for cleaner output
 #'            n_sim = 4)$surv_plots
 #'
 #' # Surv_Simul() can handle even more complicated experimental designs. Below, I use
@@ -388,7 +388,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'            sampling_specs = data.frame(TTE = c(20, 40, 50),
 #'                                        Amount = c(0, 20, 5), #0 sample for Ctrl.
 #'                                        Trt.ID = c("Control", "A", "B")),
-#'            prog_notes = FALSE,
+#'            prog_show = FALSE,
 #'            n_sim = 4)$surv_plots
 #'
 #' # What if we want to compare power of the global log-rank test (shown in the plot)
@@ -398,7 +398,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #'            fish_num_per_tank = list(30, 100),
 #'            tank_num_per_trt = 3,
 #'            treatments_hr = c(1, 0.6),
-#'            prog_notes = FALSE,
+#'            prog_show = FALSE,
 #'            n_sim = 30)$surv_plots
 #'
 #' # Plot[[1]] and [[2]] shows the results from fish_num_per_tank = 30 and 100,
@@ -414,7 +414,7 @@ Surv_Simul = function(haz_db,
                       sampling_specs = NULL,
                       exp_design = "between-tank",
                       n_sim = 1,
-                      prog_notes = TRUE,
+                      prog_show = TRUE,
                       plot_out = TRUE,
                       pop_out = TRUE,
                       theme = "ggplot2",
@@ -632,7 +632,7 @@ Surv_Simul = function(haz_db,
       }
 
       #Print progress
-      if(prog_notes != FALSE) {cat("\rSimulated", prog <- prog + 1, "of", n_sim * length(list_var), "sample sets")}
+      if(prog_show != FALSE) {cat("\rSimulated", prog <- prog + 1, "of", n_sim * length(list_var), "sample sets")}
     } #close loopnum
 
     #Get "population" survival dataset by exponentiating the negative cumulative hazard
@@ -1374,9 +1374,9 @@ Label_Gen = function(input_list,
 #' @param global_test A character vector representing the method(s) to use for global hypothesis testing of significance of treatment. Methods available are: "logrank", "wald", "score", "LRT". "logrank" represents the global logrank test of significance. The latter three methods are standard global hypothesis testing methods for models. They are only available when the argument \code{model} is specified (i.e. not NULL)."wald" represents the Wald Chisquare Test (also known as joint test) which assesses whether model parameters (log(hazard ratios)) jointly are significantly different from 0 (i.e. HRs ≠ 1). Wald test can be done for various cox-proportional hazard models that could be relevant to our studies (glm, glmm, and gee). Due to its broad applicability, while also producing practically the same p-value most of the time compared to the other model tests, "wald" is the recommended option of the three. "score" represents the Lagrange multiplier or Score test. 'LRT' represents the likelihood ratio test. Defaults to "logrank" for now due to its ubiquity of use.
 #' @param model A character vector representing the model(s) to fit for hypothesis testing. Models available are: "coxph_glm" and "coxph_glmm". "coxph_glm" represents the standard cox proportional hazard model fitted using \code{survival::coxph()} with Trt.ID as a fixed factor. "coxph_glmm" represents the mixed cox proportional hazard model fitted using \code{coxme::coxme()} with Trt.ID as a fixed factor and Tank.ID as a random factor to account for inter-tank variation. Defaults to NULL where no model is fitted for hypothesis testing.
 #' @param pairwise_test A character vector representing the method(s) used for pairwise hypothesis tests. Use "logrank" to calculate power for logrank tests comparing different treatments. Use "EMM" to calculate power using Estimated Marginal Means based on model estimates (from 'coxph_glm' and/or 'coxph_glmm'). Defaults to "logrank".
-#' @param pairwise_corr A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. For clarification, this affects the power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". In \bold{Details}, I discuss categories of the adjustment methods and provided a recommendation for "BH". Defaults to "none" for now.
-#' @param prog_notes Whether to print the number of sample sets calculated as \code{Surv_Power()} is working. Defaults to TRUE.
-#' @param plot_out Whether to display plot(s) illustrating power from global and/or pairwise hypothesis tests. Defaults to TRUE
+#' @param pairwise_corr A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. For clarification, this affects the power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". Under \bold{Details}, I discuss the common categories of adjustment methods and provided a recommendation for "BH". Defaults to "none" for now.
+#' @param prog_show Whether to display the progress of \code{Surv_Power()} by printing the number of sample sets with p-values calculated. Defaults to TRUE.
+#' @param plot_out Whether to display plot(s) illustrating power from global and/or pairwise hypothesis tests. Defaults to TRUE.
 #' @param plot_lines Whether to plot lines connecting points of the same "group" in the plot output. Defaults to TRUE.
 #' @param xlab A string representing the x-axis title. Defaults to "List Element #".
 #' @param xnames Vector of names for x-axis labels. Defaults to NULL where names are the list element numbers from \code{Surv_Gen()}.
@@ -1397,7 +1397,7 @@ Surv_Power = function(simul_db = simul_db_ex,
                       model = NULL,
                       pairwise_test = "logrank",
                       pairwise_corr = "none",
-                      prog_notes = TRUE,
+                      prog_show = TRUE,
                       plot_out = TRUE,
                       plot_lines = FALSE,
                       xlab = "List Element #",
@@ -1517,7 +1517,7 @@ Surv_Power = function(simul_db = simul_db_ex,
       }
 
       #Print progress
-      if(prog_notes == TRUE) {cat("\rCalculated p-values for", prog <- prog + 1, "of",
+      if(prog_show == TRUE) {cat("\rCalculated p-values for", prog <- prog + 1, "of",
                                   max(simul_db$list_element_num) * max(simul_db_temp0$n_sim), "sample sets")}
     } #Close loop for simnum
 
