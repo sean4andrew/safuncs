@@ -2,7 +2,7 @@
 % Please edit documentation in R/safuncs.R
 \name{Surv_Power}
 \alias{Surv_Power}
-\title{Calculate Power for Survival Experiments}
+\title{Calculate Power for Survival Studies}
 \usage{
 Surv_Power(
   simul_db = simul_db_ex,
@@ -44,10 +44,10 @@ Surv_Power(
 Output. An SE for proportions (calculated using the binomial formula)
 }
 \description{
-Calculates power of global and/or pairwise hypothesis tests for survival studies with a wide range of experimental designs. This flexibility is enabled by the simulation-based nature of the power calculation, using the modular \code{Surv_Simul()} to simulate survival data. Power calculations can account for inter-tank variation by using a mixed cox proportional hazards model (set argument \code{model = "coxph_glmm"}). Additionally, power calculations can account for multiplicity of pairwise comparisons using the argument \code{pairwise_corr}. Users may compare power across different experimental designs by specifying each design as list elements in \code{Surv_Simul()}. Power values are returned as dataframes and plots.
+Calculates the power of global and/or pairwise hypothesis tests for survival studies with support over a range of experimental designs. This versatility is enabled by the simulation-based approach of the power calculation, using the modular \code{Surv_Simul()} to simulate survival data from various experimental designs. Power calculations can be made to account for inter-tank variation using a mixed cox proportional hazards model (set the argument \code{model} to "coxph_glmm"). Additionally, power calculations can account for the multiplicity of pairwise comparisons using the \code{pairwise_corr} argument. Users can compare power across different experimental designs by specifying each as a list element in \code{Surv_Simul()}. The results are returned as dataframes and plots.
 }
 \details{
-The power calculation here follows the standard procedure for power calculation using simulations. Initially, hypothetical future sample sets were simulated using \code{Surv_Simul()}. For each sample set, a p-value is calculated. The percentage of p-values below 0.05 (positives) were then calculated, representing power. The percent positives may also represent false positive rate if the population/truth in the simulation process are identical between treatments.
+Power calculation follows the standard procedure for simulation approaches. First, the user simulates hypothetical future sample sets using \code{Surv_Simul()}. For each sample set, a p-value is calculated by \code{Surv_Power()}. The percentage of p-values below 0.05 (positives) were then calculated, representing power. The percent positives can also represent false positive rate if the population/truth from which different treatments are simulated are identical.
 }
 \examples{
 Placeholder
