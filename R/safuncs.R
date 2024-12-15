@@ -722,7 +722,7 @@ Surv_Simul = function(haz_db,
     if(theme == "prism") {surv_plots = surv_plots + ggprism::theme_prism()}
 
     #Plot title
-    if(length(list_var > 1)) {
+    if(length(list_var) > 1) {
 
       surv_plots = surv_plots + labs(title = paste("List Element", ele_num))
     }
