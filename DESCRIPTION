@@ -32,5 +32,11 @@ Imports:
     pwr,
     ggthemes,
     factoextra,
-    missMDA
+    missMDA,
+    RVAideMemoire,
+    officer,
+    tidyr,
+    stringr,
+    ggpubr,
+    flextable
 Config/Needs/website: rmarkdown
