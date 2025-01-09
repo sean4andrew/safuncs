@@ -14,7 +14,7 @@ A data frame containing 399 rows and 4 columns:\tabular{lll}{
 }
 \usage{
 data(mort_db_ex)
-view(mort_db_ex)
+View(mort_db_ex)
 }
 \description{
 A subset of columns taken from the online excel mortality file in OneDrive.

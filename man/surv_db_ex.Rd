@@ -14,7 +14,7 @@ A data frame containing 1200 rows and 4 columns:\tabular{lll}{
 }
 \usage{
 data(surv_db_ex)
-view(surv_db_ex)
+View(surv_db_ex)
 }
 \description{
 A complete survival dataset with survivors, based of \code{mort_db_ex}. Ready for proper survival analysis.

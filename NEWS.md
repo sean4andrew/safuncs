@@ -1,3 +1,8 @@
+# safuncs 2.2.0
+
+* Added function `MultiVar()` used to generate a report from multivariate analyses.
+* Added significant amounts of details to `Surv_Power()` documentation.
+
 # safuncs 2.1.0
 
 * Added function `Surv_Power()` used to calculate power for survival experiments.

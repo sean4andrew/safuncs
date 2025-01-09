@@ -8,9 +8,834 @@ date: '`r format(Sys.time(), "%d %B, %Y")`'
 
 # Heading 1
 
+methods are commonly categorized into two groups based on their objective namely to control for FWER (Family Wise Error Rate) or FDR (False Discovery Rate). Traditionally ___. FWER (e.g.method = ""). This method... It make sense when .... However,.... makese no sense. The FWER additionally suffers from XXX and also scalability problem. XXX compiled a list why these days there is a recommendation for FDR.. An example of advantage... ANother example... In the field of XXX.... FDR ditches the FWER idea and instead XXX. It lives in the alternate (when there is already an effect). The concept is XX which makes much more sense. The FDR (BH)generally has greater power than XXX, guaranteeing a maximum of 5%. It is not yet investigated how bad XX in our situations (to be investigated). The BHY, but XXX quite strong. 
+
 ```{r}
-remotes::install_github("sean4andrew/safuncs")
-upercent_signif_seackage() 
+#remotes::install_github("sean4andrew/safuncs")
+#upercent_signif_seackage()
+
+library(ggplot2)
+library(dplyr)
+library(magrittr)
+
+setwd("C:/Users/sean4/Downloads")
+multivar_db_ex = read.csv(file = "U21038-24 scoring.csv") #minimum argument
+multivar_db_ex$Fruits = rep(rep(c("Orange", "Apple"), each = 4), times = 6)
+multivar_db_ex[10, 6] = NA #for testing purposes
+multivar_db_ex = multivar_db_ex[,-c(1, 3, 11)] 
+```
+
+```{r}
+MultiVar(multivar_db = multivar_db_ex,
+         values_cols = 4:10,
+         factors_cols = c(2, 12), 
+         factors_facet = c("col1", "col2"),
+         factors_pool = c("col1", "col2"), #Only relevant in two-factor scenarios, otherwise argument is ignored. A character vector representing the column(s) with factor levels to facet across in additionally generated plots. Choose any number from "col1" and "col2" which refers to ___, respectively. Defaults to "facet2" as it is assumed that the   .
+         pca_labels = "none") # A character string describing the labels to add to all 'existing' PCA plots (as determined by prior arguments). Choose any number from "var" and "ind" which refers to xxx, respectively.
+```
+
+```{r}
+new_iris = iris
+new_iris[1:25, 1] = NA
+MultiVar(multivar_db = new_iris,
+         values_cols = 1:4,
+         factors_cols = 5,
+         plot_out_R = TRUE)
+#rnings(RVAideMemoire::adonis.II(formula = cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) ~ Species,
+#                                                         data = iris, method = "euc"))
+# 
+# iris_scaled = scale(iris[, 1:4])
+# iris_scaled = data.frame(Species = iris$Species, iris_scaled)
+# 
+# options(contrasts = c("contr.sum", "contr.poly"))
+# lda_mod = MASS::lda(formula = Species ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width,
+#                             data = iris_scaled)
+```
+```{r}
+Test = function(){
+  overwrite = menu(c("Yes", "No"), title = "A MultiVar Word document with the same filename as one to be written was found in your working directory. Do you want to proceed and overwrite it?")
+  if(overwrite == 2) {stop("Function stopped.")}
+  print("passed")
+}
+
+Test()
+```
+
+
+```{r MultiVar()}
+MultiVar = function(multivar_db = multivar_db_ex,
+values_cols = 4:10,
+factors_cols = c(2, 12),
+factors_pool = c("col1", "col2"),
+factors_facet = c("col1", "col2"),
+pca_ellipse = c("none", "confidence"),
+pca_labels = NULL,
+missing_method = "imputation",
+scale = TRUE,
+center = TRUE,
+boxplot_filled = TRUE,
+boxplot_x_angle = NULL,
+boxplot_x_lab = FALSE,
+colours = NULL,
+univariate_tests = FALSE,
+plot_out_png = FALSE,
+plot_out_pptx = FALSE,
+plot_out_R = FALSE){
+# iris[1:25, 1] = NA
+# 
+# multivar_db = iris
+# values_cols = 1:4
+# factors_cols = 5
+# factors_pool = c("col1", "col2")
+# factors_facet = c("col1", "col2")
+# pca_ellipse = c("none", "confidence")
+# pca_labels = NULL
+# missing_method = "imputation"
+# scale = TRUE
+# center = TRUE
+# boxplot_filled = TRUE
+# boxplot_x_angle = NULL
+# boxplot_x_lab = FALSE
+# boxplot_x_wrap = NULL
+# colours = NULL
+# univariate_tests = FALSE
+# plot_out_png = FALSE
+# plot_out_pptx = FALSE
+# plot_out_R = FALSE
+
+  print("This might take a while...")
+  
+  # Initialize and define objects
+  results_doc = officer::read_docx()
+  results_doc_boxplot = officer::read_docx()
+  tempf = tempfile(fileext = ".docx")
+  pca_list = list(list())
+  boxplot_list = list(list())
+  dataframe_list = list()
+  boxplot_name_vec = c()
+  box_height2_vec = c()
+
+  # Set path and file names
+  if(plot_out_png == TRUE) {
+    img_path = file.path(getwd(), paste("MultiVar PNG Figures", format(Sys.Date(), "%d%b%Y")))
+    suppressWarnings(dir.create(img_path))
+  } else {
+    img_path = file.path(tempdir(), "Temp MultiVar PNG Figures")
+    suppressWarnings(dir.create(img_path))
+  }
+  
+  if(plot_out_pptx == TRUE) {
+    pptx_name = paste(sep = "", "MultiVar Editable Figures ",
+                    format(Sys.Date(), "%d%b%Y"), ".pptx")
+    if(file.exists(pptx_name)) {
+      file.remove(pptx_name)
+    }
+  }
+
+  # Get matrix of values
+  matrix_values_ori = multivar_db[, values_cols]
+  matrix_values = multivar_db[, values_cols]
+
+  # Validation check(s)
+  if(length(values_cols) < 2){stop("At least two columns are needed with variable values for proper multivariate analysis. Please add more columns to the 'values_cols' argument.")}
+  if(length(factors_cols) > 2){stop("A maximum of two factors are allowed. Please reduce the number of columns specified in 'factors_cols' to ≤ 2.")}
+  if(length(factors_cols) != 2) {factors_pool <- "none"}
+  if(length(factors_cols) != 2) {factors_facet <- "none"}
+
+  # Address NAs in matrix values
+  if(missing_method == "imputation") {
+    if(sum(is.na(matrix_values)) > 0) { 
+      matrix_values = data.frame(missMDA::imputePCA(matrix_values, ncp = missMDA::estim_ncpPCA(matrix_values)$ncp)$completeObs)
+    }
+  }
+  if(missing_method == "na_omit") {
+    multivar_db_ori = multivar_db
+    multivar_db = multivar_db[stats::complete.cases(matrix_values),]
+    matrix_values = multivar_db[, values_cols]
+  }
+
+  # Get PC values
+  pc_values = stats::prcomp(matrix_values, scale = scale, center = center)
+  matrix_values$PC1 = PC1 <- pc_values$x[, 1]
+  matrix_values$PC2 = PC2 <- pc_values$x[, 2]
+
+  # Get loadings
+  load_db = data.frame(load1 = load1 <- pc_values$rotation[, 1] * pc_values$sdev[1],
+                       load2 = load2 <- pc_values$rotation[, 2] * pc_values$sdev[2],
+                       vars = stringr::str_wrap(width = 15, gsub("\\.", " ", rownames(pc_values$rotation))))
+
+  # Create factor conditions
+  full_conds = c("none", "pooled1", "pooled2", "facet1", "facet2")
+  treatment_conds = as.vector(factor(unique(c("none", gsub("col", "pooled", factors_pool),
+                                              gsub("col", "facet", factors_facet))), levels = full_conds))
+
+  # Create base database for plotting
+  plot_db = cbind(multivar_db[, factors_cols, drop = FALSE], matrix_values)
+
+  # Create base PCA plot
+  pca_plot_base = ggplot(data = plot_db) +
+    geom_point() +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    theme_minimal() +
+    xlab(paste("Principal Component 1 (", round(summary(pc_values)$importance[2, 1] * 100, 1), "%)", sep = "")) +
+    ylab(paste("Principal Component 2 (", round(summary(pc_values)$importance[2, 2] * 100, 1), "%)", sep = "")) +
+    theme(axis.line = element_line(color = "black", linewidth = 0.4),
+          strip.background = element_rect(fill = "grey", color = NA))
+
+  # Create base boxplot
+  boxplot = ggplot() +
+    geom_boxplot(size = 0.8, outlier.size = -1) +
+    geom_jitter(height = 0, width = 0.2, shape = 21) +
+    theme_minimal() +
+    theme(axis.line = element_line(color = "black", linewidth = 0.4),
+          strip.background = element_rect(fill = "grey", colour = NA),
+          axis.text.x = element_text(hjust = 0.5))
+  if(!is.null(boxplot_x_angle)) {boxplot <- boxplot + theme(axis.text.x = element_text(angle = boxplot_x_angle, hjust = 1))}
+  if(!is.null(boxplot_x_wrap)) {boxplot <- boxplot + scale_x_discrete(labels = scales::wrap_format(boxplot_x_wrap))}
+
+  # Colour plots if applicable
+  if(!is.null(colours)){
+    pca_plot_base = pca_plot_base + 
+      scale_color_manual(values = colours) +
+      scale_fill_manual(values = colours)
+    
+    boxplot = boxplot +
+      scale_color_manual(values = colours) + 
+      scale_fill_manual(values = colours)
+  }
+  
+  # Set default plot dimensions
+  pca_width = 6.3
+  pca_height = 4.45
+  varplot_width = 6.4
+  varplot_height = 4.5
+
+  # Create multiple plots (potentially) to deal with multi factor scenarios
+  for(treatment_conds_i in treatment_conds) {
+
+    # Create different databases for plotting in different factor scenarios
+    if(treatment_conds_i == "none") {
+      plot_db$base_factor = interaction(multivar_db[, factors_cols], sep = " & ")
+      base_factor_name = ifelse(length(factors_cols) == 1,
+                                colnames(multivar_db)[factors_cols], "Combination")
+    }
+    if(treatment_conds_i %in% c("facet2", "pooled2")) {
+      plot_db$base_factor = multivar_db[, factors_cols[1]]
+      plot_db$second_factor = multivar_db[, factors_cols[2]]
+      base_factor_name = gsub("\\.", " ", colnames(multivar_db)[factors_cols[1]])
+      second_factor_name = gsub("\\.", " ", colnames(multivar_db)[factors_cols[2]])
+    }
+    if(treatment_conds_i %in% c("facet1", "pooled1")) {
+      plot_db$base_factor = multivar_db[, factors_cols[2]]
+      plot_db$second_factor = multivar_db[, factors_cols[1]]
+      base_factor_name = gsub("\\.", " ", colnames(multivar_db)[factors_cols[2]])
+      second_factor_name = gsub("\\.", " ", colnames(multivar_db)[factors_cols[1]])
+    }
+
+    # Create facet dimensions depending on treatment_conds_i
+    facet_num = ifelse(treatment_conds_i %in% c("none", "pooled2", "pooled1"),
+                       length(values_cols),
+                       length(unique(plot_db$second_factor)))
+    facet_col = ifelse(facet_num %in% 1:3, 2, 3)
+    facet_row = ceiling(facet_num / facet_col)
+
+    # Modify PCA Plot based on treatment_conds_i
+    pca_plot = pca_plot_base
+    pca_plot$data = plot_db
+    pca_plot$mapping = aes(x = PC1, y = PC2, colour = base_factor, fill = base_factor)
+    pca_plot$guides = guides(colour = guide_legend(base_factor_name), fill = guide_legend(base_factor_name),
+                             shape = guide_legend(base_factor_name))
+    if(length(unique(plot_db$base_factor)) <= 6) {pca_plot$layers[[1]] <- geom_point(aes(shape = base_factor), size = 2)}
+    if(length(unique(plot_db$base_factor)) > 6) {pca_plot$layers[[1]] <- geom_point(size = 2)}
+
+    # Add PCA labels
+    if("ind" %in% pca_labels) {
+      pca_plot = pca_plot + ggrepel::geom_text_repel(show.legend = FALSE, max.overlaps = 20, aes(label = rownames(plot_db)))
+    }
+    if("var" %in% pca_labels) {
+      # Calculate arrow length multiplier as in factoextra::fviz_pca_biplot()
+      r0.7 = min((max(PC1) - min(PC1)/(max(load1) - min(load1))), (max(PC2) - min(PC2)/(max(load2) - min(load2)))) * 0.7
+      pca_plot$layers = append(pca_plot$layers, geom_segment(data = load_db,
+                                                             aes(fill = NULL, color = NULL, x = 0, y = 0,
+                                                                 xend = load1 * r0.7, yend = load2 * r0.7),
+                                                             color = "black", alpha = 0.8,
+                                                             arrow = arrow(length = unit(0.2, "cm"), type = "open"),
+                                                             show.legend = FALSE), after = 0)
+      text_size_algo = ifelse(treatment_conds_i %in% c("none", "pooled2", "pooled1"),
+                              3, 3.4 - (0.6 * facet_col))
+      pca_plot = pca_plot + ggrepel::geom_text_repel(show.legend = FALSE, max.overlaps = 20,
+                                                     data = load_db, aes(fill = NULL, color = NULL,
+                                                                         x = load1 * r0.7, y = load2 * r0.7,
+                                                                         label = vars),
+                                                     color = "black", size = text_size_algo)
+    }
+
+    # Add PCA facets
+    if(treatment_conds_i %in% c("facet2", "facet1")) {
+      pca_plot = pca_plot + facet_wrap(~ second_factor, ncol = facet_col, nrow = facet_row)
+
+      # Set plot height based on facet
+      pca_height = 1.8 + 1.2 * facet_row
+    }
+
+    # Add ellipses and store PCA plots in a list
+    if("none" %in% pca_ellipse) {pca_list[["none"]][[treatment_conds_i]] <- pca_plot}
+    if("confidence" %in% pca_ellipse) {pca_list[["confidence"]][[treatment_conds_i]] <- pca_plot + ggpubr::stat_conf_ellipse(geom = "polygon", alpha = 0.15)}
+    if("distribution" %in% pca_ellipse) {pca_list[["distribution"]][[treatment_conds_i]] <- pca_plot + ggplot2::stat_ellipse(type = "norm", geom = "polygon", alpha = 0.15)}
+    if("convexhull" %in% pca_ellipse) {pca_list[["convexhull"]][[treatment_conds_i]] <- pca_plot + ggpubr::stat_chull(geom = "polygon", alpha = 0.15)}
+
+    # Save PCA plots
+    for(ellipse_i in pca_ellipse) {
+      pca_name = paste("PCA", ifelse(treatment_conds_i == "none", "",
+                                     paste(" Facet-", second_factor_name, sep = "")),
+                       " Ellipse-", tools::toTitleCase(ellipse_i), sep = "")
+      if(treatment_conds_i %in% c("pooled2", "pooled1")) {
+        pca_name = paste("PCA Pooled Across-", second_factor_name, " Ellipse-", tools::toTitleCase(ellipse_i), sep = "")
+      }
+
+      if(plot_out_pptx){
+        eoffice::topptx(figure = pca_list[[ellipse_i]][[treatment_conds_i]],
+                        filename = pptx_name,
+                        width = pca_width, height = pca_height, append = TRUE)
+      }
+      ggsave(plot = pca_list[[ellipse_i]][[treatment_conds_i]], filename = paste(sep = "", pca_name, ".png"),
+             path = img_path, dpi = 600, width = pca_width, height = pca_height)
+      results_doc = officer::body_add_img(x = results_doc, sr = file.path(img_path, paste(pca_name, ".png", sep = "")),
+                                          width = pca_width, height = pca_height) %>%
+        officer::body_add_par(value = pca_name, style = "graphic title") %>%
+        officer::body_add_par("")
+      if((last(treatment_conds) == treatment_conds_i) & (last(pca_ellipse) == ellipse_i)){} else {
+        results_doc <- results_doc %>% officer::body_add_par("")
+      }
+    }
+
+    # Create variables plot, contributions table & variable correlations plot
+    if(last(treatment_conds) == treatment_conds_i) {
+      # Note for PCA
+      results_doc = results_doc %>%
+        officer::body_add_par(paste(sep = "", "The ", round(summary(pc_values)$importance[2, 1] * 100, 1), "% and ",
+                                    round(summary(pc_values)$importance[2, 2] * 100, 1), "% values in the axes of the figures above describe the percent variation in the data explained by the first and second principal components, respectively."), style = "Normal") %>%
+        officer::body_add_par("") %>%
+        officer::body_add_par("")
+
+      # Create variable plots
+      varplot_name = "Correlation of Variables to PCs"
+      varplot = factoextra::fviz_pca_var(pc_values, repel = TRUE) +
+        xlab(expression(paste(sep = "", "Correlation (", italic(r), ") to PC1"))) +
+        ylab(expression(paste(sep = "", "Correlation (", italic(r), ") to PC2"))) +
+        theme(plot.title = element_blank(),
+              axis.line = element_line(color = "black", linewidth = 0.4),
+              plot.margin = unit(c(0, 0.18, 0, 0.18), "in"))
+      varplot_layer3 = varplot$layers[[3]]
+      varplot$layers[[3]] = ggrepel::geom_text_repel(data = varplot$data,
+                                                     aes(x = x, y = y,
+                                                         label = stringr::str_wrap(gsub("\\.", " ", name), width = 15)),
+                                                     nudge_x = 0, nudge_y = 0, size = 3.75, color = "darkblue",
+                                                     box.padding = 0, min.segment.length = 0.3, segment.colour = "darkblue")
+      varplot$layers[[1]] = varplot_layer3
+
+      # Save plot
+      if(plot_out_pptx == TRUE) {
+        eoffice::topptx(figure = varplot, filename = pptx_name,
+                        width = varplot_width, height = varplot_height, append = TRUE)
+      }
+      ggsave(plot = varplot, filename = paste(sep = "", varplot_name, ".png"), path = img_path,
+             dpi = 600, width = varplot_width, height = varplot_height)
+
+      # Create correlations table
+      correl_db = data.frame(cor(matrix_values)) %>% tibble::rownames_to_column(" ")
+      colnames(correl_db) = gsub("\\.", " ", colnames(correl_db))
+      correl_db[, 1] = gsub("\\.", " ", correl_db[, 1])
+
+      correl_tab = flextable::flextable(correl_db) %>%
+        flextable::set_caption(caption = "Table 1. Pearson correlation coefficient (r) between variables and principal components") %>%
+        flextable::colformat_double(digits = ifelse(length(values_cols) < 5, 4, 3)) %>%
+        flextable::line_spacing(space = ifelse(length(values_cols) < 5, 1, 0.8), part = "all") %>%
+        flextable::fontsize(size = ifelse(length(values_cols) < 5, 11, 9), part = "all") %>%
+        flextable::set_table_properties(layout = "autofit", width = 1)
+
+      # Create contribution table
+      contrib_db = data.frame(Variable = gsub("\\.", " ", names(pc_values$rotation[,1])),
+                              ContributionPC1 = as.vector(100 * pc_values$rotation[,1]^2),
+                              EigenvectorPC1 = as.vector(pc_values$rotation[,1]),
+                              ContributionPC2 = as.vector(100 * pc_values$rotation[,2]^2),
+                              EigenvectorPC2 = as.vector(pc_values$rotation[,2])) %>% dplyr::arrange(desc(ContributionPC1))
+
+      contrib_tab = flextable::flextable(contrib_db) %>%
+        flextable::set_caption(caption = "Table 2. Contribution of variables to principal components") %>%
+        flextable::set_table_properties(layout = "autofit", width = 1)
+
+      # Save the three results (1 plots, 2 table) in the word document
+      results_doc = results_doc %>%
+        officer::body_add_img(sr = file.path(img_path, paste(varplot_name, ".png", sep = "")),
+                              width = varplot_width, height = varplot_height) %>%
+        officer::body_add_par(value = varplot_name, style = "graphic title") %>%
+        officer::body_add_break() %>%
+        flextable::body_add_flextable(value = correl_tab, align = "left", topcaption = TRUE, split = FALSE) %>%
+        officer::body_add_break() %>%
+        flextable::body_add_flextable(value = contrib_tab, align = "left", topcaption = TRUE, split = FALSE) %>%
+        officer::body_add_par("The contribution describes how much (in %) of the PC is composed of that variable; a more precise definition is that it is the variable's eigenvector^2 when the sum of eigenvectors^2 (over all variables) is equal to 1 (100%) for each PC (this condition is implicit in PCA). The eigenvector represents both the magnitude and direction of change of the principal component for each unit increase of the variable. This variable is in the standardized scale (z-score normalized) if scale and center arguments are set to TRUE.", style = "Normal") %>%
+        officer::body_add_break()
+    }
+
+    # Create long database for boxplots
+    if(missing_method == "na_omit") {
+      if(treatment_conds_i %in% c("none")){base_factor <- interaction(multivar_db_ori[, factors_cols], sep = " & ")}
+      if(treatment_conds_i %in% c("pooled2", "facet2")) {
+        base_factor = multivar_db_ori[, factors_cols[1]]
+        second_factor = multivar_db_ori[, factors_cols[2]]
+      }
+      if(treatment_conds_i %in% c("pooled1", "facet1")) {
+        base_factor = multivar_db_ori[, factors_cols[2]]
+        second_factor = multivar_db_ori[, factors_cols[1]]
+        }
+    } else {
+      base_factor = plot_db$base_factor
+      second_factor = plot_db$second_factor}
+
+    # Create long database from plot_db
+    plot_db_long = data.frame(cbind(base_factor = base_factor,
+                                    second_factor = if(treatment_conds_i == "none"){"none"} else {second_factor},
+                                    matrix_values_ori) %>%
+                                tidyr::pivot_longer(cols = 3:(2 + length(values_cols)),
+                                                    names_to = "variable", values_to = "values"))
+    plot_db_long$variable = gsub("\\.", " ", plot_db_long$variable)
+
+    # Create boxplots with variables facet
+    point_size_algo = 2.4 - (facet_col * length(unique(plot_db_long$base_factor)) - 4)/ (33 / 0.9)
+    box_height = 1.7 + 1.1 * facet_row
+
+    boxplot$data = plot_db_long
+    boxplot$mapping = aes(y = values, x = base_factor, colour = base_factor)
+    boxplot$guides = guides(colour = guide_legend(base_factor_name), fill = guide_legend(base_factor_name),
+                            shape = guide_legend(base_factor_name))
+    boxplot$layers[[2]] = geom_jitter(height = 0, width = 0.2, shape = 21, size = point_size_algo)
+    boxplot = boxplot +
+      facet_wrap(~ variable, ncol = facet_col, nrow = facet_row, scales = "free_y") +
+      ylab("Value") +
+      theme(plot.margin = unit(c(0.07, 0.09, 0.07, 0.09), "in"),
+            strip.text = element_text(size = 8.8, margin = margin(0.155, 0.1, 0.155, 0.1, unit = "cm")),
+            strip.background = element_rect(fill = "grey", color = NA))
+    if(boxplot_x_lab == TRUE) {boxplot <- boxplot + xlab(base_factor_name)}
+    if(boxplot_filled == TRUE) {boxplot$mapping <- aes(y = values, x = base_factor, fill = base_factor)}
+
+    if(treatment_conds_i %in% c("none", "pooled2", "pooled1")) {
+      
+      # Save the boxplots with variables facet
+      boxplot_name = ifelse(treatment_conds_i == "none", "Boxplot of Values Facet-Variables",
+                            paste("Boxplot of Values Facet-Variables Pooled Across-", second_factor_name, sep = ""))
+      boxplot_list[[treatment_conds_i]][["facetvariables"]] = boxplot
+
+      if(plot_out_pptx == TRUE) {
+        eoffice::topptx(figure = boxplot, filename = pptx_name,
+                        width = 6.4, height = box_height, append = TRUE)
+      }
+      ggsave(plot = suppressWarnings(boxplot), filename = paste(sep = "", boxplot_name, ".png"), path = img_path,
+             dpi = 600, width = 6.4, height = box_height)
+      results_doc_boxplot = results_doc_boxplot %>%
+        officer::body_add_img(sr = file.path(img_path, paste(sep = "", boxplot_name, ".png")),
+                              width = 6.4, height = box_height) %>%
+        officer::body_add_par(value = boxplot_name, style = "graphic title") %>%
+        officer::body_add_par("") %>%
+        officer::body_add_par("")
+      
+    }
+
+    
+    # Create boxplots without variables facet, for each separate variable.
+    box_num = length(unique(plot_db_long$base_factor)) * ifelse(treatment_conds_i %in% c("facet1", "facet2"), facet_col, 1)
+    box_row = ifelse(treatment_conds_i %in% c("facet1", "facet2"), facet_row, 1)
+    point_size_algo = 3 - (box_num - 2)/ 24
+    
+    box_height2 = 2.05 + (1.1 * box_row) + ifelse(box_num <= 6, 0.4, 0)
+    for(values_cols_i in values_cols) {
+      varname = gsub("\\.", " ", colnames(multivar_db)[values_cols_i])
+
+      # Filter for a variable
+      plot_db_long_filtered = plot_db_long[plot_db_long$variable == varname, ]
+
+      # Change boxplot data, point size, facet and names
+      boxplot = boxplot +
+        ylab(varname) +
+        theme(strip.text = element_blank(),
+              strip.background = element_blank(),
+              plot.margin = unit(c(0.0 + (0.04 * box_num), 0.25, 0.05 + (0.01 * box_num), 0.25), "in"))
+      boxplot$data = plot_db_long_filtered
+      boxplot$layers[[2]] = geom_jitter(height = 0, width = 0.2, shape = 21, size = point_size_algo)
+
+      if(treatment_conds_i %in% c("facet2", "facet1")) {
+        boxplot$facet = facet_wrap(~ second_factor, ncol = facet_col, nrow = facet_row)
+        boxplot = boxplot +
+          theme(strip.text = element_text(size = 8.8, margin = margin(0.155, 0.1, 0.155, 0.1, unit = "cm")),
+                strip.background = element_rect(fill = "grey", color = NA),
+                plot.margin = unit(c(0.0 + (0.04 * box_num), 0.25, 0.05 + (0.01 * box_num), 0.25), "in"))
+        boxplot_name = paste("Boxplot of ", varname, " Facet-", second_factor_name, sep = "")
+      }
+      if(treatment_conds_i == "none") {boxplot_name <- paste("Boxplot of ", varname, sep = "")}
+      if(treatment_conds_i %in% c("pooled2", "pooled1")) {boxplot_name <- paste("Boxplot of ", varname, " Pooled Across-", second_factor_name, sep = "")}
+      boxplot_name_vec = c(boxplot_name_vec, boxplot_name)
+      box_height2_vec = c(box_height2_vec, box_height2)
+
+      # Save these boxplots
+      boxplot_list[[treatment_conds_i]][[varname]] = boxplot
+      if(plot_out_pptx == TRUE) {
+        eoffice::topptx(figure = boxplot, filename = pptx_name,
+                        width = 6.4, height = box_height2, append = TRUE)
+      }
+      ggsave(plot = suppressWarnings(boxplot), filename = paste(boxplot_name, ".png", sep = ""),
+             dpi = 600, width = 6.4, height = box_height2, path = img_path)
+    }
+      
+    # Add them to results_doc
+    if(treatment_conds_i == last(treatment_conds)){
+      i = 0
+      for(boxplot_name_i in boxplot_name_vec) {
+        i = i + 1
+        results_doc_boxplot = results_doc_boxplot %>%
+          officer::body_add_img(sr = file.path(img_path, paste(boxplot_name_i, ".png", sep = "")),
+                                width = 6.4, height = box_height2_vec[i]) %>%
+          officer::body_add_par(value = boxplot_name_i, style = "graphic title") %>%
+          officer::body_add_par("") %>%
+          officer::body_add_par("")
+      }
+    }
+
+    # Create LDA, MANOVA and potentially ANOVA tables
+    if(last(treatment_conds) == treatment_conds_i) {
+      results_doc_boxplot = results_doc_boxplot %>% officer::body_add_break()
+
+      # Create LDA table results
+      lda_db = cbind(multivar_db[, factors_cols, drop = FALSE],
+                     scale(matrix_values[,!colnames(matrix_values) %in% c("PC1", "PC2")],
+                           scale = scale, center = center))
+      factors_vec = paste(collapse = " * ", colnames(multivar_db[, factors_cols, drop = FALSE]))
+      values_vec = paste(collapse = " + ", colnames(lda_db[, (1 + length(factors_cols)):ncol(lda_db)]))
+
+      tab_counter = 2
+      for(lda_factor in colnames(multivar_db[, factors_cols, drop = FALSE])){
+        tab_counter = tab_counter + 1
+
+        # Fit LDA mod
+        lda_mod = MASS::lda(formula = as.formula(paste(lda_factor, "~", values_vec)),
+                            data = lda_db)
+
+        # Store LDA results in a table and list
+        lda_contrib = (scale(lda_mod$scaling, F, sqrt(colSums(lda_mod$scaling^2))))^2
+        lda_contrib_db = data.frame(Variable = gsub("\\.", " ", rownames(lda_contrib)),
+                                    ContributionLD1 = 100 * lda_contrib[, 1],
+                                    CoefficientLD1 = lda_mod$scaling[, 1])
+        if(ncol(lda_contrib) > 1) {
+          lda_contrib_db$ContributionLD2 = 100 * lda_contrib[, 2]
+          lda_contrib_db$CoefficientLD2 = lda_mod$scaling[, 2]
+        }
+
+        lda_contrib_db = lda_contrib_db %>% dplyr::arrange(dplyr::desc(ContributionLD1))
+        lda_contrib_tab = flextable::flextable(lda_contrib_db) %>%
+          flextable::set_caption(caption = paste("Table ", tab_counter, ". Contribution of variables to linear discriminants of ",
+                                                 lda_factor, sep = "")) %>%
+          flextable::set_table_properties(layout = "autofit", width = 1)
+        lda_exp = round(100 * (lda_mod$svd^2 / sum(lda_mod$svd^2)), 1)
+
+        # Add results to officer
+        results_doc_boxplot = results_doc_boxplot %>%
+          flextable::body_add_flextable(value = lda_contrib_tab, align = "left", topcaption = TRUE, split = FALSE) %>%
+          officer::body_add_par(value = paste(sep = "", "LD1 and LD2 explain ", lda_exp[1], "% and ", lda_exp[2],
+                                              "% of the separation between ", lda_factor, ", respectively."), style = "Normal") %>%
+          officer::body_add_par("")
+      }
+
+      results_doc_boxplot = results_doc_boxplot %>%
+        officer::body_add_par("Tabulated values are based on Linear Discriminant Analysis (LDA). The contribution describes the percentage of the linear discriminant composed of that variable; a more exact definition is that it is the variable's coefficient of linear discriminant^2 when the sum of coefficients^2 (across variables) is normalized to 100%. The coefficient of linear discriminant describes the magnitude and direction of change in the linear discriminant score (towards a particular factor level) per unit increase of the variable. Apart from the coefficients relative signs and magnitude, they may be difficult to interpret without an associated LDA plot.", style = "Normal")
+
+      # Get MANOVA results
+      manova_db = cbind(multivar_db[, factors_cols, drop = FALSE],
+                        matrix_values[,!colnames(matrix_values) %in% c("PC1", "PC2")])
+      values_vec2 = paste("cbind(",
+                          paste(collapse = ",", colnames(manova_db[, (1 + length(factors_cols)):ncol(manova_db)])),
+                          ")", sep = "")
+
+      options(contrasts = c("contr.sum", "contr.poly"))
+      permanova = suppressWarnings(RVAideMemoire::adonis.II(formula = as.formula(paste(values_vec, "~", factors_vec)),
+                                                            data = manova_db, method = "euclidean"))
+      manova_mod = manova(formula = as.formula(paste(values_vec2, "~", factors_vec)),
+                          data = manova_db)
+      manova = car::Anova(type = 3, manova_mod)
+      options(contrasts = c("contr.treatment", "contr.poly"))
+      manova_p = suppressWarnings(as.numeric(na.omit(as.numeric(sub(".*\\s*(\\d+\\.[0-9e-]+)\\s*[*.]*",
+                                                                    "\\1", capture.output(manova))))))
+      # Create MANOVA table
+      manova_db = data.frame(Factor = manova$terms[!manova$terms == "(Intercept)"],
+                             PERMANOVA = as.numeric(na.omit(permanova$`Pr(>F)`)),
+                             MANOVA = manova_p[!manova$terms == "(Intercept)"])
+      manova_db$PERMANOVA = ifelse(manova_db$PERMANOVA < 0.001, formatC(manova_db$PERMANOVA, format = "e", digits = 4), manova_db$PERMANOVA)
+      manova_db$MANOVA = ifelse(manova_db$MANOVA < 0.001, formatC(manova_db$MANOVA, format = "e", digits = 4), manova_db$MANOVA)
+
+      manova_tab = flextable::flextable(manova_db) %>%
+        flextable::set_caption(caption = paste("Table ", tab_counter + 1, ". MANOVA Results (p-values)", sep = "")) %>%
+        flextable::set_table_properties(layout = "autofit", width = 1)
+
+      # Run Univariate Tests
+      if(univariate_tests == TRUE) {
+        p_no_adj = c()
+
+        # Get p-values for each variable
+        varnames_vec = colnames(multivar_db[, values_cols, drop = FALSE])
+        options(contrasts = c("contr.sum", "contr.poly"))
+        for(values_vec_i in varnames_vec) {
+          lm_mod = lm(data = multivar_db, formula = as.formula(paste(values_vec_i, "~", factors_vec)))
+          Anova_res = car::Anova(lm_mod, type = 3, test.statistic = "F")
+          p_no_adj = c(p_no_adj, as.numeric(na.omit(Anova_res$`Pr(>F)`[-1])))
+        }
+        options(contrasts = c("contr.treatment", "contr.poly"))
+        p_bh = p.adjust(p_no_adj, method = "BH")
+
+        # Create p-values table
+        anova_fac = rownames(data.frame(Anova_res))[-c(1, length(rownames(data.frame(Anova_res))))]
+        p_db = data.frame(Variable = rep(varnames_vec, each = length(anova_fac)),
+                          Factor = rep(anova_fac, times = length(varnames_vec)),
+                          Unadjusted = ifelse(p_no_adj < 0.001, formatC(p_no_adj, format = "e", digits = 4), p_no_adj))
+        p_db$Variable = gsub("\\.", " ", p_db$Variable)
+        if(length(factors_cols) == 1){p_db$FDR_Adjusted <- ifelse(p_bh < 0.001, formatC(p_bh, format = "e", digits = 4), p_bh)}
+        colnames(p_db) = gsub("_", " ", colnames(p_db))
+
+        p_tab = flextable::flextable(p_db) %>%
+          flextable::set_caption(caption = paste("Table ", tab_counter + 2, ". ANOVA Results (p-values)", sep = "")) %>%
+          flextable::set_table_properties(layout = "autofit", width = 1) %>%
+          flextable::merge_v(j = "Variable")
+      }
+
+      results_doc_boxplot = results_doc_boxplot %>%
+        officer::body_add_break() %>%
+        flextable::body_add_flextable(value = manova_tab, align = "left", topcaption = TRUE, split = FALSE) %>%
+        officer::body_add_par(ifelse(length(factors_cols) == 2, "PERMANOVA = permutational multivariate analysis of variance. The MANOVA conducted here uses the type 3 method for partitioning sums of squares between factors, while the PERMANOVA uses type 2 (because type 3 is not available). Typing is relevant only when there are multiple factors.", "PERMANOVA = Permutational Multivariate Analysis of Variance."), style = "Normal") %>%
+        officer::body_add_par("") %>%
+        officer::body_add_par(ifelse("0.001" %in% as.character(manova_db$PERMANOVA), "During testing, it was discovered that the PERMANOVA function used by MultiVar() shows p-values below 0.001 as only 0.001. To calculate the exact p-value, we need to make use of the F-value and degrees of freedom calculated by the PERMANOVA function for that factor. Please inform me if the exact p-value needs to be calculated. I have not written the code to address this limitation to save my time.", "")) %>%
+        officer::body_add_par("")
+
+      if(univariate_tests == TRUE) {
+        results_doc_boxplot = results_doc_boxplot %>%
+          officer::body_add_break() %>%
+          flextable::body_add_flextable(value = p_tab, align = "left", topcaption = TRUE, split = FALSE)
+        if(length(factors_cols) == 1) {
+          results_doc_boxplot = results_doc_boxplot %>% officer::body_add_par("FDR Adjusted represents p-values adjusted for the False Discovery Rate, such that no more than 5% of discoveries are expected to be wrong. The adjustment is based on the Benjamini Hochberg procedure which assumes p-values are independent or positive-dependent. Our p-values may be negatively correlated although currently I do not see what type of data would produce that. At some point I might investigate the prevalence of this issue for ONDA datasets and assess its impact on FDR.")
+        }
+        if(length(factors_cols) == 2){
+          results_doc_boxplot = results_doc_boxplot %>% officer::body_add_par("For two factor cases, Type 3 SS ANOVAs were conducted. P-values were not adjusted as it is unclear which adjustment method is appropriate (if any) when p-values are grouped (likely heavily correlated) by their factors.")
+        }
+        results_doc_boxplot = results_doc_boxplot %>%
+          officer::body_add_par("") %>%
+          officer::body_add_par("Because no FWER (Family-Wise Error Rate) adjustments were made on the p-values of the ANOVAs, they should not be used to make family level conclusions. For example, concluding that there is statistical evidence for any effect on the fish based on a significant p-value in an ANOVA. Conclusions made this way have a 34% chance of being positive (significant) even when the null is true (i.e. it is a false positive) for 8 independent ANOVAs. The false positive rate specifically is 1-(0.95^ANOVA_count) for the case of ANOVA with one factor. Please refer to the MANOVA results for a conclusion on the multivariate outcome.")
+      }
+    } 
+  }
+
+  # Save word document
+  print(results_doc_boxplot, target = tempf)
+  print(officer::body_add_docx(results_doc, src = tempf),
+        target = paste(sep = "", "MultiVar Report ", format(Sys.Date(), "%d%b%Y"), ".docx"))
+
+  # Delete temporary files
+  file.remove(tempf)
+  if(plot_out_png == FALSE) {unlink(img_path)}
+
+  # Print plot output in R
+  if(plot_out_R == TRUE) {
+    return(list(pca = pca_list,
+                correl = varplot,
+                box = boxplot_list))
+  }
+}
+```
+
+
+```{r MultiVar() Examples}
+#' # Below is a tutorial to help you create various reports using MultiVar(). Lets start 
+#' # simple, with the aim of creating a report for the iris dataset which has only one
+#' # factor (Species). We'll start by loading up the data using the code below:
+#'  
+data(iris)
+#'
+#' # Lets get a better look on how the data is laid out:
+#' 
+head(iris, n = 5)
+#
+str(iris)
+#'
+#' # From the above outputs, we can see which columns contain the factor and which 
+#' # hold the dependent (outcome) variables. These are the minimum information needed by 
+#' # MultiVar() for it to run properly. Lets give MultiVar() a shot!
+#' 
+MultiVar(multivar_db = iris,
+         values_cols = 1:4,
+         factors_cols = 5)
+#'
+#' # Above we have indicated the dataset is iris, while the dependent variables exist in
+#' # columns #1 to #4, and the factor in column #5. Check out your working directory
+#' # and you should see your first report created using MultiVar()! To see where your
+#' # current working directory is, run the code below:
+#' 
+getwd()
+#'
+#' # Suppose we wanted to create a different, more pimped up PCA plot. We can achieve
+#' # this by modifying the 'pca_' prefixed arguments.
+#'
+MultiVar(multivar_db = iris,
+         values_cols = 1:4,
+         factors_cols = 5,
+         pca_ellipse = c("none", "confidence", "distribution", "convexhull"),
+         pca_labels = c("var"),
+         plot_out_R = TRUE)$pca
+#'
+#' # Note: The 'plot_out_R = TRUE' argument is used to obtain the plot output in R so
+#' # that we can view them in this Example section, and the '$pca' code is used to limit
+#' # the output to only pca plots.  
+#' 
+#' # Modification of the boxplots is also possible using the 'boxplot_' prefixed 
+#' # arguments. Below, I added a tilt to the x-axis labels and removed the colour fill
+#' # of the boxplots.
+#'  
+MultiVar(multivar_db = iris,
+         values_cols = 1:4,
+         factors_cols = 5,
+         boxplot_x_angle = 45,
+         boxplot_filled = FALSE,
+         plot_out_R = TRUE)$box
+#'
+#' # If you are unsatisfied with the modification, plots can be saved as ggplot objects
+#' # in R or in .pptx where they can be edited further:
+#'  
+box_SL = MultiVar(multivar_db = iris,
+                  values_cols = 1:4,
+                  factors_cols = 5,
+                  boxplot_x_angle = 45,
+                  boxplot_filled = FALSE,
+                  plot_out_pptx = TRUE,
+                  plot_out_R = TRUE)$box$none$'Sepal Length'
+
+box_SL = box_SL + ggprism::theme_prism() + ggplot2::theme(strip.text.x = element_blank())
+box_SL
+#'
+#' # Note: 'ggprism::theme_prism()' overwrites the 'boxplot_x_angle argument' which, if
+#' # desired, has to be re-added using 'theme(axis.text.x = element_text(angle = 45))'.
+#' 
+#' # The plot can then be saved in various formats (e.g. tiff) with the desired
+#' # dimensions and resolution: 
+#' 
+ggplot2::ggsave(filename = "box_SepalLength.tiff",
+                plot = box_SL,
+                width = 5,
+                height = 5,
+                dpi = 600)
+#'
+#' # The above examples assume a pretty well behaved dataset, but in real life the data
+#' # can be accompanied with missing values (NAs). MultiVar() is built with this in mind 
+#' # and supports two methods to address this issue. The argument 'missing_method = 
+#' # "imputation"' instructs MultiVar() to create missing values using a PCA model 
+#' # from missMDA::imputePCA(). This is the default method. Alternatively, the argument 
+#' # "missing_method = "na_omit" can be used to remove entire rows of data with at least 
+#' # one NA. This can be a costly action. Below, I show how the imputation method 
+#' # effectively addresses missing values. To begin, I will add NAs to our iris dataset:
+#' 
+iris[1:25, 1] = NA
+#'
+#' # Next, lets run MultiVar()!
+#'
+MultiVar(multivar_db = iris,
+         values_cols = 1:4,
+         factors_cols = 5,
+         missing_method = "imputation",
+         plot_out_R = TRUE)$pca$none$none
+
+#' # Notably, these pca plots do not look much different than before which is good as it
+#' # indicates the imputation covers the randomly missing values without obvious bias.
+#' 
+#' ## TWO FACTOR CASES
+#' # Two factor cases occur quite frequently in research, and MultiVar() can produce 
+#' # plots tailored to that. At minimum, MultiVar() outputs plots with x-axis labels (or 
+#' # legend labels) that represents different combinations of levels from the two 
+#' # factors. This can mean a lot of levels which can look unsightly. To show how such a
+#' # plot would look, I will load an example fish mucus dataset and run MultiVar(). 
+#' # This dataset has one real factor (Treatment) and a fake, inserted factor (Fruits). 
+#' 
+data(multivar_db_ex)
+
+head(multivar_db_ex, n = 5)
+
+str(multivar_db_ex)
+
+MultiVar(multivar_db = multivar_db_ex,
+         values_cols = 2:8,
+         factors_cols = c(1, 9),
+         factors_pool = "none",
+         factors_facet = "none")
+#'
+#' # The output is not printed here to keep things clean. Please see the report saved
+#' # in your working directory!
+#' 
+#' # To reduce the number of legend or x-axis labels, simpler plots can be created with
+#' # faceting or pooling of values across levels of a 'nuisance' factor (e.g. Fruits).
+#' # The below code shows how to do this using the arguments 'factors_pool' and 
+#' # 'factors_facet':
+#'
+MV_output = MultiVar(multivar_db = multivar_db_ex,
+                     values_cols = 2:8,
+                     factors_cols = c(1, 9),
+                     factors_pool = "col2",
+                     factors_facet = "col2",
+                     plot_out_R = TRUE)
+
+MV_output$pca$confidence$pooled2
+MV_output$pca$confidence$facet2
+
+#' # The above specifications for 'factors_pool' and 'factors_facet' tell MultiVar() to 
+#' # facet and pool across levels of the second column in 'factors_cols' which
+#' # corresponds to the ninth column in the dataset (Fruits). The default in MultiVar()
+#' # for two factor scenarios is to consider this second column as the nuisance factor 
+#' # to facet against.
+#'
+#' # In some cases, it may be relevant to facet and pool across the levels of the first
+#' # factor (Treatment). Simply add "col1" to the input vectors!
+#'
+MV_output2 = MultiVar(multivar_db = multivar_db_ex,
+                      values_cols = 2:8,
+                      factors_cols = c(1, 9),
+                      factors_pool = c("col1", "col2"),
+                      factors_facet = c("col1", "col2"),
+                      plot_out_R = TRUE)
+
+MV_output2$pca$confidence$pooled1
+MV_output2$pca$confidence$facet1
+#'
+#' # Lastly, in some cases we may want ANOVA outputs to assess the significance of 
+#' # Treatment to each univariate outcome. The 'univariate_tests' argument should then 
+#' # be set to TRUE: 
+#' 
+MultiVar(multivar_db = multivar_db_ex,
+         values_cols = 2:8,
+         factors_cols = c(1, 9),
+         univariate_tests = TRUE)
+
+#' # The table of ANOVA results can be viewed in the Word output in your working
+#' # directory. That is the end of the tutorial! Hope it helps.
+```
+
+```{r Dump}
+MultiVar(multivar_db = iris,
+         values_cols = 1:4,
+         factors_cols = 5,
+         pca_ellipse = c("none", "confidence", "distribution", "convexhull"),
+         pca_labels = c("var", "ind"),
+         plot_out_R = TRUE)$pca
+#'
+#' # Note: The 'plot_out_R = TRUE' argument is used to obtain the plot output in R so
+#' # that we can view them in this Example section, and the '$pca' code is used to limit
+#' # the output to only pca plots.  
+#'  
+#' # Suppose some features of the pca plot are not desired, then they can be removed by
+#' # deleting the responsible characters from the input vector. For example, we can 
+#' # remove "ind" which represents the row number labels: 
+#' 
 ```
 
 

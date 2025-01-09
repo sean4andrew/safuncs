@@ -1,7 +1,7 @@
 Package: safuncs
 Type: Package
 Title: Functions for the Preparation and Analysis of Biological Data
-Version: 2.1.0
+Version: 2.2.0
 Author: Sean Andrew
 Maintainer: Sean Andrew <sean4andrew@gmail.com>
 Description: Functions for simulations, power calculations, prediction, plotting and generation of biological data.
@@ -11,7 +11,7 @@ LazyData: true
 URL: https://github.com/sean4andrew/safuncs, https://sean4andrew.github.io/safuncs/
 BugReports: https://github.com/sean4andrew/safuncs/issues
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5)
 RoxygenNote: 7.3.2
 Imports: 
     bshazard,

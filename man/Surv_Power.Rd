@@ -2,14 +2,14 @@
 % Please edit documentation in R/safuncs.R
 \name{Surv_Power}
 \alias{Surv_Power}
-\title{Calculate Power for Survival Studies}
+\title{Calculates Power for Survival Experiments}
 \usage{
 Surv_Power(
   simul_db = simul_db_ex,
   global_test = "logrank",
   model = NULL,
   pairwise_test = "logrank",
-  pairwise_corr = "none",
+  pairwise_corr = "BH",
   prog_show = TRUE,
   plot_out = TRUE,
   plot_lines = FALSE,
@@ -21,13 +21,13 @@ Surv_Power(
 \arguments{
 \item{simul_db}{An output from \code{Surv_Simul()} which includes the survival dataframe simulated with the desired experimental design parameters.}
 
-\item{global_test}{A character vector representing the method(s) to use for global hypothesis testing of significance of treatment. Methods available are: "logrank", "wald", "score", "LRT". "logrank" represents the global logrank test of significance. The latter three methods are standard global hypothesis testing methods for models. They are only available when the argument \code{model} is specified (i.e. not NULL)."wald" represents the Wald Chisquare Test (also known as joint test) which assesses whether model parameters (log(hazard ratios)) jointly are significantly different from 0 (i.e. HRs ≠ 1). Wald test can be done for various cox-proportional hazard models that could be relevant to our studies (glm, glmm, and gee). Due to its broad applicability, while also producing practically the same p-value most of the time compared to the other model tests, "wald" is the recommended option of the three. "score" represents the Lagrange multiplier or Score test. 'LRT' represents the likelihood ratio test. Defaults to "logrank" for now due to its ubiquity of use.}
+\item{global_test}{A character vector representing the method(s) to use for global hypothesis testing of significance of treatment. Methods available are: "logrank", "wald", "score", "LRT". "logrank" represents the global logrank test of significance. The latter three methods are standard global hypothesis testing methods for models. They are only available when the argument \code{model} is specified (i.e. not NULL). "wald" represents the Wald Chisquare Test which assesses whether model parameters (log(hazard ratios)) jointly are significantly different from 0 (i.e. HRs ≠ 1). Wald test can be done for various cox-proportional hazard models that could be relevant to our studies (glm, glmm, and gee). Due to its broad applicability, while also producing practically the same p-value most of the time compared to the other model tests, "wald" is the recommended option of the three. "score" represents the Lagrange multiplier or Score test. 'LRT' represents the likelihood ratio test. Defaults to "logrank" for now due to its ubiquity of use.}
 
 \item{model}{A character vector representing the model(s) to fit for hypothesis testing. Models available are: "coxph_glm" and "coxph_glmm". "coxph_glm" represents the standard cox proportional hazard model fitted using \code{survival::coxph()} with Trt.ID as a fixed factor. "coxph_glmm" represents the mixed cox proportional hazard model fitted using \code{coxme::coxme()} with Trt.ID as a fixed factor and Tank.ID as a random factor to account for inter-tank variation. Defaults to NULL where no model is fitted for hypothesis testing.}
 
 \item{pairwise_test}{A character vector representing the method(s) used for pairwise hypothesis tests. Use "logrank" to calculate power for logrank tests comparing different treatments. Use "EMM" to calculate power using Estimated Marginal Means based on model estimates (from 'coxph_glm' and/or 'coxph_glmm'). Defaults to "logrank".}
 
-\item{pairwise_corr}{A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. For clarification, this affects the power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". Under \bold{Details}, I discuss the common categories of adjustment methods and provided a recommendation for "BH". Defaults to "none" for now.}
+\item{pairwise_corr}{A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. For clarification, this affects the power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". Under \bold{Details} (yet to be finished), I discuss the common categories of adjustment methods and provided a recommendation for "BH". Defaults to "none" for now.}
 
 \item{prog_show}{Whether to display the progress of \code{Surv_Power()} by printing the number of sample sets with p-values calculated. Defaults to TRUE.}
 
@@ -43,8 +43,9 @@ Surv_Power(
 }
 \value{
 Outputs a list containing any of the following four items depending on input arguments:
+
 \itemize{
-\item When \code{global_test ≠ NULL}, outputs a dataframe named \code{power_glob_db} containing power values calculated for global hypothesis tests. The dataframe consists of six columns: \tabular{lll}{
+ \item When \code{global_test ≠ NULL}, outputs a dataframe named \code{power_glob_db} containing power values calculated for global hypothesis tests. The dataframe consists of six columns: \tabular{lll}{
  \code{model} \tab \tab The type of model being evaluated in power calculations \cr
  \code{global_test} \tab \tab The global hypothesis test being evaluated \cr
  \code{power} \tab \tab The percentage of p-values below 0.05, i.e. power \cr
@@ -52,8 +53,8 @@ Outputs a list containing any of the following four items depending on input arg
  \code{sample_sets_n} \tab \tab Number of sample sets used in calculating power \cr
  \code{list_element_num} \tab \tab The list element number associated with the power value calculated \cr
  }
-\item When \code{global_test ≠ NULL} and \code{plot_out = TRUE}, a plot showing power values for global hypothesis test. Plot corresponds to \code{power_glob_db}.
-\item When \code{pairwise_test ≠ NULL}, outputs a dataframe named \code{power_pair_db} containing power values for pairwise hypothesis tests. The dataframe consists of eight columns: \tabular{lll}{
+ \item When \code{global_test ≠ NULL} and \code{plot_out = TRUE}, a plot showing power values for global hypothesis test. Plot corresponds to \code{power_glob_db}.
+ \item When \code{pairwise_test ≠ NULL}, outputs a dataframe named \code{power_pair_db} containing power values for pairwise hypothesis tests. The dataframe consists of eight columns: \tabular{lll}{
  \code{pair} \tab \tab The treatment groups to be compared \cr
  \code{model} \tab \tab The type of model being evaluated in power calculations \cr
  \code{pairwise_test} \tab \tab The type of pairwise_test being evaluated \cr
@@ -63,17 +64,56 @@ Outputs a list containing any of the following four items depending on input arg
  \code{sample_sets_n} \tab \tab Number of sample sets used in calculating power \cr
  \code{list_element_num} \tab \tab The list element number associated with the power value calculated \cr
  }
-\item When \code{pairwise_test ≠ NULL} and \code{plot_out = TRUE}, a plot showing power values across list elements. Plot corresponds to \code{power_pair_db}.
+ \item When \code{pairwise_test ≠ NULL} and \code{plot_out = TRUE}, a plot showing power values across list elements. Plot corresponds to \code{power_pair_db}.
 }
 }
 \description{
-Calculates the power of global and/or pairwise hypothesis tests for survival studies with support over a range of experimental designs. This versatility is enabled by the simulation-based approach of the power calculation, using the modular \code{Surv_Simul()} to simulate survival data of various experimental designs. Power calculations can be made to account for inter-tank variation using a mixed cox proportional hazards model (set argument \code{model = "coxph_glmm"}). Additionally, power calculations can account for the multiplicity of pairwise comparisons using \code{pairwise_corr}. Users can compare power across different experimental designs by specifying each as a list element in \code{Surv_Simul()}. The results are returned as dataframes and plots.
-}
-\details{
-Power calculation follows the standard procedure for simulation-based approaches. First, the user simulates hypothetical future sample sets using \code{Surv_Simul()}. For each sample set, a p-value is calculated by \code{Surv_Power()}. The percentage of p-values below 0.05 (positives) were then calculated, representing power. The percent positives can also represent false positive rate if the population/truth from which different treatments are simulated are identical.
+Calculates the power of global and/or pairwise hypothesis tests for survival studies with support over a range of experimental designs. This versatility is enabled by the simulation-based approach of the power calculation, using the modular \code{Surv_Simul()} to simulate survival data of various experimental designs. Power calculations can be made to account for inter-tank variation using a mixed cox proportional hazards model (set argument \code{model = "coxph_glmm"}). Additionally, power calculations can account for the multiplicity of pairwise comparisons using \code{pairwise_corr}. Users can compare power across different experimental designs by specifying each as a list element in \code{Surv_Simul()}. A brief tutorial is written in \bold{Examples} (unfinished) to guide the user on how to use \code{Surv_Power()} to calculate power for various cases.
 }
 \examples{
-#To be made..
+# Below is a tutorial (under construction) on how to calculate power using
+# Surv_Power(). First, we'll have to simulate the future survival dataset using
+# Surv_Simul().
+
+# First, we'll load up a past data to use as a reference for the simulations.
+
+haz_db_ex = data(haz_db_ex)
+haz_db_ex = haz_db_ex[haz_db_ex$Trt.ID == "A"] # filter for control fish
+head(haz_db_ex, n = 5)
+
+# As may be clear from the above, we are using the past data's hazard curve properties.
+# NOTE: Whether the shape of the hazard curve repeats in the future study only matters
+# to power calculation accuracy when the future study involves fish dropping out mid
+# study (due to sampling for example).
+
+# We will now plug in the past data into Surv_Simul() with the desired future
+# experimental design parameters!
+
+Surv_Simul()
+
+# Next, we input the simulated data to Surv_Power() to calculate power!
+
+
+
+# In the above example, power is calculated for a global logrank test and _.
+# For example, based on model estimates, or to account for multiplicity of pairwise
+# comparison as shown below:
+
+# Additionally, we can investigate power across different experimental setups. What
+# if we want to know the effects of a weaker or stronger challenge to
+# power, for example. We can set this up using list_elements in Surv_Simul():
+
+# What if we want to know if the sample size we need to get 80\% power in the weak
+# challenge scenario?
+
+# The inter-tank variation ....Below are the results...
+# under two different challenge strength scenarios to show the complexities of the
+# influence of tank variation to power.
+
+# Additionally, showcase multiple analysis tools in case (for e.g. correction methods
+# and model fits..)
+#
+
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Power.html}{Link} for web documentation.
