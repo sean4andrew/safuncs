@@ -30,5 +30,7 @@ Imports:
     scales,
     grid,
     pwr,
-    ggthemes
+    ggthemes,
+    factoextra,
+    missMDA
 Config/Needs/website: rmarkdown
