@@ -1778,7 +1778,7 @@ Surv_Power = function(simul_db = simul_db_ex,
 #'  \item{PCA}{Uses \code{stats::prcomp()}. Pre-PCA, outcome variables may be scaled or centered using \code{scale} and \code{center} arguments, respectively. Missing values may have been imputed using \code{missMDA::imputePCA()} and ncp parameter \code{ncp = missMDA::estim_ncpPCA()$ncp}.}
 #'  \item{LDA}{Uses \code{MASS::lda()}. Pre-LDA, values may be scaled, centered, and missing values imputed, with the same methods as described for PCA.}
 #'  \item{MANOVA}{Uses \code{stats::manova()} and subsequently \code{car::Anova()} with the argument \code{type = 3} - relevant for analyses with two or more factors. Missing values may have been imputed with the same method described for PCA. By default, \code{stats::manova()} omits all rows with missing values. To achieve this in \code{MultiVar()}, set \code{missing_method} argument to "na_omit".}
-#'  \item{PERMANOVA}{Uses \code{RVAideMemoire::adonis.II()} with the argument \code{method = "euclidean"}. Missing values may be imputed using the same method described for PCA. By default, \code{RAVideMemoire::adonis.II()} omits all rows with missing values. To achieve this in \code{MultiVar()}, set \code{missing_method} argument to "na_omit".}
+#'  \item{PERMANOVA}{Uses \code{RVAideMemoire::adonis.II()} with the argument \code{method = "euclidean"}. Missing values may be imputed using the same method described for PCA. By default, \code{RVAideMemoire::adonis.II()} omits all rows with missing values. To achieve this in \code{MultiVar()}, set \code{missing_method} argument to "na_omit".}
 #'  \item{ANOVA}{Uses \code{stats::anova()} and subsequently \code{car::Anova()} with the argument \code{type = 3} - relevant for analyses with two or more factors.}
 #' }
 #'
