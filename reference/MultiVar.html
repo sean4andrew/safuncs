@@ -91,11 +91,11 @@
 
 
 <dt id="arg-pca-labels">pca_labels<a class="anchor" aria-label="anchor" href="#arg-pca-labels"></a></dt>
-<dd><p>A character vector representing the labels to draw in PCA plots. Choose any combination of "ind" and/or "var". "ind" represents individual point labels by their row number. "var" represents variable loadings drawn as arrows; the arrow length and direction are calculated as in <code>factoextra::fviz_pca_biplot()</code>. Defaults to NULL (no labels drawn).</p></dd>
+<dd><p>A character vector representing the labels to draw in PCA plots. Choose any combination of "ind" and/or "var". "ind" represents individual point labels by their row number. "var" represents variable loadings drawn as arrows; the arrow length and direction are calculated as in <code><a href="https://rdrr.io/pkg/factoextra/man/fviz_pca.html" class="external-link">factoextra::fviz_pca_biplot()</a></code>. Defaults to NULL (no labels drawn).</p></dd>
 
 
 <dt id="arg-missing-method">missing_method<a class="anchor" aria-label="anchor" href="#arg-missing-method"></a></dt>
-<dd><p>A string representing the method to address missing values in <code>values_cols</code>. Choose from "imputation" or "na_omit". "imputation" fills in missing values with values created (imputed) based on the correlation between variables essentially; accomplished using <code>missMDA::imputePCA()</code> with the ncp parameter <code>missMDA::estim_ncpPCA()</code>. "na_omit" removes entire rows of data when at least one NA value is present. This method may result in a significant loss of data. Defaults to "imputation". The choice of <code>missing_method</code> would affect PCA, LDA, and MANOVA results but likely only to a small degree with few missing values. Has no impact on boxplots and ANOVAs.</p></dd>
+<dd><p>A string representing the method to address missing values in <code>values_cols</code>. Choose from "imputation" or "na_omit". "imputation" fills in missing values with values created (imputed) based on the correlation between variables essentially; accomplished using <code><a href="https://rdrr.io/pkg/missMDA/man/imputePCA.html" class="external-link">missMDA::imputePCA()</a></code> with the ncp parameter <code><a href="https://rdrr.io/pkg/missMDA/man/estim_ncpPCA.html" class="external-link">missMDA::estim_ncpPCA()</a></code>. "na_omit" removes entire rows of data when at least one NA value is present. This method may result in a significant loss of data. Defaults to "imputation". The choice of <code>missing_method</code> would affect PCA, LDA, and MANOVA results but likely only to a small degree with few missing values. Has no impact on boxplots and ANOVAs.</p></dd>
 
 
 <dt id="arg-scale">scale<a class="anchor" aria-label="anchor" href="#arg-scale"></a></dt>
@@ -157,7 +157,7 @@
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Several functions published on CRAN are used by <code>MultiVar()</code> for various types of statistical analyses:</p>
 <dl><dt>PCA</dt>
-<dd><p>Uses <code><a href="https://rdrr.io/r/stats/prcomp.html" class="external-link">stats::prcomp()</a></code>. Pre-PCA, outcome variables may be scaled or centered using <code>scale</code> and <code>center</code> arguments, respectively. Missing values may have been imputed using <code>missMDA::imputePCA()</code> and ncp parameter <code>ncp = missMDA::estim_ncpPCA()$ncp</code>.</p></dd>
+<dd><p>Uses <code><a href="https://rdrr.io/r/stats/prcomp.html" class="external-link">stats::prcomp()</a></code>. Pre-PCA, outcome variables may be scaled or centered using <code>scale</code> and <code>center</code> arguments, respectively. Missing values may have been imputed using <code><a href="https://rdrr.io/pkg/missMDA/man/imputePCA.html" class="external-link">missMDA::imputePCA()</a></code> and ncp parameter <code>ncp = missMDA::estim_ncpPCA()$ncp</code>.</p></dd>
 
  <dt>LDA</dt>
 <dd><p>Uses <code><a href="https://rdrr.io/pkg/MASS/man/lda.html" class="external-link">MASS::lda()</a></code>. Pre-LDA, values may be scaled, centered, and missing values imputed, with the same methods as described for PCA.</p></dd>
@@ -166,7 +166,7 @@
 <dd><p>Uses <code><a href="https://rdrr.io/r/stats/manova.html" class="external-link">stats::manova()</a></code> and subsequently <code><a href="https://rdrr.io/pkg/car/man/Anova.html" class="external-link">car::Anova()</a></code> with the argument <code>type = 3</code> - relevant for analyses with two or more factors. Missing values may have been imputed with the same method described for PCA. By default, <code><a href="https://rdrr.io/r/stats/manova.html" class="external-link">stats::manova()</a></code> omits all rows with missing values. To achieve this in <code>MultiVar()</code>, set <code>missing_method</code> argument to "na_omit".</p></dd>
 
  <dt>PERMANOVA</dt>
-<dd><p>Uses <code>RVAideMemoire::adonis.II()</code> with the argument <code>method = "euclidean"</code>. Missing values may be imputed using the same method described for PCA. By default, <code>RAVideMemoire::adonis.II()</code> omits all rows with missing values. To achieve this in <code>MultiVar()</code>, set <code>missing_method</code> argument to "na_omit".</p></dd>
+<dd><p>Uses <code>RVAideMemoire::adonis.II()</code> with the argument <code>method = "euclidean"</code>. Missing values may be imputed using the same method described for PCA. By default, <code>RVAideMemoire::adonis.II()</code> omits all rows with missing values. To achieve this in <code>MultiVar()</code>, set <code>missing_method</code> argument to "na_omit".</p></dd>
 
  <dt>ANOVA</dt>
 <dd><p>Uses <code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">stats::anova()</a></code> and subsequently <code><a href="https://rdrr.io/pkg/car/man/Anova.html" class="external-link">car::Anova()</a></code> with the argument <code>type = 3</code> - relevant for analyses with two or more factors.</p></dd>
@@ -199,7 +199,7 @@
 <span class="r-in"><span><span class="fu">MultiVar</span><span class="op">(</span>multivar_db <span class="op">=</span> <span class="va">iris</span>,</span></span>
 <span class="r-in"><span>         values_cols <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">4</span>,</span></span>
 <span class="r-in"><span>         factors_cols <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘factoextra’</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘RVAideMemoire’</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># A report is now saved in your working directory, check it out! You can locate your</span></span></span>
 <span class="r-in"><span><span class="co"># working directory using:</span></span></span>
@@ -217,7 +217,7 @@
 <span class="r-in"><span>         pca_ellipse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span>, <span class="st">"distribution"</span>, <span class="st">"convexhull"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>         pca_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"var"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>         plot_out_R <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">pca</span><span class="op">$</span><span class="va">distribution</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘factoextra’</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘RVAideMemoire’</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># If you want to customize the plot beyond the capabilities of MultiVar(), save them</span></span></span>
 <span class="r-in"><span><span class="co"># as editable forms in .pptx or manipulate them further in R:</span></span></span>
@@ -228,7 +228,7 @@
 <span class="r-in"><span>                       boxplot_x_angle <span class="op">=</span> <span class="fl">45</span>,</span></span>
 <span class="r-in"><span>                       plot_out_pptx <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>                       plot_out_R <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">box</span><span class="op">$</span><span class="va">none</span><span class="op">$</span><span class="st">'Sepal Length'</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘factoextra’</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘RVAideMemoire’</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">Sepal_L_box</span> <span class="op">+</span> <span class="fu">ggthemes</span><span class="fu">::</span><span class="fu"><a href="http://jrnold.github.io/ggthemes/reference/theme_tufte.html" class="external-link">theme_tufte</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Use the thufte theme</span></span></span>
 <span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'Sepal_L_box' not found</span>
@@ -252,7 +252,7 @@
 <span class="r-in"><span>         missing_method <span class="op">=</span> <span class="st">"imputation"</span>,</span></span>
 <span class="r-in"><span>         pca_ellipse <span class="op">=</span> <span class="st">"distribution"</span>,</span></span>
 <span class="r-in"><span>         plot_out_R <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">pca</span><span class="op">$</span><span class="va">distribution</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘missMDA’</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘RVAideMemoire’</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># The plot is not clearly different than before which indicates the imputed values</span></span></span>
 <span class="r-in"><span><span class="co"># substitute NAs effectively, without clear bias.</span></span></span>
@@ -286,7 +286,7 @@
 <span class="r-in"><span>         factors_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">9</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>         factors_pool <span class="op">=</span> <span class="st">"none"</span>,</span></span>
 <span class="r-in"><span>         factors_facet <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘missMDA’</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘RVAideMemoire’</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Check out the report in your working directory!</span></span></span>
 <span class="r-in"><span></span></span>
@@ -300,7 +300,7 @@
 <span class="r-in"><span>         factors_pool <span class="op">=</span> <span class="st">"col2"</span>,</span></span>
 <span class="r-in"><span>         factors_facet <span class="op">=</span> <span class="st">"col2"</span>,</span></span>
 <span class="r-in"><span>         plot_out_R <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">pca</span><span class="op">$</span><span class="va">confidence</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pooled2"</span>, <span class="st">"facet2"</span><span class="op">)</span><span class="op">]</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘missMDA’</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘RVAideMemoire’</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Using the input "col2", MultiVar() recognizes the second column (in 'factors_cols')</span></span></span>
 <span class="r-in"><span><span class="co"># i.e. Fruits, as the one to facet or pool across levels. "col2" is the default</span></span></span>
@@ -316,7 +316,7 @@
 <span class="r-in"><span>         factors_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">9</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>         factors_pool <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col1"</span>, <span class="st">"col2"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>         factors_facet <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col1"</span>, <span class="st">"col2"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘missMDA’</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘RVAideMemoire’</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Lastly, MultiVar() has the capacity to output ANOVA results for each dependent</span></span></span>
 <span class="r-in"><span><span class="co"># variable. Simply set 'univariate_tests' to TRUE:</span></span></span>
@@ -325,7 +325,7 @@
 <span class="r-in"><span>         values_cols <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">8</span>,</span></span>
 <span class="r-in"><span>         factors_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">9</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>         univariate_tests <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘missMDA’</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘RVAideMemoire’</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># This marks the end of the tutorial. Hope it helps!</span></span></span>
 </code></pre></div>
