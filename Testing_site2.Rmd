@@ -27,12 +27,21 @@ multivar_db_ex = multivar_db_ex[,-c(1, 3, 11)]
 
 ```{r}
 MultiVar(multivar_db = multivar_db_ex,
-         values_cols = 4:10,
-         factors_cols = c(2, 12), 
+         values_cols = 2:8,
+         factors_cols = c(1, 9), 
          factors_facet = c("col1", "col2"),
          factors_pool = c("col1", "col2"), #Only relevant in two-factor scenarios, otherwise argument is ignored. A character vector representing the column(s) with factor levels to facet across in additionally generated plots. Choose any number from "col1" and "col2" which refers to ___, respectively. Defaults to "facet2" as it is assumed that the   .
-         pca_labels = "none") # A character string describing the labels to add to all 'existing' PCA plots (as determined by prior arguments). Choose any number from "var" and "ind" which refers to xxx, respectively.
+         pca_labels = "var",
+         univariate_tests = TRUE) # A character string describing the labels to add to all 'existing' PCA plots (as determined by prior arguments). Choose any number from "var" and "ind" which refers to xxx, respectively.
 ```
+
+```{r}
+MultiVar(multivar_db = iris,
+         values_cols = 1:4,
+         factors_cols = 5,
+         pca_ellipse = c("none", "confidence", "distribution", "convexhull"))
+```
+
 
 ```{r}
 new_iris = iris

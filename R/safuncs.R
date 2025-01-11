@@ -1823,29 +1823,24 @@ Surv_Power = function(simul_db = simul_db_ex,
 #'
 #' # Lets start simple, with the aim of creating a report for a one-factor dataset
 #' # called iris:
-#'
 #' data(iris)
 #'
 #' # Data structure:
-#'
 #' head(iris, n = 5)
 #'
 #' # We can see that columns #1 to #4 contain dependent variables, while column #5 holds
 #' # the factor. Simply feed this information into Multivar()!
-#'
 #' MultiVar(multivar_db = iris,
 #'          values_cols = 1:4,
 #'          factors_cols = 5)
 #'
 #' # A report is now saved in your working directory, check it out! You can locate your
 #' # working directory using:
-#'
 #' getwd()
 #'
 #' # Suppose you wanted a more equipped PCA plot. We can customize our plots using a
 #' # set of arguments indicated with the proper prefix; 'pca_' for PCA plots and
 #' # 'boxplots_' for Boxplots:
-#'
 #' MultiVar(multivar_db = iris,
 #'          values_cols = 1:4,
 #'          factors_cols = 5,
@@ -1855,7 +1850,6 @@ Surv_Power = function(simul_db = simul_db_ex,
 #'
 #' # If you want to customize the plot beyond the capabilities of MultiVar(), save them
 #' # as editable forms in .pptx or manipulate them further in R:
-#'
 #' Sepal_L_box = MultiVar(multivar_db = iris,
 #'                        values_cols = 1:4,
 #'                        factors_cols = 5,
@@ -1875,7 +1869,6 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' # between dependent variables (essentially). Alternatively, rows with missing values
 #' # can be omitted using missing_method = "na_omit". Below is a demo showing the use
 #' # of the imputation method.
-#'
 #' iris[1:25, 1] = NA # replace half of Setosa's Sepal.Length with NA
 #'
 #' MultiVar(multivar_db = iris,
@@ -1895,7 +1888,6 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' # legends which look unsightly. Run the code below to see how this looks like! Below
 #' # I am using an example fish mucus dataset with one real factor (Treatment) and one
 #' # fake (Fruits).
-#'
 #' data(multivar_db_ex)
 #'
 #' head(multivar_db_ex, n = 5)
@@ -1911,7 +1903,6 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' # To get a cleaner output, simpler plots with facets or pooling of values across
 #' # levels of a 'nuisance' factor (e.g. Fruits) can be created using the arguments
 #' # 'factors_pool' and factors_facet' as shown:
-#'
 #' MultiVar(multivar_db = multivar_db_ex,
 #'          values_cols = 2:8,
 #'          factors_cols = c(1, 9),
@@ -1927,7 +1918,6 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' # Plots with facets / pooling across levels of the first factor can also be created.
 #' # Simply add "col1" to the input vectors! Ultimately, this produces all supported
 #' # faceting and pooling plot structures (R output not shown):
-#'
 #' MultiVar(multivar_db = multivar_db_ex,
 #'          values_cols = 2:8,
 #'          factors_cols = c(1, 9),
@@ -1936,7 +1926,6 @@ Surv_Power = function(simul_db = simul_db_ex,
 #'
 #' # Lastly, MultiVar() has the capacity to output ANOVA results for each dependent
 #' # variable. Simply set 'univariate_tests' to TRUE:
-#'
 #' MultiVar(multivar_db = multivar_db_ex,
 #'          values_cols = 2:8,
 #'          factors_cols = c(1, 9),
