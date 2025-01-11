@@ -1570,7 +1570,7 @@ Surv_Power = function(simul_db = simul_db_ex,
           }
         }
 
-        #Repeat for every global_test setting
+        #Repeat for every global_test setting (maybe dont need this loop, just assess for inclusioon in the iefs)
         for(glob_id in global_test){
           if(glob_id == "wald"){p_glob[[mod_id]][[glob_id]][simnum] <- emmeans::joint_tests(mget(mod_id,
                                                                                                  envir = environment())[[1]])$p.value}
