@@ -1441,10 +1441,16 @@ Label_Gen = function(input_list,
 #' # We will now plug in the past data into Surv_Simul() with the desired future
 #' # experimental design parameters!
 #'
-#' Surv_Simul()
+#' Surv_Simul(haz_db = haz_db_ex,
+#'            fish_num_per_tank = 100,
+#'            tank_num_per_trt = 4,
+#'            treatments_hr = c(1, 0.7, 0.5, 0.3)
+#'            logHR_sd_intertank = 0)
 #'
 #' # Next, we input the simulated data to Surv_Power() to calculate power!
 #'
+#' Surv_Power(simul_db = surv_sim_db_ex,
+#'            global_test = "logran)
 #'
 #'
 #' # In the above example, power is calculated for a global logrank test and _.
