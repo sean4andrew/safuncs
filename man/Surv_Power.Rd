@@ -95,11 +95,12 @@ surv_sim_db_ex1 = Surv_Simul(haz_db = haz_db_ex,
                             tank_num_per_trt = 4,
                             treatments_hr = c(1, 0.7, 0.5),
                             logHR_sd_intertank = 0,
-                            n_sim = 1000,
+                            n_sim = 500,
+                            prog_show = FALSE, #omit progress bar for cleaner output
                             plot_out = FALSE) #omit plotting for efficiency/speed
 
-# Above, we simulated a thousand datasets with each having 400 fish per treatment and
-# three treatments total with hazard ratios of 1, 0.7, and 0.5 relative to 'haz_db_ex.'
+# Above, we simulated 500 datasets with each having 400 fish per treatment and three
+# treatments total with hazard ratios of 1, 0.7, and 0.5 relative to 'haz_db_ex.'
 
 # Next, the simulated data can be supplied to Surv_Power() to calculate power. Below,
 # power is calculated for the logrank test:
@@ -107,64 +108,66 @@ Surv_Power(simul_db = surv_sim_db_ex1,
            global_test = "logrank",
            pairwise_test = "logrank",
            pairwise_corr = "none",
+           prog_show = FALSE,
            data_out = FALSE) # remove data output for brevity
 
 # From the above, we can see that there is a high probability of detecting significance
 # of treatment using the global test. On the other hand, power to detect differences
-# between treatment A (HR = 0.7 relative to control) and B (HR = 0.5) is ~ 60\%. Notably,
-# the presented power for pairwise comparisons uses unadjusted p-values.
+# between treatment B (HR = 0.7 relative to control) and C (HR = 0.5) is ~ 60\%.
+# Notably, the presented power for pairwise comparisons uses unadjusted p-values.
 
 # If there is a need to adjust p-values to provide a guarantee for, for example, the
-# false discovery rate, then supply the method(s) (e.g. "BH") to the 'pairwise_corr'
-# argument:
+# false discovery rate, then supply the chosen FDR method(s) (e.g. "BH") to the
+# 'pairwise_corr' argument:
 Surv_Power(simul_db = surv_sim_db_ex1,
            global_test = "logrank",
            pairwise_test = "logrank",
            pairwise_corr = c("none", "BH"),
+           prog_show = FALSE,
            data_out = FALSE)
 
 # By default, FDR adjustment methods "control" or limit the false discovery rate to 5\%;
-# true rate would then be lower.
+# true FDR would be lower.
 
-# If for some reason there is a need to control for family-wise error due to a desire
-# to conclude at the family-level (already achievable via global test), then p-values
-# from the pairwise tests can be adjusted using FWER methods (e.g. "bonferroni",
-# "tukey"). Specify the selected method(s) in 'pairwise_corr'. Note: due to the
-# correlation between pairwise tests, a more powerful adjustment than bonferroni,
-# namely the tukey, is possible. The tukey method is supported with the specification
-# of a model.
+# If for some reason there is a need to control for family-wise error rate due to a
+# desire to conclude at the family-level (already achievable via global test), then p
+# values can be adjusted using FWER methods (e.g. "bonferroni", "tukey"). Notably, due
+# to the correlation between pairwise tests, the tukey method is possible and is more
+# powerful than bonferroni. The tukey option is available if a model is specified:
 Surv_Power(simul_db = surv_sim_db_ex1,
            model = "coxph_glm",
            global_test = c("logrank", "wald"),
            pairwise_test = c("logrank", "EMM"),
            pairwise_corr = c("none", "tukey", "bonferroni"),
+           prog_show = FALSE,
            data_out = FALSE)
 
 # Based on the pairwise plot above, it seems that the tukey method is only marginally
-# more powerful than the bonferroni. The model used was the cox-proportional hazards
-# model. The global test option "wald" corresponds to a wald chi-square test for the
-# significance of treatment as a model factor. The pairwise test option "EMM"
-# corresponds to treatment comparisons using model estimated marginal means. Notably,
-# the model based approach seemed to produced similar result to the logrank test,
-# given the simulated dataset.
+# more powerful in this case compared to bonferroni. The model used above was the cox
+# proportional hazards model. The global test option "wald" corresponds to a wald
+# chi-square test of the significance of treatment as a model factor. The pairwise
+# test option "EMM" corresponds to treatment comparisons using model estimated
+# marginal means. Notably, the model methods appear to produced similar result to the
+# logrank test, at least in this example.
 
-# More sophisticated models may also be fitted to account for tank variation if any
-# has been introduced in the simulation process.
+# More sophisticated models may be fitted to account for tank variation if any was
+# introduced in the simulation process as below:
 surv_sim_db_ex2 = Surv_Simul(haz_db = haz_db_ex,
                              fish_num_per_tank = 100,
                              tank_num_per_trt = 6,
                              treatments_hr = c(1, 1, 0.7),
                              logHR_sd_intertank = 0.2,
-                             n_sim = 1000,
+                             n_sim = 500,
+                             prog_show = FALSE,
                              plot_out = FALSE)
 
-# Below, we fit a mixed model that can account for tank variation and based on it,
-# calculate power.
+# To calculate power considering the tank variation, we fit a mixed model (coxph_glmm):
 Surv_Power(simul_db = surv_sim_db_ex2,
            model = "coxph_glmm",
            global_test = c("logrank", "wald"),
            pairwise_test = c("logrank", "EMM"),
            pairwise_corr = c("none"),
+           prog_show = FALSE,
            data_out = FALSE)
 
 # The above results show a property of the test that accounted for tank variation;
@@ -176,9 +179,9 @@ Surv_Power(simul_db = surv_sim_db_ex2,
 # contrast, the false positive rate for logrank test is much higher at ~20\%.
 
 ## VARYING EXPERIMENTAL CONDITIONS
-# As a precautionary measure, it may be important to study power under various
-# scenarios (e.g. increasing or decreasing strength of pathogen challenge). To do this,
-# specify each scenario as separate elements of a list in an argument of Surv_Simul():
+# As a precautionary measure, it may be important to study power under various scenarios
+# (e.g. increasing or decreasing strength of pathogen challenge). To do this, specify
+# each scenario as separate elements of a list in an argument of Surv_Simul():
 HR_vec = c(1, 0.7, 0.5)
 HR_list = list(1.5 * HR_vec, # strong challenge
                1.0 * HR_vec, # medium challenge
@@ -189,7 +192,8 @@ surv_sim_db_ex3 = Surv_Simul(haz_db = haz_db_ex,
                              tank_num_per_trt = 4,
                              treatments_hr = HR_list,
                              logHR_sd_intertank = 0,
-                             n_sim = 1000,
+                             n_sim = 500,
+                             prog_show = FALSE,
                              plot_out = FALSE)
 
 # Next, calculate and compare power across scenarios:
@@ -197,14 +201,16 @@ Surv_Power(simul_db = surv_sim_db_ex3,
            global_test = "logrank",
            pairwise_test = "logrank",
            pairwise_corr = "none",
+           prog_show = FALSE,
            data_out = FALSE,
            xlab = "Challenge Strength",
            xnames = c("Strong", "Medium", "Weak"))
 
 # The results show that power for the strong challenge model is generally high.
-# However, for the weak challenge model, more sample size appears to be needed. We can
-# investigate at what sample size power be sufficient by specifying different sample
-# sizes as separate list elements in Surv_Simul(), like before:
+# However, for the weak challenge model, more sample size appears to be needed to
+# achieve 80\% power for some pairwise comparisons. We can investigate at what sample
+# size would such power be achieved by specifying different sample sizes as separate
+# list elements in Surv_Simul():
 fish_num_vec = seq(from = 50, to = 200, by = 30)
 fish_num_vec
 
@@ -216,7 +222,8 @@ surv_sim_db_ex4 = Surv_Simul(haz_db = haz_db_ex,
                              tank_num_per_trt = 4,
                              treatments_hr = c(1, 0.7, 0.5) * 0.5,
                              logHR_sd_intertank = 0,
-                             n_sim = 1000,
+                             n_sim = 500,
+                             prog_show = FALSE,
                              plot_out = FALSE)
 
 # Compare power across sample sizes:
@@ -224,6 +231,7 @@ Surv_Power(simul_db = surv_sim_db_ex4,
            global_test = "logrank",
            pairwise_test = "logrank",
            pairwise_corr = "none",
+           prog_show = FALSE,
            data_out = FALSE,
            xlab = "Fish number per tank",
            xnames = fish_num_vec,
@@ -234,7 +242,7 @@ Surv_Power(simul_db = surv_sim_db_ex4,
 # then is to ensure the challenge is medium to strong by having higher salinity for
 # example. The above examples show some possible use case of Surv_Power(), but other
 # cases can be simulated to understand power in various scenarios. I hope this tool
-# can help you calculate power for your specific need!
+# can help you calculate power for your specific needs!
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Power.html}{Link} for web documentation.

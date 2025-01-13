@@ -1,8 +1,10 @@
 # safuncs 2.2.0
 
 * Added function `MultiVar()` used to generate a report from multivariate analyses.
-* Added significant amounts of details to `Surv_Power()` documentation.
+* Completed `Surv_Power()` documentation.
 * Improved simulation speed for `Surv_Simul()`.
+* Added `multivar_db_ex` as an example multivariate dataset
+* Added `surv_sim_db_ex` as an example simulated survival object from `Surv_Simul()`.
 
 # safuncs 2.1.0
 
