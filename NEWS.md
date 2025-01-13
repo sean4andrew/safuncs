@@ -2,6 +2,7 @@
 
 * Added function `MultiVar()` used to generate a report from multivariate analyses.
 * Added significant amounts of details to `Surv_Power()` documentation.
+* Improved simulation speed for `Surv_Simul()`.
 
 # safuncs 2.1.0
 

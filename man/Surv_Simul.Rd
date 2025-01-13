@@ -35,7 +35,7 @@ Surv_Simul(
 
 \item{exp_design}{A string specifying the type of experimental design. Can be "between-tank" which indicates each tank has a unique treatment hence the treatment effect occurs "between-tanks". Or, "within-tank" where each tank contains fish exposed to various treatments.}
 
-\item{n_sim}{Number of survival dataset to simulate. Defaults to 1.}
+\item{n_sim}{Number of survival dataset to simulate. Defaults to 1. For serious power calculations, an n_sim < 2000 is likely the most you'll ever need for precise results.}
 
 \item{prog_show}{Whether to display the progress of \code{Surv_Simul()} by printing the number of simulations completed. Defaults to TRUE.}
 

@@ -321,7 +321,7 @@ Simul_Con_MULT.FISH.ORD = function(total_count = 15000,
 #' @param sampling_specs A dataframe containing at least 2 columns; "Amount" representing the number of right censored data (e.g. sampled fish) per tank; "TTE" representing the time the sampling occurred; optionally a "Trt.ID" column to account for different sampling conditions per tank per treatment. Trt.IDs must start with "Control", then capitalized letters (see \bold{Examples}). Defaults to NULL (no sampling). Input can be specified as elements in a list, with each element representing different experimental setups as described for \code{fish_num_per_tank}.
 #' @param exp_design A string specifying the type of experimental design. Can be "between-tank" which indicates each tank has a unique treatment hence the treatment effect occurs "between-tanks". Or, "within-tank" where each tank contains fish exposed to various treatments.
 #' @param prog_show Whether to display the progress of \code{Surv_Simul()} by printing the number of simulations completed. Defaults to TRUE.
-#' @param n_sim Number of survival dataset to simulate. Defaults to 1.
+#' @param n_sim Number of survival dataset to simulate. Defaults to 1. For serious power calculations, an n_sim < 2000 is likely the most you'll ever need for precise results.
 #' @param plot_out Whether to output the information plot (further details in \bold{Value}). Defaults to TRUE.
 #' @param pop_out Whether to output a dataframe containing the survival probability values for the population. Defaults to TRUE.
 #' @param theme A string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
@@ -419,14 +419,22 @@ Surv_Simul = function(haz_db,
                       pop_out = TRUE,
                       theme = "ggplot2",
                       plot_save = TRUE) {
+
   #Track time elapsed
   time_start = Sys.time()
 
   #Making sure input data has correct (lower case) column names
   colnames(haz_db) = tolower(colnames(haz_db))
 
-  #Validation check
-  if(length(levels(factor(haz_db$tr.id))) > 1) {stop("Please use only one Trt.ID in the supplied hazard dataframe.")}
+  #Validation checks
+  if(length(levels(factor(haz_db$tr.id))) > 1) {stop("Please use only one Trt.ID as reference in the supplied hazard dataframe.")}
+  if(n_sim >= 10000) {
+    print("NOTE: It is not recommended to use n_sim > 10000 as this may create impractically large simulated data files (>1 GB).")
+  }
+  if(plot_out == TRUE & n_sim > 100) {
+    print("Plot too slow to render with n_sim > 50. No plot output is provided")
+    plot_out = FALSE
+  }
 
   #Add blank for last time point in haz_db, for convenience on later calculations
   haz_db = rbind(haz_db, data.frame(trt.id = haz_db$trt.id[1], hazard = last(cumsum(haz_db$hazard)) * .Machine$double.eps * 10,
@@ -434,13 +442,6 @@ Surv_Simul = function(haz_db,
   #Initialize objects to store second output type (across list elements and loops)
   output2 = list(surv_plots = list(), surv_simul_db = data.frame(), surv_pop_db = data.frame())
   list_var_check = c()
-
-  #Validation Check(s)
-  if(plot_out == TRUE) {
-    if(logHR_sd_intertank > 0) {
-      print("NOTE: You specified a tank effect/contribution to variation, but the power shown in the plot is based of the logrank test. This test assumes no such tank effects. Adding tank-variation tends to decrease power of the logrank when the treatment effect is strong-modest (see Examples in Surv_Simul()'s documentation). Despite the decrease, power of the logrank will still be greater than that of other statistical tests which considers tank variation (assuming the experimental design is 'between-tank' because this matters). At the cost of having the greater power, logrank suffers from a greater false positive rate (> 5%). To calculate power of other tests that account for tank variation (hence keeping FPR at ~5%), use the coxph_glmm model option in the function Surv_Power() from package safuncs.")
-    }
-  }
 
   #Finding the input variable (var_name) that is a list and store info in var_list
   #First we stop the function if we find more than 1 list
@@ -468,18 +469,19 @@ Surv_Simul = function(haz_db,
   #Change var_name based on list_var elements
   for (ele_num in 1:length(list_var)) {
 
+    #Establish treatment names
+    Trt_names = c("A (Control)", LETTERS[2:(length(treatments_hr))])
+
     #if you have list elements, assign and print. If not just jump straight to old code
     if(length(list_var) > 1) { #if you have list elements, assign and print, otherwise just go to old code.
       assign(var_name, list_var[[ele_num]]) #assign
     }
 
-    #Old code below. Will only run once if there is no list (i.e. length(list_var) = 1)
-
     #Initialize objects to store loop results
     surv_samps = data.frame() #for plotting purposes
     cens_db = data.frame() #for plotting purposes
     pvalues = c() #for plotting purposes
-    Surv_simul_outDB = data.frame() #for dataoutput
+    Surv_simul_outDB = as.list(seq_len(n_sim))
 
     #Simulate survival dataframe
     for(loopnum in 1:n_sim) {
@@ -504,14 +506,14 @@ Surv_Simul = function(haz_db,
             U = runif(n = ifelse(length(fish_num_per_tank) > 1, fish_num_per_tank[iTT], fish_num_per_tank), min = 0, max = 1)
 
             CDF_Yval_temp = -log(U) * exp(-(log(Treatment_Term) + Tank_eff))
-            CDF_Yval = append(CDF_Yval, CDF_Yval_temp)
+            CDF_Yval = c(CDF_Yval, CDF_Yval_temp)
 
-            Trt.ID = c(Trt.ID, rep(c("Control", LETTERS[1:(length(treatments_hr) - 1)])[iTT], length(CDF_Yval_temp)))
+            Trt.ID = c(Trt.ID, rep(Trt_names[iTT], length(CDF_Yval_temp)))
             Tank.ID = c(Tank.ID, rep(Tank_num2, length(CDF_Yval_temp)))
           }
         }
-
       }
+
       if(exp_design == "within-tank") { #simulation procedure for within-tank experimental design. Similar but with flipped Tank-Trt loops.
 
         for(Tank_num in 1:tank_num_per_trt) { #only 1 tank num can be specified for the within-tank design.
@@ -529,9 +531,9 @@ Surv_Simul = function(haz_db,
             U = runif(n = ifelse(length(fish_num_per_tank) > 1, fish_num_per_tank[iTT], fish_num_per_tank), min = 0, max = 1)
 
             CDF_Yval_temp = -log(U) * exp(-(log(Treatment_Term) + Tank_eff))
-            CDF_Yval = append(CDF_Yval, CDF_Yval_temp)
+            CDF_Yval = c(CDF_Yval, CDF_Yval_temp)
 
-            Trt.ID = c(Trt.ID, rep(c("Control", LETTERS[1:(length(treatments_hr) - 1)])[iTT], length(CDF_Yval_temp)))
+            Trt.ID = c(Trt.ID, rep(Trt_names[iTT], length(CDF_Yval_temp)))
             Tank.ID = c(Tank.ID, rep(Tank_num2, length(CDF_Yval_temp)))
           }
         }
@@ -593,62 +595,63 @@ Surv_Simul = function(haz_db,
       }
 
       #Get p-value for plots
-      pvalues = append(pvalues, survival::survdiff(survival::Surv(TTE, Status) ~ Trt.ID, Surv_simul_DB)$pvalue)
+      pvalues = c(pvalues, survival::survdiff(survival::Surv(TTE, Status) ~ Trt.ID, Surv_simul_DB)$pvalue)
 
       #Simulated survival data to be provided as output
       if(length(list_var) > 1){Surv_simul_DB$list_element_num <- ele_num}
-
-      Surv_simul_outDB = rbind(Surv_simul_outDB, Surv_simul_DB)
+      Surv_simul_outDB[[loopnum]] = Surv_simul_DB
 
       #Transform simulated survival data for plotting purposes
-      surv_obj = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = Surv_simul_DB)
-      if(length(levels(as.factor(Surv_simul_DB$Trt.ID))) > 1) {
-        attributes(surv_obj$strata)$names <- levels(as.factor(Surv_simul_DB$Trt.ID))
-      } else {
-        surv_obj$strata = length(surv_obj$surv)
-        attributes(surv_obj$strata)$names <- levels(as.factor(Surv_simul_DB$Trt.ID))
-      }
+      if(plot_out == TRUE) {
+        surv_obj = survival::survfit(survival::Surv(TTE, Status) ~ Trt.ID, data = Surv_simul_DB)
+        if(length(levels(as.factor(Surv_simul_DB$Trt.ID))) > 1) {
+          attributes(surv_obj$strata)$names <- levels(as.factor(Surv_simul_DB$Trt.ID))
+        } else {
+          surv_obj$strata = length(surv_obj$surv)
+          attributes(surv_obj$strata)$names <- levels(as.factor(Surv_simul_DB$Trt.ID))
+        }
 
-      surv_samps_temp = data.frame(Trt.ID = summary(surv_obj)$strata,
-                                   surv_prob = summary(surv_obj)$surv,
-                                   time = summary(surv_obj)$time,
-                                   type = paste("Sample set (n = ", n_sim, ")", sep = ""),
-                                   n_sim = loopnum,
-                                   alpha = 1 - (0.0001 ^ (1/n_sim)))
-      if(length(list_var) > 1){surv_samps_temp$list_element_num <- ele_num}
+        surv_samps_temp = data.frame(Trt.ID = summary(surv_obj)$strata,
+                                     surv_prob = summary(surv_obj)$surv,
+                                     time = summary(surv_obj)$time,
+                                     type = paste("Sample set (n = ", n_sim, ")", sep = ""),
+                                     n_sim = loopnum,
+                                     alpha = 1 - (0.0001 ^ (1/n_sim)))
+        if(length(list_var) > 1){surv_samps_temp$list_element_num <- ele_num}
 
-      surv_samps_ends = data.frame(surv_samps_temp %>%
-                                     dplyr::group_by(Trt.ID) %>%
-                                     dplyr::reframe(surv_prob = c(1, min(surv_prob)),
-                                                    time = c(floor(min(haz_db$time)), ceiling(max(haz_db$time))),
-                                                    n_sim = loopnum,
-                                                    alpha = 1 - (0.0001 ^ (1/n_sim))))
-      surv_samps_ends$type = paste("Sample set (n = ", n_sim, ")", sep = "")
-      if(length(list_var) > 1){surv_samps_ends$list_element_num <- ele_num}
+        surv_samps_ends = data.frame(surv_samps_temp %>%
+                                       dplyr::group_by(Trt.ID) %>%
+                                       dplyr::reframe(surv_prob = c(1, min(surv_prob)),
+                                                      time = c(floor(min(haz_db$time)), ceiling(max(haz_db$time))),
+                                                      n_sim = loopnum,
+                                                      alpha = max(c(0.1, 1 - (0.0001 ^ (1/n_sim))))))
+        surv_samps_ends$type = paste("Sample set (n = ", n_sim, ")", sep = "")
+        if(length(list_var) > 1){surv_samps_ends$list_element_num <- ele_num}
 
-      surv_samps = rbind(surv_samps, surv_samps_temp, surv_samps_ends)
+        surv_samps = rbind(surv_samps, surv_samps_temp, surv_samps_ends)
 
-      if(!is.null(sampling_specs)){
-        #Get survival probability at mid censoring
-        cens_db_temp  = data.frame(Trt.ID = summary(surv_obj, time = sampling_specs$TTE)$strata,
-                                   surv_prob = summary(surv_obj, time = sampling_specs$TTE)$surv,
-                                   time = summary(surv_obj, time = sampling_specs$TTE)$time,
-                                   n_sim = loopnum,
-                                   type = as.factor(paste("Sample set (n = ", n_sim, ")", sep = "")))
-        cens_db = rbind(cens_db, cens_db_temp)
+        if(!is.null(sampling_specs)){
+          #Get survival probability at mid censoring
+          cens_db_temp  = data.frame(Trt.ID = summary(surv_obj, time = sampling_specs$TTE)$strata,
+                                     surv_prob = summary(surv_obj, time = sampling_specs$TTE)$surv,
+                                     time = summary(surv_obj, time = sampling_specs$TTE)$time,
+                                     n_sim = loopnum,
+                                     type = as.factor(paste("Sample set (n = ", n_sim, ")", sep = "")))
+          cens_db = rbind(cens_db, cens_db_temp)
+        }
       }
 
       #Print progress
       if(prog_show != FALSE) {cat("\rSimulated", prog <- prog + 1, "of", n_sim * length(list_var), "sample sets")}
     } #close loopnum
+    Surv_simul_outDB = do.call(rbind, Surv_simul_outDB)
 
     #Get "population" survival dataset by exponentiating the negative cumulative hazard
     pop_haz_db = data.frame(approx(x = haz_db$time, y = haz_db$hazard, xout = seq(min(haz_db$time), max(haz_db$time), 0.1), method = "linear"))
     colnames(pop_haz_db) = c("time", "hazard")
 
-    #For use with old surv_prob method (revived)
-    surv_pop = data.frame(Trt.ID = as.factor(rep(c("Control", LETTERS[1:(length(treatments_hr) - 1)]), each = length(haz_db$hazard))),
-                          #cumhaz_prob = as.vector(apply((haz_db$hazard) %*% t(treatments_hr), 2, cumsum)),
+    Trt_names = c("A (Control)", LETTERS[2:(length(treatments_hr))])
+    surv_pop = data.frame(Trt.ID = as.factor(rep(Trt_names, each = length(haz_db$hazard))),
                           surv_prob = exp(-as.vector(apply(haz_db$hazard %*% t(treatments_hr), 2, cumsum))),
                           time = rep(haz_db$time, times = length(treatments_hr)),
                           type = "Population / truth",
@@ -657,83 +660,84 @@ Surv_Simul = function(haz_db,
     if(length(list_var) > 1){surv_pop$list_element_num <- ele_num}
 
     #To the end of creating survival plots
-    surv_comb = rbind(surv_samps, surv_pop)
-    surv_comb$type = factor(surv_comb$type, levels = c(paste("Sample set (n = ", n_sim, ")", sep = ""), "Population / truth"))
-    surv_comb$Trt.ID = factor(surv_comb$Trt.ID, levels = rep(c("Control", LETTERS[1:(length(treatments_hr) - 1)])))
+    if(plot_out == TRUE) {
+      surv_comb = rbind(surv_samps, surv_pop)
+      surv_comb$type = factor(surv_comb$type, levels = c(paste("Sample set (n = ", n_sim, ")", sep = ""), "Population / truth"))
+      surv_comb$Trt.ID = factor(surv_comb$Trt.ID, levels = rep(Trt_names))
 
-    #Get end_sr for population plots and sample plots
-    end_db = data.frame(surv_comb %>%
-                          dplyr::group_by(type, Trt.ID, n_sim) %>%
-                          dplyr::summarise(surv_prob = min(surv_prob), time = max(TTE), .groups = "drop") %>%
-                          dplyr::group_by(type, Trt.ID) %>%
-                          dplyr::summarise(surv_prob = mean(surv_prob), time = max(time), .groups = "drop"))
+      #Get end_sr for population plots and sample plots
+      end_db = data.frame(surv_comb %>%
+                            dplyr::group_by(type, Trt.ID, n_sim) %>%
+                            dplyr::summarise(surv_prob = min(surv_prob), time = max(TTE), .groups = "drop") %>%
+                            dplyr::group_by(type, Trt.ID) %>%
+                            dplyr::summarise(surv_prob = mean(surv_prob), time = max(time), .groups = "drop"))
 
-    #Get % significance (i.e. power) for plotting
-    perc_sf = paste(round(100 * sum(pvalues < 0.05) / length(pvalues), digits = 0), "%", sep = "")
+      #Get % significance (i.e. power) for plotting
+      perc_sf = paste(round(100 * sum(pvalues < 0.05) / length(pvalues), digits = 0), "%", sep = "")
 
-    #Ggplot
-    surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = interaction(n_sim, Trt.ID))) +
-      facet_wrap(~ type) +
-      geom_step(aes(alpha = alpha)) +
-      scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
-      scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 12), 1))) +
-      ylab("Survival Probability (%)") +
-      xlab("Time to Event") +
-      scale_alpha(range = c(min(surv_comb$alpha), 1)) +
-      guides(alpha = "none") +
-      coord_cartesian(clip = "off", xlim = c(min(haz_db$time), max(haz_db$time) - 0.5)) +
-      theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
+      #Ggplot
+      surv_plots = ggplot(data = surv_comb, aes(x = time, y = surv_prob, colour = Trt.ID, group = interaction(n_sim, Trt.ID))) +
+        facet_wrap(~ type) +
+        geom_step(aes(alpha = alpha)) +
+        scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), labels = scales::percent) +
+        scale_x_continuous(breaks = seq(0, max(surv_pop$time), max(round(max(surv_pop$time) / 12), 1))) +
+        ylab("Survival Probability (%)") +
+        xlab("Time to Event") +
+        scale_alpha(range = c(min(surv_comb$alpha), 1)) +
+        guides(alpha = "none") +
+        coord_cartesian(clip = "off", xlim = c(min(haz_db$time), max(haz_db$time) - 0.5)) +
+        theme(plot.margin = margin(5.5, 20, 5.5, 5.5))
 
-    if(n_sim == 1) {
-      surv_plots = surv_plots +
-        geom_text(data = end_db, aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)),
-                  vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) +
-        annotation_custom(grob = grid::textGrob(paste(c(paste("The sample has a", sep = ""),
-                                                        paste("p-value = ", signif(pvalues, digits = 2), sep = ""),
-                                                        "(global test of Trt.)"), collapse = "\n"),
-                                                x = grid::unit(1.05, "npc"),
-                                                y = grid::unit(0.08, "npc"),
-                                                hjust = 0,
-                                                gp = grid::gpar(fontsize = 9)))
-    } else {
-      surv_plots = surv_plots +
-        geom_text(data = end_db[end_db$type == "Population / truth",],
-                  aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)),
-                  vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) +
-        annotation_custom(grob = grid::textGrob(paste(c(paste(perc_sf, " of the sample", sep = ""),
-                                                        paste("sets (n) has p<0.05", sep = ""),
-                                                        "(global test of Trt.)"), collapse = "\n"),
-                                                x = grid::unit(1.03, "npc"),
-                                                y = grid::unit(0.08, "npc"),
-                                                hjust = 0,
-                                                gp = grid::gpar(fontsize = 9)))
+      if(n_sim == 1) {
+        surv_plots = surv_plots +
+          geom_text(data = end_db, aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)),
+                    vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) +
+          annotation_custom(grob = grid::textGrob(paste(c(paste("The sample has a", sep = ""),
+                                                          paste("p-value = ", signif(pvalues, digits = 2), sep = ""),
+                                                          "(global test of Trt.)"), collapse = "\n"),
+                                                  x = grid::unit(1.05, "npc"),
+                                                  y = grid::unit(0.08, "npc"),
+                                                  hjust = 0,
+                                                  gp = grid::gpar(fontsize = 9)))
+      } else {
+        surv_plots = surv_plots +
+          geom_text(data = end_db[end_db$type == "Population / truth",],
+                    aes(x = time, y = surv_prob, label = round(surv_prob * 100, digits = 0)),
+                    vjust = -0.3, hjust = 0.8, show.legend = FALSE, size = 3.3) +
+          annotation_custom(grob = grid::textGrob(paste(c(paste(perc_sf, " of the sample", sep = ""),
+                                                          paste("sets (n) has p<0.05", sep = ""),
+                                                          "(global test of Trt.)"), collapse = "\n"),
+                                                  x = grid::unit(1.03, "npc"),
+                                                  y = grid::unit(0.08, "npc"),
+                                                  hjust = 0,
+                                                  gp = grid::gpar(fontsize = 9)))
+      }
+
+      #Add censoring points
+      if(!is.null(sampling_specs)) {
+        merged_db = merge(sampling_specs2, Surv_simul_DB)
+        merged_db = merged_db[merged_db$Status == 0, ]
+        cens_db = cens_db[interaction(cens_db$Trt.ID, cens_db$time) %in% interaction(merged_db$Trt.ID, merged_db$TTE),]
+        surv_plots = surv_plots +
+          geom_point(data = cens_db, aes(x = time, y = surv_prob, colour = Trt.ID), shape = 3, size = 0.7, stroke = 1)
+      }
+
+      #Plot theme
+      if(theme == "prism") {surv_plots = surv_plots + ggprism::theme_prism()}
+
+      #Plot title
+      if(length(list_var) > 1) {
+
+        surv_plots = surv_plots + labs(title = paste("List Element", ele_num))
+      }
+
+      #Save plot
+      if(plot_save == TRUE){
+        ggsave(paste("Surv_Simul_Plot",
+                     ifelse(length(list_var) == 1, "_", paste("_Element", ele_num, "_", sep ="")),
+                     Sys.Date(), ".tiff", sep = ""), dpi = 900, width = 7, height = 4, plot = surv_plots)
+      }
     }
-
-    #Add censoring points
-    if(!is.null(sampling_specs)) {
-      merged_db = merge(sampling_specs2, Surv_simul_DB)
-      merged_db = merged_db[merged_db$Status == 0, ]
-      cens_db = cens_db[interaction(cens_db$Trt.ID, cens_db$time) %in% interaction(merged_db$Trt.ID, merged_db$TTE),]
-      surv_plots = surv_plots +
-        geom_point(data = cens_db, aes(x = time, y = surv_prob, colour = Trt.ID), shape = 3, size = 0.7, stroke = 1)
-    }
-
-    #Plot theme
-    if(theme == "prism") {surv_plots = surv_plots + ggprism::theme_prism()}
-
-    #Plot title
-    if(length(list_var) > 1) {
-
-      surv_plots = surv_plots + labs(title = paste("List Element", ele_num))
-    }
-
-    #Save plot
-    if(plot_save == TRUE){
-      ggsave(paste("Surv_Simul_Plot",
-                   ifelse(length(list_var) == 1, "_", paste("_Element", ele_num, "_", sep ="")),
-                   Sys.Date(), ".tiff", sep = ""), dpi = 900, width = 7, height = 4, plot = surv_plots)
-    }
-
     #remove columns "alpha", "type", and "n_sim" from data output
     surv_pop = surv_pop[, -c(4:6)]
     colnames(surv_pop) = c("Trt.ID", "surv_prob", "TTE")
@@ -762,13 +766,10 @@ Surv_Simul = function(haz_db,
     if(length(list_var) > 1) {
 
       #Store 2nd output if list_var length >1
-      output2$surv_plots[[ele_num]] = surv_plots
+      if(plot_out == TRUE) {output2$surv_plots[[ele_num]] <- surv_plots}
       output2$surv_simul_db = rbind(output2$surv_simul_db, Surv_simul_outDB)
       output2$surv_pop_db = rbind(output2$surv_pop_db, surv_pop)
     }
-
-    #Old code (non-lists stuff) ends here
-
   } #This closes the loop that deals with lists
 
   if(length(list_var) > 1){
@@ -1382,8 +1383,9 @@ Label_Gen = function(input_list,
 #' @param global_test A character vector representing the method(s) to use for global hypothesis testing of significance of treatment. Methods available are: "logrank", "wald", "score", "LRT". "logrank" represents the global logrank test of significance. The latter three methods are standard global hypothesis testing methods for models. They are only available when the argument \code{model} is specified (i.e. not NULL). "wald" represents the Wald Chisquare Test which assesses whether model parameters (log(hazard ratios)) jointly are significantly different from 0 (i.e. HRs ≠ 1). Wald test can be done for various cox-proportional hazard models that could be relevant to our studies (glm, glmm, and gee). Due to its broad applicability, while also producing practically the same p-value most of the time compared to the other model tests, "wald" is the recommended option of the three. "score" represents the Lagrange multiplier or Score test. 'LRT' represents the likelihood ratio test. Defaults to "logrank" for now due to its ubiquity of use.
 #' @param model A character vector representing the model(s) to fit for hypothesis testing. Models available are: "coxph_glm" and "coxph_glmm". "coxph_glm" represents the standard cox proportional hazard model fitted using \code{survival::coxph()} with Trt.ID as a fixed factor. "coxph_glmm" represents the mixed cox proportional hazard model fitted using \code{coxme::coxme()} with Trt.ID as a fixed factor and Tank.ID as a random factor to account for inter-tank variation. Defaults to NULL where no model is fitted for hypothesis testing.
 #' @param pairwise_test A character vector representing the method(s) used for pairwise hypothesis tests. Use "logrank" to calculate power for logrank tests comparing different treatments. Use "EMM" to calculate power using Estimated Marginal Means based on model estimates (from 'coxph_glm' and/or 'coxph_glmm'). Defaults to "logrank".
-#' @param pairwise_corr A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. For clarification, this affects the power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". Under \bold{Details} (yet to be finished), I discuss the common categories of adjustment methods and provided a recommendation for "BH". Defaults to "none" for now.
+#' @param pairwise_corr A character vector representing the method(s) used to adjust p-values for multiplicity of pairwise comparisons. For clarification, this affects the power of the pairwise comparisons. Methods available are: "tukey", "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", and "none". Under \bold{Details} (yet to be finished), I discuss the common categories of adjustment methods and provided a recommendation for "BH". Defaults to c("none", "BH").
 #' @param prog_show Whether to display the progress of \code{Surv_Power()} by printing the number of sample sets with p-values calculated. Defaults to TRUE.
+#' @param data_out Whether to output dataframes containing the power of global and/or pairwise hypothesis tests. Defaults to TRUE.
 #' @param plot_out Whether to output plots illustrating the power of global and/or pairwise hypothesis tests. Defaults to TRUE.
 #' @param plot_lines Whether to plot lines connecting points of the same hypothesis test in the plot output. Defaults to TRUE.
 #' @param xlab A string representing the x-axis title. Defaults to "List Element #".
@@ -1393,7 +1395,7 @@ Label_Gen = function(input_list,
 #' @return Outputs a list containing any of the following four items depending on input arguments:
 #'
 #' \itemize{
-#'  \item When \code{global_test ≠ NULL}, outputs a dataframe named \code{power_glob_db} containing power values calculated for global hypothesis tests. The dataframe consists of six columns: \tabular{lll}{
+#'  \item When \code{global_test ≠ NULL} and \code{data_out = TRUE}, outputs a dataframe named \code{power_glob_db} containing power values calculated for global hypothesis tests. The dataframe consists of six columns: \tabular{lll}{
 #'  \code{model} \tab \tab The type of model being evaluated in power calculations \cr
 #'  \code{global_test} \tab \tab The global hypothesis test being evaluated \cr
 #'  \code{power} \tab \tab The percentage of p-values below 0.05, i.e. power \cr
@@ -1402,7 +1404,7 @@ Label_Gen = function(input_list,
 #'  \code{list_element_num} \tab \tab The list element number associated with the power value calculated \cr
 #'  }
 #'  \item When \code{global_test ≠ NULL} and \code{plot_out = TRUE}, a plot showing power values for global hypothesis test. Plot corresponds to \code{power_glob_db}.
-#'  \item When \code{pairwise_test ≠ NULL}, outputs a dataframe named \code{power_pair_db} containing power values for pairwise hypothesis tests. The dataframe consists of eight columns: \tabular{lll}{
+#'  \item When \code{pairwise_test ≠ NULL} and \code{data_out = TRUE}, outputs a dataframe named \code{power_pair_db} containing power values for pairwise hypothesis tests. The dataframe consists of eight columns: \tabular{lll}{
 #'  \code{pair} \tab \tab The treatment groups to be compared \cr
 #'  \code{model} \tab \tab The type of model being evaluated in power calculations \cr
 #'  \code{pairwise_test} \tab \tab The type of pairwise_test being evaluated \cr
@@ -1423,61 +1425,174 @@ Label_Gen = function(input_list,
 #' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Power.html}{Link} for web documentation.
 #'
 #' @examples
-#' # Below is a tutorial (under construction) on how to calculate power using
-#' # Surv_Power(). First, we'll have to simulate the future survival dataset using
-#' # Surv_Simul().
+#' # Below is a tutorial on how to calculate power using Surv_Power(). The function
+#' # calculates power as a percentage of positive (p < 0.05) test conducted on simulated
+#' # datasets. Hence, the first step is simulating the data
 #'
-#' # First, we'll load up a past data to use as a reference for the simulations.
-#'
-#' haz_db_ex = data(haz_db_ex)
-#' haz_db_ex = haz_db_ex[haz_db_ex$Trt.ID == "A"] # filter for control fish
+#' # A past data is retrieved for simulating future datasets:
+#' data(haz_db_ex)
+#' haz_db_ex = haz_db_ex[haz_db_ex$Trt.ID == "A",] # filter for control fish
 #' head(haz_db_ex, n = 5)
 #'
 #' # As may be clear from the above, we are using the past data's hazard curve properties.
 #' # NOTE: Whether the shape of the hazard curve repeats in the future study only matters
-#' # to power calculation accuracy when the future study involves fish dropping out mid
-#' # study (due to sampling for example).
+#' # to the accuracy of the power calculation when the future study involves fish being
+#' # dropped (e.g. due to sampling).
 #'
-#' # We will now plug in the past data into Surv_Simul() with the desired future
-#' # experimental design parameters!
+#' # To begin simulating, input the past data to Surv_Simul() with the supposed future
+#' # experiment parameters:
+#' surv_sim_db_ex1 = Surv_Simul(haz_db = haz_db_ex,
+#'                             fish_num_per_tank = 100,
+#'                             tank_num_per_trt = 4,
+#'                             treatments_hr = c(1, 0.7, 0.5),
+#'                             logHR_sd_intertank = 0,
+#'                             n_sim = 1000,
+#'                             plot_out = FALSE) #omit plotting for efficiency/speed
 #'
-#' Surv_Simul(haz_db = haz_db_ex,
-#'            fish_num_per_tank = 100,
-#'            tank_num_per_trt = 4,
-#'            treatments_hr = c(1, 0.7, 0.5, 0.3)
-#'            logHR_sd_intertank = 0)
+#' # Above, we simulated a thousand datasets with each having 400 fish per treatment and
+#' # three treatments total with hazard ratios of 1, 0.7, and 0.5 relative to 'haz_db_ex.'
 #'
-#' # Next, we input the simulated data to Surv_Power() to calculate power!
+#' # Next, the simulated data can be supplied to Surv_Power() to calculate power. Below,
+#' # power is calculated for the logrank test:
+#' Surv_Power(simul_db = surv_sim_db_ex1,
+#'            global_test = "logrank",
+#'            pairwise_test = "logrank",
+#'            pairwise_corr = "none",
+#'            data_out = FALSE) # remove data output for brevity
 #'
-#' Surv_Power(simul_db = surv_sim_db_ex,
-#'            global_test = "logran)
+#' # From the above, we can see that there is a high probability of detecting significance
+#' # of treatment using the global test. On the other hand, power to detect differences
+#' # between treatment A (HR = 0.7 relative to control) and B (HR = 0.5) is ~ 60%. Notably,
+#' # the presented power for pairwise comparisons uses unadjusted p-values.
 #'
+#' # If there is a need to adjust p-values to provide a guarantee for, for example, the
+#' # false discovery rate, then supply the method(s) (e.g. "BH") to the 'pairwise_corr'
+#' # argument:
+#' Surv_Power(simul_db = surv_sim_db_ex1,
+#'            global_test = "logrank",
+#'            pairwise_test = "logrank",
+#'            pairwise_corr = c("none", "BH"),
+#'            data_out = FALSE)
 #'
-#' # In the above example, power is calculated for a global logrank test and _.
-#' # For example, based on model estimates, or to account for multiplicity of pairwise
-#' # comparison as shown below:
+#' # By default, FDR adjustment methods "control" or limit the false discovery rate to 5%;
+#' # true rate would then be lower.
 #'
-#' # Additionally, we can investigate power across different experimental setups. What
-#' # if we want to know the effects of a weaker or stronger challenge to
-#' # power, for example. We can set this up using list_elements in Surv_Simul():
+#' # If for some reason there is a need to control for family-wise error due to a desire
+#' # to conclude at the family-level (already achievable via global test), then p-values
+#' # from the pairwise tests can be adjusted using FWER methods (e.g. "bonferroni",
+#' # "tukey"). Specify the selected method(s) in 'pairwise_corr'. Note: due to the
+#' # correlation between pairwise tests, a more powerful adjustment than bonferroni,
+#' # namely the tukey, is possible. The tukey method is supported with the specification
+#' # of a model.
+#' Surv_Power(simul_db = surv_sim_db_ex1,
+#'            model = "coxph_glm",
+#'            global_test = c("logrank", "wald"),
+#'            pairwise_test = c("logrank", "EMM"),
+#'            pairwise_corr = c("none", "tukey", "bonferroni"),
+#'            data_out = FALSE)
 #'
-#' # What if we want to know if the sample size we need to get 80% power in the weak
-#' # challenge scenario?
+#' # Based on the pairwise plot above, it seems that the tukey method is only marginally
+#' # more powerful than the bonferroni. The model used was the cox-proportional hazards
+#' # model. The global test option "wald" corresponds to a wald chi-square test for the
+#' # significance of treatment as a model factor. The pairwise test option "EMM"
+#' # corresponds to treatment comparisons using model estimated marginal means. Notably,
+#' # the model based approach seemed to produced similar result to the logrank test,
+#' # given the simulated dataset.
 #'
-#' # The inter-tank variation ....Below are the results...
-#' # under two different challenge strength scenarios to show the complexities of the
-#' # influence of tank variation to power.
+#' # More sophisticated models may also be fitted to account for tank variation if any
+#' # has been introduced in the simulation process.
+#' surv_sim_db_ex2 = Surv_Simul(haz_db = haz_db_ex,
+#'                              fish_num_per_tank = 100,
+#'                              tank_num_per_trt = 6,
+#'                              treatments_hr = c(1, 1, 0.7),
+#'                              logHR_sd_intertank = 0.2,
+#'                              n_sim = 1000,
+#'                              plot_out = FALSE)
 #'
-#' # Additionally, showcase multiple analysis tools in case (for e.g. correction methods
-#' # and model fits..)
-#' #
+#' # Below, we fit a mixed model that can account for tank variation and based on it,
+#' # calculate power.
+#' Surv_Power(simul_db = surv_sim_db_ex2,
+#'            model = "coxph_glmm",
+#'            global_test = c("logrank", "wald"),
+#'            pairwise_test = c("logrank", "EMM"),
+#'            pairwise_corr = c("none"),
+#'            data_out = FALSE)
 #'
+#' # The above results show a property of the test that accounted for tank variation;
+#' # it is weaker than the one that does not (logrank test) given the data has tank
+#' # variability. However, this is for a reason. If you look into the positive rate of
+#' # the test comparing Control vs Trt. B (where true HR = 1), it only slightly above 5%
+#' # for the mixed model (a real bias for reasons not discussed here). This result is
+#' # roughly consistent with the acclaimed alpha or false positive rate of 0.05. In
+#' # contrast, the false positive rate for logrank test is much higher at ~20%.
+#'
+#' ## VARYING EXPERIMENTAL CONDITIONS
+#' # As a precautionary measure, it may be important to study power under various
+#' # scenarios (e.g. increasing or decreasing strength of pathogen challenge). To do this,
+#' # specify each scenario as separate elements of a list in an argument of Surv_Simul():
+#' HR_vec = c(1, 0.7, 0.5)
+#' HR_list = list(1.5 * HR_vec, # strong challenge
+#'                1.0 * HR_vec, # medium challenge
+#'                0.5 * HR_vec) # weak challenge
+#'
+#' surv_sim_db_ex3 = Surv_Simul(haz_db = haz_db_ex,
+#'                              fish_num_per_tank = 100,
+#'                              tank_num_per_trt = 4,
+#'                              treatments_hr = HR_list,
+#'                              logHR_sd_intertank = 0,
+#'                              n_sim = 1000,
+#'                              plot_out = FALSE)
+#'
+#' # Next, calculate and compare power across scenarios:
+#' Surv_Power(simul_db = surv_sim_db_ex3,
+#'            global_test = "logrank",
+#'            pairwise_test = "logrank",
+#'            pairwise_corr = "none",
+#'            data_out = FALSE,
+#'            xlab = "Challenge Strength",
+#'            xnames = c("Strong", "Medium", "Weak"))
+#'
+#' # The results show that power for the strong challenge model is generally high.
+#' # However, for the weak challenge model, more sample size appears to be needed. We can
+#' # investigate at what sample size power be sufficient by specifying different sample
+#' # sizes as separate list elements in Surv_Simul(), like before:
+#' fish_num_vec = seq(from = 50, to = 200, by = 30)
+#' fish_num_vec
+#'
+#' fish_num_list = as.list(fish_num_vec) # convert vector elements to list elements
+#'
+#' # Simulate the different experimental conditions:
+#' surv_sim_db_ex4 = Surv_Simul(haz_db = haz_db_ex,
+#'                              fish_num_per_tank = fish_num_list,
+#'                              tank_num_per_trt = 4,
+#'                              treatments_hr = c(1, 0.7, 0.5) * 0.5,
+#'                              logHR_sd_intertank = 0,
+#'                              n_sim = 1000,
+#'                              plot_out = FALSE)
+#'
+#' # Compare power across sample sizes:
+#' Surv_Power(simul_db = surv_sim_db_ex4,
+#'            global_test = "logrank",
+#'            pairwise_test = "logrank",
+#'            pairwise_corr = "none",
+#'            data_out = FALSE,
+#'            xlab = "Fish number per tank",
+#'            xnames = fish_num_vec,
+#'            plot_lines = TRUE)
+#'
+#' # The results showed that even an increase in sample size (from 100 to 200) result in
+#' # only modest gains in power for comparisons B to C. Perhaps a possible future action
+#' # then is to ensure the challenge is medium to strong by having higher salinity for
+#' # example. The above examples show some possible use case of Surv_Power(), but other
+#' # cases can be simulated to understand power in various scenarios. I hope this tool
+#' # can help you calculate power for your specific need!
 Surv_Power = function(simul_db = simul_db_ex,
                       global_test = "logrank",
                       model = NULL,
                       pairwise_test = "logrank",
-                      pairwise_corr = "BH",
+                      pairwise_corr = c("none", "BH"),
                       prog_show = TRUE,
+                      data_out = TRUE,
                       plot_out = TRUE,
                       plot_lines = FALSE,
                       xlab = "List Element #",
@@ -1597,7 +1712,7 @@ Surv_Power = function(simul_db = simul_db_ex,
 
       #Print progress
       if(prog_show == TRUE) {cat("\rCalculated p-values for", prog <- prog + 1, "of",
-                                  max(simul_db$list_element_num) * max(simul_db_temp0$n_sim), "sample sets")}
+                                 max(simul_db$list_element_num) * max(simul_db$n_sim), "sample sets")}
     } #Close loop for simnum
 
     #Create power tables from p-values for each ele_num
@@ -1715,7 +1830,7 @@ Surv_Power = function(simul_db = simul_db_ex,
     #Rename columns
     colnames(power_glob) = c("model", "global_test", "power", "power_se", "sample_sets_n", "list_element_num")
     #Create output
-    output[["power_global_db"]] = power_glob
+    if(data_out == TRUE) {output[["power_global_db"]] <- power_glob}
     if(plot_out == TRUE & length(power_glob) > 0) {
       output[["power_global_plot"]] = glob_plot
       if(plot_save == TRUE) {
@@ -1729,7 +1844,7 @@ Surv_Power = function(simul_db = simul_db_ex,
     #Rename columns
     colnames(power_pair) = c("pair", "model", "pairwise_test", "pairwise_corr", "power", "power_se", "sample_sets_n", "list_element_num")
     #Create output
-    output[["power_pairwise_db"]] = power_pair
+    if(data_out == TRUE) {output[["power_pairwise_db"]] <- power_pair}
     if(plot_out == TRUE & length(pair_plot) > 0) {
       output[["power_pairwise_plot"]] = pair_plot
       if(plot_save == TRUE) {
@@ -1822,7 +1937,10 @@ Surv_Power = function(simul_db = simul_db_ex,
 #'
 #' @import ggplot2
 #' @import magrittr
+#'
 #' @export
+#'
+#' @seealso \href{https://sean4andrew.github.io/safuncs/reference/MultiVar.html}{Link} for web documentation.
 #'
 #' @examples
 #' # Below is a brief tutorial to help you get various outputs from MultiVar()!
@@ -2553,7 +2671,7 @@ MultiVar = function(multivar_db,
 #'
 "haz_db_ex"
 
-##################################################### Data 3 - multivar_db_ex #######################################################
+##################################################### Data 4 - multivar_db_ex #######################################################
 
 #' Example Multivariate Data
 #'
@@ -2564,3 +2682,17 @@ MultiVar = function(multivar_db,
 #' View(multivar_db_ex)
 #'
 "multivar_db_ex"
+
+##################################################### Data 5 - surv_sim_db_ex #######################################################
+
+#' Example Simulated Survival Object
+#'
+#' @description A list generated from \code{Surv_Simul()} containing the following elements: a simulated survival dataset (\code{surv_simul_db}), the dataset describing the survival characteristics of the population (\code{surv_pop_db}) and a plot illustrating both (\code{surv_plots}). The specified simulation parameters (arguments) in \code{Surv_Simul()} are \code{fish_num_per_tank = 100}, \code{tank_num_per_trt = 4}, \code{treatments_hr = c(1, 0.7, 0.5)}, \code{logHR_sd_intertank = 0}, \code{n_sim = 10}, \code{plot_out = TRUE}.
+#'
+#' @usage
+#' data(surv_sim_db_ex)
+#' View(surv_sim_db_ex$surv_simul_db)
+#' View(surv_sim_db_ex$surv_pop_db)
+#' View(surv_sim_db_ex$surv_plots)
+#'
+"surv_sim_db_ex"

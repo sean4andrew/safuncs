@@ -207,3 +207,6 @@ MultiVar(multivar_db = multivar_db_ex,
 
 # This marks the end of the tutorial. Hope it helps!
 }
+\seealso{
+\href{https://sean4andrew.github.io/safuncs/reference/MultiVar.html}{Link} for web documentation.
+}
