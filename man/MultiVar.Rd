@@ -202,7 +202,8 @@ MultiVar(multivar_db = multivar_db_ex,
          values_cols = 2:8,
          factors_cols = c(1, 9),
          factors_pool = c("col1", "col2"),
-         factors_facet = c("col2"))$pca$confidence["facet2"]
+         factors_facet = c("col2"),
+         plot_out_R = TRUE)$pca$confidence["facet2"]
 
 # Check your word document output and you will see that it contains facets and pooling
 # for both PCA and boxplots. End of tutorial. Hope it helps!

@@ -17,7 +17,8 @@ MultiVar(multivar_db = QCATC1092_DB,
          factors_pool = c("col1", "col2"),
          factors_facet = c("col1", "col2"),
          boxplot_x_wrap = 4,
-         boxplot_legend = FALSE)
+         boxplot_legend = FALSE,
+         plot_out_R = TRUE)
 ```
 
 ```{r}
