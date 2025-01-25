@@ -97,7 +97,7 @@ Several functions published on CRAN are used by \code{MultiVar()} for various ty
  \item{PCA}{Uses \code{stats::prcomp()}. Pre-PCA, outcome variables may be scaled or centered using \code{scale} and \code{center} arguments, respectively. Missing values may have been imputed using \code{missMDA::imputePCA()} and ncp parameter \code{ncp = missMDA::estim_ncpPCA()$ncp}.}
  \item{LDA}{Uses \code{MASS::lda()}. Pre-LDA, values may be scaled, centered, and missing values imputed, with the same methods as described for PCA.}
  \item{MANOVA}{Uses \code{stats::manova()} and subsequently \code{car::Anova()} with the argument \code{type = 3} - relevant for analyses with two or more factors. Missing values may have been imputed with the same method described for PCA. By default, \code{stats::manova()} omits all rows with missing values. To achieve this in \code{MultiVar()}, set \code{missing_method} argument to "na_omit".}
- \item{PERMANOVA}{Uses \code{RVAideMemoire::adonis.II()} with the argument \code{method = "euclidean"}. Missing values may be imputed using the same method described for PCA. By default, \code{RVAideMemoire::adonis.II()} omits all rows with missing values. To achieve this in \code{MultiVar()}, set \code{missing_method} argument to "na_omit".}
+ \item{PERMANOVA}{Output available upon request. Uses \code{RVAideMemoire::adonis.II()} with the argument \code{method = "euclidean"}. Missing values may be imputed using the same method described for PCA. By default, \code{RVAideMemoire::adonis.II()} omits all rows with missing values. To achieve this in \code{MultiVar()}, set \code{missing_method} argument to "na_omit".}
  \item{ANOVA}{Uses \code{stats::anova()} and subsequently \code{car::Anova()} with the argument \code{type = 3} - relevant for analyses with two or more factors.}
 }
 }
@@ -202,7 +202,7 @@ MultiVar(multivar_db = multivar_db_ex,
          values_cols = 2:8,
          factors_cols = c(1, 9),
          factors_pool = c("col1", "col2"),
-         factors_facet = c("col2"))$pca$confidence["col2"]
+         factors_facet = c("col2"))$pca$confidence["facet2"]
 
 # Check your word document output and you will see that it contains facets and pooling
 # for both PCA and boxplots. End of tutorial. Hope it helps!
