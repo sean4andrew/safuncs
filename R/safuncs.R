@@ -1914,33 +1914,41 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' @param multivar_db A dataframe with two types of columns. The first holds numeric values of the multivariate outcome variables, with each column containing one variable. The second type holds categories (factor levels), with each column containing one factor. An example dataframe can be viewed by running \code{View(data(multivar_db_ex))} in the R console.
 #' @param values_cols A numeric vector specifying the order number of columns containing the outcome variables.
 #' @param factors_cols A numeric vector specifying the order number of columns containing the factors. Maximum of two numbers (i.e. factors).
-#' @param factors_pool A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to "col2" which is assumed to contain the "nuisance" factor of lesser interest (e.g. Time), for which values may preferably be pooled across levels. To create no additional plots, use "none".
-#' @param factors_facet A character vector indicating the factors which levels are to be faceted across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to "col2". To create no additional plots, use "none".
-#' @param pca_ellipse A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using \code{ggpubr::stat_conf_ellipse()}. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using \code{ggplot2::stat_ellipse()} with argument \code{type = "norm"}. "convexhull" represents the smallest convex polygon enclosing all points; drawn using \code{ggpubr::stat_chull()}. For plots without ellipses, include "none". Defaults to c("none", "confidence").
+#' @param factors_pool A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to c("col1", "col2").
+#' @param factors_facet A character vector indicating the factors which levels are to be faceted across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to "none" which creates no additional plots.
+#' @param pca_ellipse A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using \code{ggpubr::stat_conf_ellipse()}. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using \code{ggplot2::stat_ellipse()} with argument \code{type = "norm"}. "convexhull" represents the smallest convex polygon enclosing all points; drawn using \code{ggpubr::stat_chull()}. For plots without ellipses, include "none". Defaults to c("confidence").
 #' @param pca_labels A character vector representing the labels to draw in PCA plots. Choose any combination of "ind" and/or "var". "ind" represents individual point labels by their row number. "var" represents variable loadings drawn as arrows; the arrow length and direction are calculated as in \code{factoextra::fviz_pca_biplot()}. Defaults to NULL (no labels drawn).
 #' @param missing_method A string representing the method to address missing values in \code{values_cols}. Choose from "imputation" or "na_omit". "imputation" fills in missing values with values created (imputed) based on the correlation between variables essentially; accomplished using \code{missMDA::imputePCA()} with the ncp parameter \code{missMDA::estim_ncpPCA()}. "na_omit" removes entire rows of data when at least one NA value is present. This method may result in a significant loss of data. Defaults to "imputation". The choice of \code{missing_method} would affect PCA, LDA, and MANOVA results but likely only to a small degree with few missing values. Has no impact on boxplots and ANOVAs.
 #' @param scale TRUE/FALSE indicating whether to scale variable values (such that SD = 1 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.
 #' @param center TRUE/FALSE indicating whether to center variable values (such that mean = 0 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.
 #' @param boxplot_filled TRUE/FALSE indicating whether to color the insides of boxplots and points (i.e. fill them). If FALSE, boxplots and points are hollow with colored borders using \code{colour} in \code{ggplot2::aes()}, instead of using \code{fill}. Defaults to TRUE.
 #' @param boxplot_x_angle A number describing the degree of tilt in the x-axis labels of the boxplots. Defaults to NULL (horizontal labels).
-#' @param boxplot_x_wrap A number describing the letter count after which the next word should be printed below if a space separates the two words. Defaults to NULL (no text wrapping).
+#' @param boxplot_x_wrap The maximum number of characters on a single line that would be split if a space bar is available between them. Defaults to NULL (no text wrapping).
 #' @param boxplot_x_lab TRUE/FALSE indicating whether to include a title for the x-axis of the boxplots. Defaults to FALSE.
+#' @param boxplot_legend TRUE/FALSE indicating whether to incude the legend for the different groups in the boxplots. Defaults to TRUE
 #' @param colours A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).
-#' @param univariate_tests TRUE/FALSE indicating whether to generate p-values from ANOVA conducted on each variable. Defaults to FALSE.
 #' @param plot_out_png TRUE/FALSE indicating whether to save plots as .png in the working directory. Defaults to FALSE.
 #' @param plot_out_pptx TRUE/FALSE indicating whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.
 #' @param plot_out_R TRUE/FALSE indicating whether to output plots as ggplot2 objects in a list in R. Defaults to FALSE.
 #'
 #' @return Returns a Word document containing at least the following types of results (in the given order):
 #'
+#' Multivariate Analyses:
+#'
 #' \enumerate{
 #' \item PC plot(s) illustrating the separation (if any) of PC scores between groups
 #' \item Correlation plot between individual variables and principal components
 #' \item Correlation table summarizing pearson correlation coefficients between all pairs of variables and principal components
 #' \item Contribution table summarizing contribution values of variables to principal components
-#' \item Boxplot(s) comparing values of individual variables across groups
 #' \item Contribution table summarizing contribution values of variables to major linear discriminants (i.e. to the separation between groups)
 #' \item MANOVA table summarizing statistical evidence for any effect of factor(s)
+#' }
+#'
+#' Univariate Analyses:
+#'
+#' \enumerate{
+#' \item Boxplot(s) comparing values of individual variables across groups
+#' \item ANOVA results table (Two-Factor or One-Factor)
 #' }
 #'
 #' @import ggplot2
@@ -2032,44 +2040,32 @@ Surv_Power = function(simul_db = simul_db_ex,
 #'
 #' # Check out the report in your working directory!
 #'
-#' # To get a cleaner output, simpler plots with facets or pooling of values across
-#' # levels of a 'nuisance' factor (e.g. Fruits) can be created using the arguments
-#' # 'factors_pool' and factors_facet' as shown:
+#' # Additional plots can be created with facets or pooling of values across levels of a
+#' # factor. Below we explore the default parameters which consists of 'factors_pool =
+#' # c('col1', 'col2')' and its output:
 #' MultiVar(multivar_db = multivar_db_ex,
 #'          values_cols = 2:8,
 #'          factors_cols = c(1, 9),
 #'          factors_pool = "col2",
 #'          factors_facet = "col2",
-#'          plot_out_R = TRUE)$pca$confidence[c("pooled2", "facet2")]
+#'          plot_out_R = TRUE)$pca$confidence[c("pooled1", "pooled2")]
 #'
-#' # Using the input "col2", MultiVar() recognizes the second column (in 'factors_cols')
-#' # i.e. Fruits, as the one to facet or pool across levels. "col2" is the default
-#' # option for MultiVar() in two factor scenarios because the second ordered column is
-#' # assumed to contain the nuisance factor most of the time.
-#'
-#' # Plots with facets / pooling across levels of the first factor can also be created.
-#' # Simply add "col1" to the input vectors! Ultimately, this produces all supported
-#' # faceting and pooling plot structures (R output not shown):
+#' # Plots with facets can also be created. Below, we facet against levels of the second
+#' # factor (Fruits) which is considered as a nuisance factor in this case:
 #' MultiVar(multivar_db = multivar_db_ex,
 #'          values_cols = 2:8,
 #'          factors_cols = c(1, 9),
 #'          factors_pool = c("col1", "col2"),
-#'          factors_facet = c("col1", "col2"))
+#'          factors_facet = c("col2"))$pca$confidence["col2"]
 #'
-#' # Lastly, MultiVar() has the capacity to output ANOVA results for each dependent
-#' # variable. Simply set 'univariate_tests' to TRUE:
-#' MultiVar(multivar_db = multivar_db_ex,
-#'          values_cols = 2:8,
-#'          factors_cols = c(1, 9),
-#'          univariate_tests = TRUE)
-#'
-#' # This marks the end of the tutorial. Hope it helps!
+#' # Check your word document output and you will see that it contains facets and pooling
+#' # for both PCA and boxplots. End of tutorial. Hope it helps!
 MultiVar = function(multivar_db,
                     values_cols,
                     factors_cols,
-                    factors_pool = c("col2"),
-                    factors_facet = c("col2"),
-                    pca_ellipse = c("none", "confidence"),
+                    factors_pool = c("col1", "col2"),
+                    factors_facet = "none",
+                    pca_ellipse = c("confidence"),
                     pca_labels = NULL,
                     missing_method = "imputation",
                     scale = TRUE,
@@ -2078,15 +2074,23 @@ MultiVar = function(multivar_db,
                     boxplot_x_angle = NULL,
                     boxplot_x_wrap = NULL,
                     boxplot_x_lab = FALSE,
+                    boxplot_legend = TRUE,
                     colours = NULL,
-                    univariate_tests = FALSE,
+                    univariate_tests = TRUE,
                     plot_out_png = FALSE,
                     plot_out_pptx = FALSE,
                     plot_out_R = FALSE) {
 
   # Initialize and define objects
-  results_doc = officer::read_docx()
-  results_doc_boxplot = officer::read_docx()
+  results_doc = officer::read_docx() %>%
+    officer::body_add_par(value = "Analyses Viewing the Outcome Variables as a Multivariate Response", style = "heading 1") %>%
+    officer::body_add_par("") %>%
+    officer::body_add_par("")
+  results_doc_boxplot = officer::read_docx() %>%
+    officer::body_add_par(value = "Analyses Viewing the Outcome Variables Separately", style = "heading 1") %>%
+    officer::body_add_par("All Variables in One Plot", style = "heading 2") %>%
+    officer::body_add_par("") %>%
+    officer::body_add_par("")
   tempf = tempfile(fileext = ".docx")
   pca_list = list(list())
   boxplot_list = list(list())
@@ -2195,7 +2199,7 @@ MultiVar = function(multivar_db,
 
     # Create different databases for plotting in different factor scenarios
     if(treatment_conds_i == "none") {
-      plot_db$base_factor = interaction(multivar_db[, factors_cols], sep = " & ")
+      plot_db$base_factor = interaction(multivar_db[, factors_cols], sep = " ")
       base_factor_name = ifelse(length(factors_cols) == 1,
                                 colnames(multivar_db)[factors_cols], "Combination")
     }
@@ -2360,7 +2364,7 @@ MultiVar = function(multivar_db,
 
     # Create long database for boxplots
     if(missing_method == "na_omit") {
-      if(treatment_conds_i %in% c("none")){base_factor <- interaction(multivar_db_ori[, factors_cols], sep = " & ")}
+      if(treatment_conds_i %in% c("none")){base_factor <- interaction(multivar_db_ori[, factors_cols], sep = " ")}
       if(treatment_conds_i %in% c("pooled2", "facet2")) {
         base_factor = multivar_db_ori[, factors_cols[1]]
         second_factor = multivar_db_ori[, factors_cols[2]]
@@ -2383,7 +2387,7 @@ MultiVar = function(multivar_db,
 
     # Create boxplots with variables facet
     point_size_algo = 2.4 - (facet_col * length(unique(plot_db_long$base_factor)) - 4)/ (33 / 0.9)
-    box_height = 1.7 + 1.1 * facet_row
+    box_height = 1.7 + 1.1 * facet_row + ifelse(boxplot_legend == FALSE, 0.8, 0)
 
     boxplot$data = plot_db_long
     boxplot$mapping = aes(y = values, x = base_factor, colour = base_factor)
@@ -2398,6 +2402,7 @@ MultiVar = function(multivar_db,
             strip.background = element_rect(fill = "grey", color = NA))
     if(boxplot_x_lab == TRUE) {boxplot <- boxplot + xlab(base_factor_name)}
     if(boxplot_filled == TRUE) {boxplot$mapping <- aes(y = values, x = base_factor, fill = base_factor)}
+    if(boxplot_legend == FALSE) {boxplot = boxplot + theme(legend.position = "none")}
 
     if(treatment_conds_i %in% c("none", "pooled2", "pooled1")) {
 
@@ -2421,13 +2426,12 @@ MultiVar = function(multivar_db,
 
     }
 
-
     # Create boxplots without variables facet, for each separate variable.
     box_num = length(unique(plot_db_long$base_factor)) * ifelse(treatment_conds_i %in% c("facet1", "facet2"), facet_col, 1)
     box_row = ifelse(treatment_conds_i %in% c("facet1", "facet2"), facet_row, 1)
     point_size_algo = 3 - (box_num - 2)/ 24
 
-    box_height2 = 2.05 + (1.1 * box_row) + ifelse(box_num <= 6, 0.4, 0)
+    box_height2 = 2.05 + (1.1 * box_row) + ifelse(box_num <= 6, 0.4, 0) + ifelse(boxplot_legend == FALSE, 0.8, 0)
     for(values_cols_i in values_cols) {
       varname = gsub("\\.", " ", colnames(multivar_db)[values_cols_i])
 
@@ -2449,6 +2453,7 @@ MultiVar = function(multivar_db,
           theme(strip.text = element_text(size = 8.8, margin = margin(0.155, 0.1, 0.155, 0.1, unit = "cm")),
                 strip.background = element_rect(fill = "grey", color = NA),
                 plot.margin = unit(c(0.0 + (0.04 * box_num), 0.25, 0.05 + (0.01 * box_num), 0.25), "in"))
+        if(boxplot_legend == FALSE) {boxplot = boxplot + theme(legend.position = "none")}
         boxplot_name = paste("Boxplot of ", varname, " Facet-", second_factor_name, sep = "")
       }
       if(treatment_conds_i == "none") {boxplot_name <- paste("Boxplot of ", varname, sep = "")}
@@ -2471,6 +2476,11 @@ MultiVar = function(multivar_db,
       i = 0
       for(boxplot_name_i in boxplot_name_vec) {
         i = i + 1
+        if(i == 1) {
+          results_doc_boxplot = results_doc_boxplot %>%
+            officer::body_add_par(value = "Variables in Separate Plots", style = "heading 2")
+        }
+
         results_doc_boxplot = results_doc_boxplot %>%
           officer::body_add_img(sr = file.path(img_path, paste(boxplot_name_i, ".png", sep = "")),
                                 width = 6.4, height = box_height2_vec[i]) %>%
@@ -2517,14 +2527,14 @@ MultiVar = function(multivar_db,
         lda_exp = round(100 * (lda_mod$svd^2 / sum(lda_mod$svd^2)), 1)
 
         # Add results to officer
-        results_doc_boxplot = results_doc_boxplot %>%
+        results_doc = results_doc %>%
           flextable::body_add_flextable(value = lda_contrib_tab, align = "left", topcaption = TRUE, split = FALSE) %>%
           officer::body_add_par(value = paste(sep = "", "LD1 and LD2 explain ", lda_exp[1], "% and ", lda_exp[2],
                                               "% of the separation between ", lda_factor, ", respectively."), style = "Normal") %>%
           officer::body_add_par("")
       }
 
-      results_doc_boxplot = results_doc_boxplot %>%
+      results_doc = results_doc %>%
         officer::body_add_par("Tabulated values are based on Linear Discriminant Analysis (LDA). The contribution describes the percentage of the linear discriminant composed of that variable; a more exact definition is that it is the variable's coefficient of linear discriminant^2 when the sum of coefficients^2 (across variables) is normalized to 100%. The coefficient of linear discriminant describes the magnitude and direction of change in the linear discriminant score (towards a particular factor level) per unit increase of the variable. Apart from the coefficients relative signs and magnitude, they may be difficult to interpret without an associated LDA plot.", style = "Normal")
 
       # Get MANOVA results
@@ -2549,10 +2559,18 @@ MultiVar = function(multivar_db,
                              MANOVA = manova_p[!manova$terms == "(Intercept)"])
       manova_db$PERMANOVA = ifelse(manova_db$PERMANOVA < 0.001, formatC(manova_db$PERMANOVA, format = "e", digits = 4), manova_db$PERMANOVA)
       manova_db$MANOVA = ifelse(manova_db$MANOVA < 0.001, formatC(manova_db$MANOVA, format = "e", digits = 4), manova_db$MANOVA)
+      manova_db = manova_db[, -2] #exclude PERMANOVA results for now to prevent confusion. May add some time in the future.
 
       manova_tab = flextable::flextable(manova_db) %>%
         flextable::set_caption(caption = paste("Table ", tab_counter + 1, ". MANOVA Results (p-values)", sep = "")) %>%
         flextable::set_table_properties(layout = "autofit", width = 1)
+
+      results_doc = results_doc %>%
+        officer::body_add_break() %>%
+        flextable::body_add_flextable(value = manova_tab, align = "left", topcaption = TRUE, split = FALSE) %>%
+        officer::body_add_par(ifelse(length(factors_cols) == 2, "The MANOVA conducted here uses the type 3 method for partitioning sums of squares between factors. Typing is relevant only when there are multiple factors.", "")) %>%
+        officer::body_add_par("") %>%
+        officer::body_add_break()
 
       # Run Univariate Tests
       if(univariate_tests == TRUE) {
@@ -2584,27 +2602,15 @@ MultiVar = function(multivar_db,
           flextable::merge_v(j = "Variable")
       }
 
-      results_doc_boxplot = results_doc_boxplot %>%
-        officer::body_add_break() %>%
-        flextable::body_add_flextable(value = manova_tab, align = "left", topcaption = TRUE, split = FALSE) %>%
-        officer::body_add_par(ifelse(length(factors_cols) == 2, "PERMANOVA = permutational multivariate analysis of variance. The MANOVA conducted here uses the type 3 method for partitioning sums of squares between factors, while the PERMANOVA uses type 2 (because type 3 is not available). Typing is relevant only when there are multiple factors.", "PERMANOVA = Permutational Multivariate Analysis of Variance."), style = "Normal") %>%
-        officer::body_add_par("") %>%
-        officer::body_add_par(ifelse("0.001" %in% as.character(manova_db$PERMANOVA), "During testing, it was discovered that the PERMANOVA function used by MultiVar() shows p-values below 0.001 as only 0.001. To calculate the exact p-value, we need to make use of the F-value and degrees of freedom calculated by the PERMANOVA function for that factor. Please inform me if the exact p-value needs to be calculated. I have not written the code to address this limitation to save my time.", "")) %>%
-        officer::body_add_par("")
-
       if(univariate_tests == TRUE) {
         results_doc_boxplot = results_doc_boxplot %>%
-          officer::body_add_break() %>%
           flextable::body_add_flextable(value = p_tab, align = "left", topcaption = TRUE, split = FALSE)
         if(length(factors_cols) == 1) {
           results_doc_boxplot = results_doc_boxplot %>% officer::body_add_par("FDR Adjusted represents p-values adjusted for the False Discovery Rate, such that no more than 5% of discoveries are expected to be wrong. The adjustment is based on the Benjamini Hochberg procedure which assumes p-values are independent or positive-dependent. Our p-values may be negatively correlated although currently I do not see what type of data would produce that. At some point I might investigate the prevalence of this issue for ONDA datasets and assess its impact on FDR.")
         }
         if(length(factors_cols) == 2){
-          results_doc_boxplot = results_doc_boxplot %>% officer::body_add_par("For two factor cases, Type 3 SS ANOVAs were conducted. P-values were not adjusted as it is unclear which adjustment method is appropriate (if any) when p-values are grouped (likely heavily correlated) by their factors.")
+          results_doc_boxplot = results_doc_boxplot %>% officer::body_add_par("For two factor cases, Type 3 SS ANOVAs were conducted. P-values were not adjusted as it is unclear which adjustment method is appropriate (if any) when p-values are likely heavily correlated.")
         }
-        results_doc_boxplot = results_doc_boxplot %>%
-          officer::body_add_par("") %>%
-          officer::body_add_par("Because no FWER (Family-Wise Error Rate) adjustments were made on the p-values of the ANOVAs, they should not be used to make family level conclusions. For example, concluding that there is statistical evidence for any effect on the fish based on a significant p-value in an ANOVA. Conclusions made this way have a 34% chance of being positive (significant) even when the null is true (i.e. it is a false positive) for 8 independent ANOVAs. The false positive rate specifically is 1-(0.95^ANOVA_count) for the case of ANOVA with one factor. Please refer to the MANOVA results for a conclusion on the multivariate outcome.")
       }
     }
   }

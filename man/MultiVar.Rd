@@ -8,9 +8,9 @@ MultiVar(
   multivar_db,
   values_cols,
   factors_cols,
-  factors_pool = c("col2"),
-  factors_facet = c("col2"),
-  pca_ellipse = c("none", "confidence"),
+  factors_pool = c("col1", "col2"),
+  factors_facet = "none",
+  pca_ellipse = c("confidence"),
   pca_labels = NULL,
   missing_method = "imputation",
   scale = TRUE,
@@ -19,8 +19,9 @@ MultiVar(
   boxplot_x_angle = NULL,
   boxplot_x_wrap = NULL,
   boxplot_x_lab = FALSE,
+  boxplot_legend = TRUE,
   colours = NULL,
-  univariate_tests = FALSE,
+  univariate_tests = TRUE,
   plot_out_png = FALSE,
   plot_out_pptx = FALSE,
   plot_out_R = FALSE
@@ -33,11 +34,11 @@ MultiVar(
 
 \item{factors_cols}{A numeric vector specifying the order number of columns containing the factors. Maximum of two numbers (i.e. factors).}
 
-\item{factors_pool}{A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to "col2" which is assumed to contain the "nuisance" factor of lesser interest (e.g. Time), for which values may preferably be pooled across levels. To create no additional plots, use "none".}
+\item{factors_pool}{A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to c("col1", "col2").}
 
-\item{factors_facet}{A character vector indicating the factors which levels are to be faceted across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to "col2". To create no additional plots, use "none".}
+\item{factors_facet}{A character vector indicating the factors which levels are to be faceted across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to "none" which creates no additional plots.}
 
-\item{pca_ellipse}{A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using \code{ggpubr::stat_conf_ellipse()}. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using \code{ggplot2::stat_ellipse()} with argument \code{type = "norm"}. "convexhull" represents the smallest convex polygon enclosing all points; drawn using \code{ggpubr::stat_chull()}. For plots without ellipses, include "none". Defaults to c("none", "confidence").}
+\item{pca_ellipse}{A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using \code{ggpubr::stat_conf_ellipse()}. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using \code{ggplot2::stat_ellipse()} with argument \code{type = "norm"}. "convexhull" represents the smallest convex polygon enclosing all points; drawn using \code{ggpubr::stat_chull()}. For plots without ellipses, include "none". Defaults to c("confidence").}
 
 \item{pca_labels}{A character vector representing the labels to draw in PCA plots. Choose any combination of "ind" and/or "var". "ind" represents individual point labels by their row number. "var" represents variable loadings drawn as arrows; the arrow length and direction are calculated as in \code{factoextra::fviz_pca_biplot()}. Defaults to NULL (no labels drawn).}
 
@@ -51,13 +52,13 @@ MultiVar(
 
 \item{boxplot_x_angle}{A number describing the degree of tilt in the x-axis labels of the boxplots. Defaults to NULL (horizontal labels).}
 
-\item{boxplot_x_wrap}{A number describing the letter count after which the next word should be printed below if a space separates the two words. Defaults to NULL (no text wrapping).}
+\item{boxplot_x_wrap}{The maximum number of characters on a single line that would be split if a space bar is available between them. Defaults to NULL (no text wrapping).}
 
 \item{boxplot_x_lab}{TRUE/FALSE indicating whether to include a title for the x-axis of the boxplots. Defaults to FALSE.}
 
-\item{colours}{A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).}
+\item{boxplot_legend}{TRUE/FALSE indicating whether to incude the legend for the different groups in the boxplots. Defaults to TRUE}
 
-\item{univariate_tests}{TRUE/FALSE indicating whether to generate p-values from ANOVA conducted on each variable. Defaults to FALSE.}
+\item{colours}{A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).}
 
 \item{plot_out_png}{TRUE/FALSE indicating whether to save plots as .png in the working directory. Defaults to FALSE.}
 
@@ -68,14 +69,22 @@ MultiVar(
 \value{
 Returns a Word document containing at least the following types of results (in the given order):
 
+Multivariate Analyses:
+
 \enumerate{
 \item PC plot(s) illustrating the separation (if any) of PC scores between groups
 \item Correlation plot between individual variables and principal components
 \item Correlation table summarizing pearson correlation coefficients between all pairs of variables and principal components
 \item Contribution table summarizing contribution values of variables to principal components
-\item Boxplot(s) comparing values of individual variables across groups
 \item Contribution table summarizing contribution values of variables to major linear discriminants (i.e. to the separation between groups)
 \item MANOVA table summarizing statistical evidence for any effect of factor(s)
+}
+
+Univariate Analyses:
+
+\enumerate{
+\item Boxplot(s) comparing values of individual variables across groups
+\item ANOVA results table (Two-Factor or One-Factor)
 }
 }
 \description{
@@ -174,38 +183,26 @@ MultiVar(multivar_db = multivar_db_ex,
 
 # Check out the report in your working directory!
 
-# To get a cleaner output, simpler plots with facets or pooling of values across
-# levels of a 'nuisance' factor (e.g. Fruits) can be created using the arguments
-# 'factors_pool' and factors_facet' as shown:
+# Additional plots can be created with facets or pooling of values across levels of a
+# factor. Below we explore the default parameters which consists of 'factors_pool =
+# c('col1', 'col2')' and its output:
 MultiVar(multivar_db = multivar_db_ex,
          values_cols = 2:8,
          factors_cols = c(1, 9),
          factors_pool = "col2",
          factors_facet = "col2",
-         plot_out_R = TRUE)$pca$confidence[c("pooled2", "facet2")]
+         plot_out_R = TRUE)$pca$confidence[c("pooled1", "pooled2")]
 
-# Using the input "col2", MultiVar() recognizes the second column (in 'factors_cols')
-# i.e. Fruits, as the one to facet or pool across levels. "col2" is the default
-# option for MultiVar() in two factor scenarios because the second ordered column is
-# assumed to contain the nuisance factor most of the time.
-
-# Plots with facets / pooling across levels of the first factor can also be created.
-# Simply add "col1" to the input vectors! Ultimately, this produces all supported
-# faceting and pooling plot structures (R output not shown):
+# Plots with facets can also be created. Below, we facet against levels of the second
+# factor (Fruits) which is considered as a nuisance factor in this case:
 MultiVar(multivar_db = multivar_db_ex,
          values_cols = 2:8,
          factors_cols = c(1, 9),
          factors_pool = c("col1", "col2"),
-         factors_facet = c("col1", "col2"))
+         factors_facet = c("col2"))$pca$confidence["col2"]
 
-# Lastly, MultiVar() has the capacity to output ANOVA results for each dependent
-# variable. Simply set 'univariate_tests' to TRUE:
-MultiVar(multivar_db = multivar_db_ex,
-         values_cols = 2:8,
-         factors_cols = c(1, 9),
-         univariate_tests = TRUE)
-
-# This marks the end of the tutorial. Hope it helps!
+# Check your word document output and you will see that it contains facets and pooling
+# for both PCA and boxplots. End of tutorial. Hope it helps!
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/MultiVar.html}{Link} for web documentation.
