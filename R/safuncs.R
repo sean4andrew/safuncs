@@ -1925,7 +1925,8 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' @param boxplot_x_angle A number describing the degree of tilt in the x-axis labels of the boxplots. Defaults to NULL (horizontal labels).
 #' @param boxplot_x_wrap The maximum number of characters on a single line that would be split if a space bar is available between them. Defaults to NULL (no text wrapping).
 #' @param boxplot_x_lab TRUE/FALSE indicating whether to include a title for the x-axis of the boxplots. Defaults to FALSE.
-#' @param boxplot_legend TRUE/FALSE indicating whether to incude the legend for the different groups in the boxplots. Defaults to TRUE
+#' @param boxplot_legend TRUE/FALSE indicating whether to include the legend for the different groups in the boxplots. Defaults to TRUE.
+#' @param boxplot_var_sep TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.
 #' @param colours A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).
 #' @param plot_out_png TRUE/FALSE indicating whether to save plots as .png in the working directory. Defaults to FALSE.
 #' @param plot_out_pptx TRUE/FALSE indicating whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.
@@ -2079,6 +2080,7 @@ MultiVar = function(multivar_db,
                     boxplot_x_wrap = NULL,
                     boxplot_x_lab = FALSE,
                     boxplot_legend = TRUE,
+                    boxplot_var_sep = FALSE,
                     colours = NULL,
                     univariate_tests = TRUE,
                     plot_out_png = FALSE,
@@ -2431,66 +2433,68 @@ MultiVar = function(multivar_db,
     }
 
     # Create boxplots without variables facet, for each separate variable.
-    box_num = length(unique(plot_db_long$base_factor)) * ifelse(treatment_conds_i %in% c("facet1", "facet2"), facet_col, 1)
-    box_row = ifelse(treatment_conds_i %in% c("facet1", "facet2"), facet_row, 1)
-    point_size_algo = 3 - (box_num - 2)/ 24
+    if(treatment_conds_i %in% c("facet1", "facet2") | boxplot_var_sep == TRUE) {
+      box_num = length(unique(plot_db_long$base_factor)) * ifelse(treatment_conds_i %in% c("facet1", "facet2"), facet_col, 1)
+      box_row = ifelse(treatment_conds_i %in% c("facet1", "facet2"), facet_row, 1)
+      point_size_algo = 3 - (box_num - 2)/ 24
 
-    box_height2 = 2.05 + (1.1 * box_row) + ifelse(box_num <= 6, 0.4, 0) + ifelse(boxplot_legend == FALSE, 0.8, 0)
-    for(values_cols_i in values_cols) {
-      varname = gsub("\\.", " ", colnames(multivar_db)[values_cols_i])
+      box_height2 = 2.05 + (1.1 * box_row) + ifelse(box_num <= 6, 0.4, 0) + ifelse(boxplot_legend == FALSE, 0.8, 0)
+      for(values_cols_i in values_cols) {
+        varname = gsub("\\.", " ", colnames(multivar_db)[values_cols_i])
 
-      # Filter for a variable
-      plot_db_long_filtered = plot_db_long[plot_db_long$variable == varname, ]
+        # Filter for a variable
+        plot_db_long_filtered = plot_db_long[plot_db_long$variable == varname, ]
 
-      # Change boxplot data, point size, facet and names
-      boxplot = boxplot +
-        ylab(varname) +
-        theme(strip.text = element_blank(),
-              strip.background = element_blank(),
-              plot.margin = unit(c(0.0 + (0.04 * box_num), 0.25, 0.05 + (0.01 * box_num), 0.25), "in"))
-      boxplot$data = plot_db_long_filtered
-      boxplot$layers[[2]] = geom_jitter(height = 0, width = 0.2, shape = 21, size = point_size_algo, na.rm = TRUE)
-
-      if(treatment_conds_i %in% c("facet2", "facet1")) {
-        boxplot$facet = facet_wrap(~ second_factor, ncol = facet_col, nrow = facet_row)
+        # Change boxplot data, point size, facet and names
         boxplot = boxplot +
-          theme(strip.text = element_text(size = 8.8, margin = margin(0.155, 0.1, 0.155, 0.1, unit = "cm")),
-                strip.background = element_rect(fill = "grey", color = NA),
+          ylab(varname) +
+          theme(strip.text = element_blank(),
+                strip.background = element_blank(),
                 plot.margin = unit(c(0.0 + (0.04 * box_num), 0.25, 0.05 + (0.01 * box_num), 0.25), "in"))
-        if(boxplot_legend == FALSE) {boxplot = boxplot + theme(legend.position = "none")}
-        boxplot_name = paste("Boxplot of ", varname, " Facet-", second_factor_name, sep = "")
-      }
-      if(treatment_conds_i == "none") {boxplot_name <- paste("Boxplot of ", varname, sep = "")}
-      if(treatment_conds_i %in% c("pooled2", "pooled1")) {boxplot_name <- paste("Boxplot of ", varname, " Pooled Across-", second_factor_name, sep = "")}
-      boxplot_name_vec = c(boxplot_name_vec, boxplot_name)
-      box_height2_vec = c(box_height2_vec, box_height2)
+        boxplot$data = plot_db_long_filtered
+        boxplot$layers[[2]] = geom_jitter(height = 0, width = 0.2, shape = 21, size = point_size_algo, na.rm = TRUE)
 
-      # Save these boxplots
-      boxplot_list[[treatment_conds_i]][[varname]] = boxplot
-      if(plot_out_pptx == TRUE) {
-        eoffice::topptx(figure = boxplot, filename = pptx_name,
-                        width = 6.4, height = box_height2, append = TRUE)
-      }
-      ggsave(plot = suppressWarnings(boxplot), filename = paste(boxplot_name, ".png", sep = ""),
-             dpi = 600, width = 6.4, height = box_height2, path = img_path)
-    }
-
-    # Add them to results_doc
-    if(treatment_conds_i == last(treatment_conds)){
-      i = 0
-      for(boxplot_name_i in boxplot_name_vec) {
-        i = i + 1
-        if(i == 1) {
-          results_doc_boxplot = results_doc_boxplot %>%
-            officer::body_add_par(value = "Variables in Separate Plots", style = "heading 2")
+        if(treatment_conds_i %in% c("facet2", "facet1")) {
+          boxplot$facet = facet_wrap(~ second_factor, ncol = facet_col, nrow = facet_row)
+          boxplot = boxplot +
+            theme(strip.text = element_text(size = 8.8, margin = margin(0.155, 0.1, 0.155, 0.1, unit = "cm")),
+                  strip.background = element_rect(fill = "grey", color = NA),
+                  plot.margin = unit(c(0.0 + (0.04 * box_num), 0.25, 0.05 + (0.01 * box_num), 0.25), "in"))
+          if(boxplot_legend == FALSE) {boxplot = boxplot + theme(legend.position = "none")}
+          boxplot_name = paste("Boxplot of ", varname, " Facet-", second_factor_name, sep = "")
         }
+        if(treatment_conds_i == "none") {boxplot_name <- paste("Boxplot of ", varname, sep = "")}
+        if(treatment_conds_i %in% c("pooled2", "pooled1")) {boxplot_name <- paste("Boxplot of ", varname, " Pooled Across-", second_factor_name, sep = "")}
+        boxplot_name_vec = c(boxplot_name_vec, boxplot_name)
+        box_height2_vec = c(box_height2_vec, box_height2)
 
-        results_doc_boxplot = results_doc_boxplot %>%
-          officer::body_add_img(sr = file.path(img_path, paste(boxplot_name_i, ".png", sep = "")),
-                                width = 6.4, height = box_height2_vec[i]) %>%
-          officer::body_add_par(value = boxplot_name_i, style = "graphic title") %>%
-          officer::body_add_par("") %>%
-          officer::body_add_par("")
+        # Save these boxplots
+        boxplot_list[[treatment_conds_i]][[varname]] = boxplot
+        if(plot_out_pptx == TRUE) {
+          eoffice::topptx(figure = boxplot, filename = pptx_name,
+                          width = 6.4, height = box_height2, append = TRUE)
+        }
+        ggsave(plot = suppressWarnings(boxplot), filename = paste(boxplot_name, ".png", sep = ""),
+               dpi = 600, width = 6.4, height = box_height2, path = img_path)
+      }
+
+      # Add them to results_doc
+      if(treatment_conds_i == last(treatment_conds)){
+        i = 0
+        for(boxplot_name_i in boxplot_name_vec) {
+          i = i + 1
+          if(i == 1) {
+            results_doc_boxplot = results_doc_boxplot %>%
+              officer::body_add_par(value = "Variables in Separate Plots", style = "heading 2")
+          }
+
+          results_doc_boxplot = results_doc_boxplot %>%
+            officer::body_add_img(sr = file.path(img_path, paste(boxplot_name_i, ".png", sep = "")),
+                                  width = 6.4, height = box_height2_vec[i]) %>%
+            officer::body_add_par(value = boxplot_name_i, style = "graphic title") %>%
+            officer::body_add_par("") %>%
+            officer::body_add_par("")
+        }
       }
     }
 

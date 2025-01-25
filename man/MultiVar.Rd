@@ -20,6 +20,7 @@ MultiVar(
   boxplot_x_wrap = NULL,
   boxplot_x_lab = FALSE,
   boxplot_legend = TRUE,
+  boxplot_var_sep = FALSE,
   colours = NULL,
   univariate_tests = TRUE,
   plot_out_png = FALSE,
@@ -56,7 +57,9 @@ MultiVar(
 
 \item{boxplot_x_lab}{TRUE/FALSE indicating whether to include a title for the x-axis of the boxplots. Defaults to FALSE.}
 
-\item{boxplot_legend}{TRUE/FALSE indicating whether to incude the legend for the different groups in the boxplots. Defaults to TRUE}
+\item{boxplot_legend}{TRUE/FALSE indicating whether to include the legend for the different groups in the boxplots. Defaults to TRUE.}
+
+\item{boxplot_var_sep}{TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.}
 
 \item{colours}{A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).}
 
