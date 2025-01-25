@@ -43,9 +43,9 @@
 <span>  <span class="va">multivar_db</span>,</span>
 <span>  <span class="va">values_cols</span>,</span>
 <span>  <span class="va">factors_cols</span>,</span>
-<span>  factors_pool <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col2"</span><span class="op">)</span>,</span>
-<span>  factors_facet <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col2"</span><span class="op">)</span>,</span>
-<span>  pca_ellipse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"confidence"</span><span class="op">)</span>,</span>
+<span>  factors_pool <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col1"</span>, <span class="st">"col2"</span><span class="op">)</span>,</span>
+<span>  factors_facet <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>  pca_ellipse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"confidence"</span><span class="op">)</span>,</span>
 <span>  pca_labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  missing_method <span class="op">=</span> <span class="st">"imputation"</span>,</span>
 <span>  scale <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -54,8 +54,9 @@
 <span>  boxplot_x_angle <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  boxplot_x_wrap <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  boxplot_x_lab <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  boxplot_legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  colours <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  univariate_tests <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  univariate_tests <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  plot_out_png <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  plot_out_pptx <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  plot_out_R <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -79,15 +80,15 @@
 
 
 <dt id="arg-factors-pool">factors_pool<a class="anchor" aria-label="anchor" href="#arg-factors-pool"></a></dt>
-<dd><p>A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in <code>factors_cols</code>. Defaults to "col2" which is assumed to contain the "nuisance" factor of lesser interest (e.g. Time), for which values may preferably be pooled across levels. To create no additional plots, use "none".</p></dd>
+<dd><p>A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in <code>factors_cols</code>. Defaults to c("col1", "col2").</p></dd>
 
 
 <dt id="arg-factors-facet">factors_facet<a class="anchor" aria-label="anchor" href="#arg-factors-facet"></a></dt>
-<dd><p>A character vector indicating the factors which levels are to be faceted across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in <code>factors_cols</code>. Defaults to "col2". To create no additional plots, use "none".</p></dd>
+<dd><p>A character vector indicating the factors which levels are to be faceted across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in <code>factors_cols</code>. Defaults to "none" which creates no additional plots.</p></dd>
 
 
 <dt id="arg-pca-ellipse">pca_ellipse<a class="anchor" aria-label="anchor" href="#arg-pca-ellipse"></a></dt>
-<dd><p>A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using <code><a href="https://rpkgs.datanovia.com/ggpubr/reference/stat_conf_ellipse.html" class="external-link">ggpubr::stat_conf_ellipse()</a></code>. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using <code><a href="https://ggplot2.tidyverse.org/reference/stat_ellipse.html" class="external-link">ggplot2::stat_ellipse()</a></code> with argument <code>type = "norm"</code>. "convexhull" represents the smallest convex polygon enclosing all points; drawn using <code><a href="https://rpkgs.datanovia.com/ggpubr/reference/stat_chull.html" class="external-link">ggpubr::stat_chull()</a></code>. For plots without ellipses, include "none". Defaults to c("none", "confidence").</p></dd>
+<dd><p>A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using <code><a href="https://rpkgs.datanovia.com/ggpubr/reference/stat_conf_ellipse.html" class="external-link">ggpubr::stat_conf_ellipse()</a></code>. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using <code><a href="https://ggplot2.tidyverse.org/reference/stat_ellipse.html" class="external-link">ggplot2::stat_ellipse()</a></code> with argument <code>type = "norm"</code>. "convexhull" represents the smallest convex polygon enclosing all points; drawn using <code><a href="https://rpkgs.datanovia.com/ggpubr/reference/stat_chull.html" class="external-link">ggpubr::stat_chull()</a></code>. For plots without ellipses, include "none". Defaults to c("confidence").</p></dd>
 
 
 <dt id="arg-pca-labels">pca_labels<a class="anchor" aria-label="anchor" href="#arg-pca-labels"></a></dt>
@@ -115,19 +116,19 @@
 
 
 <dt id="arg-boxplot-x-wrap">boxplot_x_wrap<a class="anchor" aria-label="anchor" href="#arg-boxplot-x-wrap"></a></dt>
-<dd><p>A number describing the letter count after which the next word should be printed below if a space separates the two words. Defaults to NULL (no text wrapping).</p></dd>
+<dd><p>The maximum number of characters on a single line that would be split if a space bar is available between them. Defaults to NULL (no text wrapping).</p></dd>
 
 
 <dt id="arg-boxplot-x-lab">boxplot_x_lab<a class="anchor" aria-label="anchor" href="#arg-boxplot-x-lab"></a></dt>
 <dd><p>TRUE/FALSE indicating whether to include a title for the x-axis of the boxplots. Defaults to FALSE.</p></dd>
 
 
+<dt id="arg-boxplot-legend">boxplot_legend<a class="anchor" aria-label="anchor" href="#arg-boxplot-legend"></a></dt>
+<dd><p>TRUE/FALSE indicating whether to incude the legend for the different groups in the boxplots. Defaults to TRUE</p></dd>
+
+
 <dt id="arg-colours">colours<a class="anchor" aria-label="anchor" href="#arg-colours"></a></dt>
 <dd><p>A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the <code>colours</code> vector may look like <code>c('A' = "brown", B = 'blue', C = '#f8e723')</code>. Defaults to NULL (default ggplot2 colours).</p></dd>
-
-
-<dt id="arg-univariate-tests">univariate_tests<a class="anchor" aria-label="anchor" href="#arg-univariate-tests"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to generate p-values from ANOVA conducted on each variable. Defaults to FALSE.</p></dd>
 
 
 <dt id="arg-plot-out-png">plot_out_png<a class="anchor" aria-label="anchor" href="#arg-plot-out-png"></a></dt>
@@ -145,13 +146,16 @@
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Returns a Word document containing at least the following types of results (in the given order):</p>
+<p>Multivariate Analyses:</p>
 <ol><li><p>PC plot(s) illustrating the separation (if any) of PC scores between groups</p></li>
 <li><p>Correlation plot between individual variables and principal components</p></li>
 <li><p>Correlation table summarizing pearson correlation coefficients between all pairs of variables and principal components</p></li>
 <li><p>Contribution table summarizing contribution values of variables to principal components</p></li>
-<li><p>Boxplot(s) comparing values of individual variables across groups</p></li>
 <li><p>Contribution table summarizing contribution values of variables to major linear discriminants (i.e. to the separation between groups)</p></li>
 <li><p>MANOVA table summarizing statistical evidence for any effect of factor(s)</p></li>
+</ol><p>Univariate Analyses:</p>
+<ol><li><p>Boxplot(s) comparing values of individual variables across groups</p></li>
+<li><p>ANOVA results table (Two-Factor or One-Factor)</p></li>
 </ol></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -287,44 +291,33 @@
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Check out the report in your working directory!</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># To get a cleaner output, simpler plots with facets or pooling of values across</span></span></span>
-<span class="r-in"><span><span class="co"># levels of a 'nuisance' factor (e.g. Fruits) can be created using the arguments</span></span></span>
-<span class="r-in"><span><span class="co"># 'factors_pool' and factors_facet' as shown:</span></span></span>
+<span class="r-in"><span><span class="co"># Additional plots can be created with facets or pooling of values across levels of a</span></span></span>
+<span class="r-in"><span><span class="co"># factor. Below we explore the default parameters which consists of 'factors_pool =</span></span></span>
+<span class="r-in"><span><span class="co"># c('col1', 'col2')' and its output:</span></span></span>
 <span class="r-in"><span><span class="fu">MultiVar</span><span class="op">(</span>multivar_db <span class="op">=</span> <span class="va">multivar_db_ex</span>,</span></span>
 <span class="r-in"><span>         values_cols <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">8</span>,</span></span>
 <span class="r-in"><span>         factors_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">9</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>         factors_pool <span class="op">=</span> <span class="st">"col2"</span>,</span></span>
 <span class="r-in"><span>         factors_facet <span class="op">=</span> <span class="st">"col2"</span>,</span></span>
-<span class="r-in"><span>         plot_out_R <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">pca</span><span class="op">$</span><span class="va">confidence</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pooled2"</span>, <span class="st">"facet2"</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-in"><span>         plot_out_R <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">pca</span><span class="op">$</span><span class="va">confidence</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pooled1"</span>, <span class="st">"pooled2"</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $&lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $pooled2</span>
 <span class="r-plt img"><img src="MultiVar-4.png" alt="" width="700" height="433"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $facet2</span>
-<span class="r-plt img"><img src="MultiVar-5.png" alt="" width="700" height="433"></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Using the input "col2", MultiVar() recognizes the second column (in 'factors_cols')</span></span></span>
-<span class="r-in"><span><span class="co"># i.e. Fruits, as the one to facet or pool across levels. "col2" is the default</span></span></span>
-<span class="r-in"><span><span class="co"># option for MultiVar() in two factor scenarios because the second ordered column is</span></span></span>
-<span class="r-in"><span><span class="co"># assumed to contain the nuisance factor most of the time.</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Plots with facets / pooling across levels of the first factor can also be created.</span></span></span>
-<span class="r-in"><span><span class="co"># Simply add "col1" to the input vectors! Ultimately, this produces all supported</span></span></span>
-<span class="r-in"><span><span class="co"># faceting and pooling plot structures (R output not shown):</span></span></span>
+<span class="r-in"><span><span class="co"># Plots with facets can also be created. Below, we facet against levels of the second</span></span></span>
+<span class="r-in"><span><span class="co"># factor (Fruits) which is considered as a nuisance factor in this case:</span></span></span>
 <span class="r-in"><span><span class="fu">MultiVar</span><span class="op">(</span>multivar_db <span class="op">=</span> <span class="va">multivar_db_ex</span>,</span></span>
 <span class="r-in"><span>         values_cols <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">8</span>,</span></span>
 <span class="r-in"><span>         factors_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">9</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>         factors_pool <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col1"</span>, <span class="st">"col2"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>         factors_facet <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col1"</span>, <span class="st">"col2"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>         factors_facet <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col2"</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">pca</span><span class="op">$</span><span class="va">confidence</span><span class="op">[</span><span class="st">"col2"</span><span class="op">]</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Lastly, MultiVar() has the capacity to output ANOVA results for each dependent</span></span></span>
-<span class="r-in"><span><span class="co"># variable. Simply set 'univariate_tests' to TRUE:</span></span></span>
-<span class="r-in"><span><span class="fu">MultiVar</span><span class="op">(</span>multivar_db <span class="op">=</span> <span class="va">multivar_db_ex</span>,</span></span>
-<span class="r-in"><span>         values_cols <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">8</span>,</span></span>
-<span class="r-in"><span>         factors_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">9</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>         univariate_tests <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># This marks the end of the tutorial. Hope it helps!</span></span></span>
+<span class="r-in"><span><span class="co"># Check your word document output and you will see that it contains facets and pooling</span></span></span>
+<span class="r-in"><span><span class="co"># for both PCA and boxplots. End of tutorial. Hope it helps!</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
