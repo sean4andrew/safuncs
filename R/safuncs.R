@@ -1933,7 +1933,7 @@ Surv_Power = function(simul_db = simul_db_ex,
 #'
 #' @return Returns a Word document containing at least the following types of results (in the given order):
 #'
-#' Multivariate Analyses:
+#' \strong{Multivariate Analyses:}
 #'
 #' \enumerate{
 #' \item PC plot(s) illustrating the separation (if any) of PC scores between groups
@@ -1944,7 +1944,7 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' \item MANOVA table summarizing statistical evidence for any effect of factor(s)
 #' }
 #'
-#' Univariate Analyses:
+#' \strong{Univariate Analyses:}
 #'
 #' \enumerate{
 #' \item Boxplot(s) comparing values of individual variables across groups
@@ -2046,9 +2046,12 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' MultiVar(multivar_db = multivar_db_ex,
 #'          values_cols = 2:8,
 #'          factors_cols = c(1, 9),
-#'          factors_pool = "col2",
-#'          factors_facet = "col2",
+#'          factors_pool = c("col1", "col2"),
 #'          plot_out_R = TRUE)$pca$confidence[c("pooled1", "pooled2")]
+#'
+#' # The "col1" specification instructs MultiVar() to create a plot with pooling across
+#' # levels of the first factor specified in 'values_cols', while "col2" refers to the
+#' # second factor.
 #'
 #' # Plots with facets can also be created. Below, we facet against levels of the second
 #' # factor (Fruits) which is considered as a nuisance factor in this case:
