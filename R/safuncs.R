@@ -2658,9 +2658,11 @@ MultiVar = function(multivar_db,
             }
             ## Two Factor situations
             if(length(factors_cols) == 2) {
-              emmeans_obj = emmeans::emmeans(lm_mod, as.formula(paste("pairwise ~", factor_conds_i)), adjust = "BH")
-              emmeans_obj2 = emmeans::emmeans(lm_mod, as.formula(paste("pairwise ~", factor_conds_i,
-                                                                       "|", factor_conds[factor_conds != factor_conds_i])))
+              emmeans_obj = suppressMessages(emmeans::emmeans(lm_mod, as.formula(paste("pairwise ~", factor_conds_i)),
+                                                              adjust = "BH"))
+              emmeans_obj2 = suppressMessages(emmeans::emmeans(lm_mod,
+                                                               as.formula(paste("pairwise ~", factor_conds_i, "|",
+                                                                                factor_conds[factor_conds != factor_conds_i]))))
               cld_obj = data.frame(multcomp::cld(emmeans_obj, Letter = letters, adjust = "BH"))
               cld_obj2 = data.frame(multcomp::cld(emmeans_obj2, Letter = letters, adjust = "BH"))
 
