@@ -140,16 +140,16 @@ MultiVar(multivar_db = iris,
 
 # If you want to customize the plot beyond the capabilities of MultiVar(), save them
 # as editable forms in .pptx or manipulate them further in R:
-Sepal_L_box = MultiVar(multivar_db = iris,
+FacetVar_box = MultiVar(multivar_db = iris,
                        values_cols = 1:4,
                        factors_cols = 5,
                        boxplot_x_angle = 45,
                        plot_out_pptx = TRUE,
-                       plot_out_R = TRUE)$box$none$'Sepal Length'
+                       plot_out_R = TRUE)$box$none$facetvariables
 
-Sepal_L_box + ggthemes::theme_tufte() # Use the thufte theme
+FacetVar_box + ggthemes::theme_tufte() # Use the thufte theme
 
-ggplot2::ggsave(filename = "box_SepalLength.tiff",
+ggplot2::ggsave(filename = "FacetVar_box.tiff",
                 width = 5,
                 height = 5,
                 dpi = 600) # Save with desired plot dimensions and resolution

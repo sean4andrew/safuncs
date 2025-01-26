@@ -12,7 +12,7 @@ QCATC1092_DB = QCATC1092_DB[QCATC1092_DB$Month != "Oct",]
 ```{r Run MultiVar()}
 MultiVar(multivar_db = QCATC1092_DB,
          values_cols = 4:6,
-         factors_cols = 1:2,
+         factors_cols = 1,
          factors_pool = c("col1", "col2"),
          factors_facet = c("col1", "col2"),
          missing_method = "na_omit",
