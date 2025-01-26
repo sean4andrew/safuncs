@@ -12,12 +12,12 @@ QCATC1092_DB = QCATC1092_DB[QCATC1092_DB$Month != "Oct",]
 ```{r Run MultiVar()}
 MultiVar(multivar_db = QCATC1092_DB,
          values_cols = 4:6,
-         factors_cols = 1,
+         factors_cols = 1:2,
          factors_pool = c("col1", "col2"),
          factors_facet = c("col1", "col2"),
+         missing_method = "na_omit",
          boxplot_x_wrap = 4,
          boxplot_legend = FALSE,
-         boxplot_var_sep = FALSE,
          plot_out_R = TRUE)
 ```
 
@@ -380,6 +380,7 @@ MultiVar = function(multivar_db,
 
     if(treatment_conds_i %in% c("pooled1", "pooled2")){
      boxplot$mapping = aes(y = values, x = base_factor, fill = second_factor)
+     if(boxplot_filled == FALSE) {boxplot$mapping <- aes(y = values, x = base_factor, colour = second_factor)}
      boxplot$guides = guides(colour = guide_legend(second_factor_name), fill = guide_legend(second_factor_name),
                              shape = guide_legend(second_factor_name))
      boxplot$layers[[2]] = geom_point(position = position_jitterdodge(jitter.width = 0.25, jitter.height = 0), 
@@ -405,6 +406,7 @@ MultiVar = function(multivar_db,
      
      #Return to original params.
      boxplot$mapping = aes(y = values, x = base_factor, fill = base_factor)
+     if(boxplot_filled == FALSE) {boxplot$mapping <- aes(y = values, x = base_factor, colour = base_factor)}
      boxplot$guides = guides(colour = guide_legend(base_factor_name), fill = guide_legend(base_factor_name),
                              shape = guide_legend(base_factor_name))
      boxplot$layers[[2]] = geom_jitter(width = 0.2, height = 0, shape = 21, size = point_size_algo, na.rm = TRUE)

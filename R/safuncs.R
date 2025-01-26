@@ -1919,7 +1919,7 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' @param factors_facet A character vector indicating the factors which levels are to be faceted across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to "none" which creates no additional plots.
 #' @param pca_ellipse A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using \code{ggpubr::stat_conf_ellipse()}. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using \code{ggplot2::stat_ellipse()} with argument \code{type = "norm"}. "convexhull" represents the smallest convex polygon enclosing all points; drawn using \code{ggpubr::stat_chull()}. For plots without ellipses, include "none". Defaults to c("confidence").
 #' @param pca_labels A character vector representing the labels to draw in PCA plots. Choose any combination of "ind" and/or "var". "ind" represents individual point labels by their row number. "var" represents variable loadings drawn as arrows; the arrow length and direction are calculated as in \code{factoextra::fviz_pca_biplot()}. Defaults to NULL (no labels drawn).
-#' @param pca_shapes TRUE/FALSE indicating whether to use different shapes for factor levels in PCA plots. Defaults to FALSE. Different shapes are not provided for plots with greater than 6 factor levels.
+#' @param pca_shapes TRUE/FALSE indicating whether to use different shapes for each factor level in PCA plots. Defaults to FALSE. Different shapes are not provided for plots with greater than 6 factor levels.
 #' @param missing_method A string representing the method to address missing values in \code{values_cols}. Choose from "imputation" or "na_omit". "imputation" fills in missing values with values created (imputed) based on the correlation between variables essentially; accomplished using \code{missMDA::imputePCA()} with the ncp parameter \code{missMDA::estim_ncpPCA()}. "na_omit" removes entire rows of data when at least one NA value is present. This method may result in a significant loss of data. Defaults to "imputation". The choice of \code{missing_method} would affect PCA, LDA, and MANOVA results but likely only to a small degree with few missing values. Has no impact on boxplots and ANOVAs.
 #' @param scale TRUE/FALSE indicating whether to scale variable values (such that SD = 1 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.
 #' @param center TRUE/FALSE indicating whether to center variable values (such that mean = 0 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.
@@ -2426,6 +2426,7 @@ MultiVar = function(multivar_db,
 
     if(treatment_conds_i %in% c("pooled1", "pooled2")){
       boxplot$mapping = aes(y = values, x = base_factor, fill = second_factor)
+      if(boxplot_filled == FALSE) {boxplot$mapping <- aes(y = values, x = base_factor, colour = second_factor)}
       boxplot$guides = guides(colour = guide_legend(second_factor_name), fill = guide_legend(second_factor_name),
                               shape = guide_legend(second_factor_name))
       boxplot$layers[[2]] = geom_point(position = position_jitterdodge(jitter.width = 0.25, jitter.height = 0),
@@ -2451,6 +2452,7 @@ MultiVar = function(multivar_db,
 
       #Return to original params.
       boxplot$mapping = aes(y = values, x = base_factor, fill = base_factor)
+      if(boxplot_filled == FALSE) {boxplot$mapping <- aes(y = values, x = base_factor, colour = base_factor)}
       boxplot$guides = guides(colour = guide_legend(base_factor_name), fill = guide_legend(base_factor_name),
                               shape = guide_legend(base_factor_name))
       boxplot$layers[[2]] = geom_jitter(width = 0.2, height = 0, shape = 21, size = point_size_algo, na.rm = TRUE)
