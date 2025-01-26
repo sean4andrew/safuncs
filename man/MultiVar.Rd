@@ -12,6 +12,7 @@ MultiVar(
   factors_facet = "none",
   pca_ellipse = c("confidence"),
   pca_labels = NULL,
+  pca_shapes = FALSE,
   missing_method = "imputation",
   scale = TRUE,
   center = TRUE,
@@ -22,7 +23,6 @@ MultiVar(
   boxplot_legend = TRUE,
   boxplot_var_sep = FALSE,
   colours = NULL,
-  univariate_tests = TRUE,
   plot_out_png = FALSE,
   plot_out_pptx = FALSE,
   plot_out_R = FALSE
@@ -42,6 +42,8 @@ MultiVar(
 \item{pca_ellipse}{A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using \code{ggpubr::stat_conf_ellipse()}. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using \code{ggplot2::stat_ellipse()} with argument \code{type = "norm"}. "convexhull" represents the smallest convex polygon enclosing all points; drawn using \code{ggpubr::stat_chull()}. For plots without ellipses, include "none". Defaults to c("confidence").}
 
 \item{pca_labels}{A character vector representing the labels to draw in PCA plots. Choose any combination of "ind" and/or "var". "ind" represents individual point labels by their row number. "var" represents variable loadings drawn as arrows; the arrow length and direction are calculated as in \code{factoextra::fviz_pca_biplot()}. Defaults to NULL (no labels drawn).}
+
+\item{pca_shapes}{TRUE/FALSE indicating whether to use different shapes for factor levels in PCA plots. Defaults to FALSE. Different shapes are not provided for plots with greater than 6 factor levels.}
 
 \item{missing_method}{A string representing the method to address missing values in \code{values_cols}. Choose from "imputation" or "na_omit". "imputation" fills in missing values with values created (imputed) based on the correlation between variables essentially; accomplished using \code{missMDA::imputePCA()} with the ncp parameter \code{missMDA::estim_ncpPCA()}. "na_omit" removes entire rows of data when at least one NA value is present. This method may result in a significant loss of data. Defaults to "imputation". The choice of \code{missing_method} would affect PCA, LDA, and MANOVA results but likely only to a small degree with few missing values. Has no impact on boxplots and ANOVAs.}
 
@@ -83,11 +85,12 @@ Returns a Word document containing at least the following types of results (in t
 \item MANOVA table summarizing statistical evidence for any effect of factor(s)
 }
 
-\strong{Univariate Analyses:}
+\strong{(Bonus) Univariate Analyses:}
 
 \enumerate{
 \item Boxplot(s) comparing values of individual variables across groups
 \item ANOVA results table (Two-Factor or One-Factor)
+\item Pairwise comparisons table
 }
 }
 \description{
@@ -102,6 +105,7 @@ Several functions published on CRAN are used by \code{MultiVar()} for various ty
  \item{MANOVA}{Uses \code{stats::manova()} and subsequently \code{car::Anova()} with the argument \code{type = 3} - relevant for analyses with two or more factors. Missing values may have been imputed with the same method described for PCA. By default, \code{stats::manova()} omits all rows with missing values. To achieve this in \code{MultiVar()}, set \code{missing_method} argument to "na_omit".}
  \item{PERMANOVA}{Output available upon request. Uses \code{RVAideMemoire::adonis.II()} with the argument \code{method = "euclidean"}. Missing values may be imputed using the same method described for PCA. By default, \code{RVAideMemoire::adonis.II()} omits all rows with missing values. To achieve this in \code{MultiVar()}, set \code{missing_method} argument to "na_omit".}
  \item{ANOVA}{Uses \code{stats::anova()} and subsequently \code{car::Anova()} with the argument \code{type = 3} - relevant for analyses with two or more factors.}
+ \item{Pairwise Comparisons}{Uses \code{emmeans::emmeans()}. P-values are corrected using the Benjamini Hochberg procedure to control for a false Discovery Rate of 5 percent.}
 }
 }
 \examples{
