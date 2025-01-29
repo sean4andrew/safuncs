@@ -37,7 +37,7 @@ MultiVar(
 
 \item{factors_cols}{A numeric vector specifying the order number of columns containing the factors. Maximum of two numbers (i.e. factors).}
 
-\item{factors_pool}{A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to c("col1", "col2").}
+\item{factors_pool}{A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to c("col1", "col2"). For boxplots, plots with grouping by the chosen factor will also be generated.}
 
 \item{factors_facet}{A character vector indicating the factors which levels are to be faceted across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to "none" which creates no additional plots.}
 
@@ -63,6 +63,8 @@ MultiVar(
 
 \item{boxplot_x_text}{TRUE/FALSE indicating whether to include the text for the x-axis of the boxplots. Defaults to TRUE.}
 
+\item{boxplot_legend_pos}{A string representing the position of the legend for boxplot. Options are "none", "bottom", "top", "left", "right". Use "none" to remove legend. Defaults to "right".}
+
 \item{boxplot_points}{TRUE/FALSE indicating whether to include points in boxplots. Defaults to TRUE.}
 
 \item{boxplot_var_sep}{TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.}
@@ -74,8 +76,6 @@ MultiVar(
 \item{plot_out_pptx}{TRUE/FALSE indicating whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.}
 
 \item{plot_out_R}{TRUE/FALSE indicating whether to output plots as ggplot2 objects in a list in R. Defaults to FALSE.}
-
-\item{boxplot_legend}{TRUE/FALSE indicating whether to include the legend for the different groups in the boxplots. Defaults to TRUE.}
 }
 \value{
 Returns a Word document containing at least the following types of results (in the given order):

@@ -1915,7 +1915,7 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' @param multivar_db A dataframe with two types of columns. The first holds numeric values of the multivariate outcome variables, with each column containing one variable. The second type holds categories (factor levels), with each column containing one factor. An example dataframe can be viewed by running \code{View(data(multivar_db_ex))} in the R console.
 #' @param values_cols A numeric vector specifying the order number of columns containing the outcome variables.
 #' @param factors_cols A numeric vector specifying the order number of columns containing the factors. Maximum of two numbers (i.e. factors).
-#' @param factors_pool A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to c("col1", "col2").
+#' @param factors_pool A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to c("col1", "col2"). For boxplots, plots with grouping by the chosen factor will also be generated.
 #' @param factors_facet A character vector indicating the factors which levels are to be faceted across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to "none" which creates no additional plots.
 #' @param pca_ellipse A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using \code{ggpubr::stat_conf_ellipse()}. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using \code{ggplot2::stat_ellipse()} with argument \code{type = "norm"}. "convexhull" represents the smallest convex polygon enclosing all points; drawn using \code{ggpubr::stat_chull()}. For plots without ellipses, include "none". Defaults to c("confidence").
 #' @param pca_labels A character vector representing the labels to draw in PCA plots. Choose any combination of "ind" and/or "var". "ind" represents individual point labels by their row number. "var" represents variable loadings drawn as arrows; the arrow length and direction are calculated as in \code{factoextra::fviz_pca_biplot()}. Defaults to NULL (no labels drawn).
@@ -1928,7 +1928,7 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' @param boxplot_x_wrap The maximum number of characters on a single line that would be split if a space bar is available between them. Defaults to NULL (no text wrapping).
 #' @param boxplot_x_lab TRUE/FALSE indicating whether to include a title for the x-axis of the boxplots. Defaults to FALSE.
 #' @param boxplot_x_text TRUE/FALSE indicating whether to include the text for the x-axis of the boxplots. Defaults to TRUE.
-#' @param boxplot_legend TRUE/FALSE indicating whether to include the legend for the different groups in the boxplots. Defaults to TRUE.
+#' @param boxplot_legend_pos A string representing the position of the legend for boxplot. Options are "none", "bottom", "top", "left", "right". Use "none" to remove legend. Defaults to "right".
 #' @param boxplot_points TRUE/FALSE indicating whether to include points in boxplots. Defaults to TRUE.
 #' @param boxplot_var_sep TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.
 #' @param colours A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).
@@ -2421,10 +2421,17 @@ MultiVar = function(multivar_db,
     box_height = 1.7 + 1.1 * facet_row + ifelse(boxplot_legend_pos %in% c("top", "bottom"), 1.2, 0) +
       ifelse(boxplot_legend_pos == "none", 0.8, 0)
 
-    # Modifying base boxplot aesthethics (useful?)
+    # Modifying base boxplot aesthethics
     boxplot$data = plot_db_long
-    boxplot$guides = guides(colour = guide_legend(base_factor_name, nrow = 1), fill = guide_legend(base_factor_name, nrow = 1),
-                            shape = guide_legend(base_factor_name))
+    boxplot$guides = guides(colour = guide_legend(base_factor_name, nrow = 1),
+                            fill = guide_legend(base_factor_name, nrow = 1),
+                            shape = guide_legend(base_factor_name, nrow = 1))
+    if(boxplot_legend_pos %in% c("right", "left")){
+      boxplot$guides = guides(colour = guide_legend(base_factor_name, ncol = 1),
+                              fill = guide_legend(base_factor_name, ncol = 1),
+                              shape = guide_legend(base_factor_name, ncol = 1))
+    }
+
     if(boxplot_points == TRUE) {
       boxplot$layers[[2]] = geom_jitter(width = 0.2, height = 0, shape = 21, size = point_size_algo, na.rm = TRUE)
     }
@@ -2477,6 +2484,12 @@ MultiVar = function(multivar_db,
       boxplot$guides = guides(colour = guide_legend(second_factor_name, nrow = 1),
                               fill = guide_legend(second_factor_name, nrow = 1),
                               shape = guide_legend(second_factor_name, nrow = 1))
+
+      if(boxplot_legend_pos %in% c("right", "left")){
+        boxplot$guides = guides(colour = guide_legend(second_factor_name, ncol = 1),
+                                fill = guide_legend(second_factor_name, ncol = 1),
+                                shape = guide_legend(second_factor_name, ncol = 1))
+      }
 
       save_name = ifelse(treatment_conds_i == "pooled1", "facetvariables1", "facetvariables2")
       boxplot_name = paste(sep = "", "Boxplot of Values Facet-Variables Group-", second_factor_name)
