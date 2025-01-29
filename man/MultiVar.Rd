@@ -20,7 +20,9 @@ MultiVar(
   boxplot_x_angle = NULL,
   boxplot_x_wrap = NULL,
   boxplot_x_lab = FALSE,
-  boxplot_legend = TRUE,
+  boxplot_x_text = TRUE,
+  boxplot_legend_pos = "right",
+  boxplot_points = TRUE,
   boxplot_var_sep = FALSE,
   colours = NULL,
   plot_out_png = FALSE,
@@ -59,7 +61,9 @@ MultiVar(
 
 \item{boxplot_x_lab}{TRUE/FALSE indicating whether to include a title for the x-axis of the boxplots. Defaults to FALSE.}
 
-\item{boxplot_legend}{TRUE/FALSE indicating whether to include the legend for the different groups in the boxplots. Defaults to TRUE.}
+\item{boxplot_x_text}{TRUE/FALSE indicating whether to include the text for the x-axis of the boxplots. Defaults to TRUE.}
+
+\item{boxplot_points}{TRUE/FALSE indicating whether to include points in boxplots. Defaults to TRUE.}
 
 \item{boxplot_var_sep}{TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.}
 
@@ -70,6 +74,8 @@ MultiVar(
 \item{plot_out_pptx}{TRUE/FALSE indicating whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.}
 
 \item{plot_out_R}{TRUE/FALSE indicating whether to output plots as ggplot2 objects in a list in R. Defaults to FALSE.}
+
+\item{boxplot_legend}{TRUE/FALSE indicating whether to include the legend for the different groups in the boxplots. Defaults to TRUE.}
 }
 \value{
 Returns a Word document containing at least the following types of results (in the given order):

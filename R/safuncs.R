@@ -1927,7 +1927,9 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' @param boxplot_x_angle A number describing the degree of tilt in the x-axis labels of the boxplots. Defaults to NULL (horizontal labels).
 #' @param boxplot_x_wrap The maximum number of characters on a single line that would be split if a space bar is available between them. Defaults to NULL (no text wrapping).
 #' @param boxplot_x_lab TRUE/FALSE indicating whether to include a title for the x-axis of the boxplots. Defaults to FALSE.
+#' @param boxplot_x_text TRUE/FALSE indicating whether to include the text for the x-axis of the boxplots. Defaults to TRUE.
 #' @param boxplot_legend TRUE/FALSE indicating whether to include the legend for the different groups in the boxplots. Defaults to TRUE.
+#' @param boxplot_points TRUE/FALSE indicating whether to include points in boxplots. Defaults to TRUE.
 #' @param boxplot_var_sep TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.
 #' @param colours A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).
 #' @param plot_out_png TRUE/FALSE indicating whether to save plots as .png in the working directory. Defaults to FALSE.
@@ -2083,7 +2085,9 @@ MultiVar = function(multivar_db,
                     boxplot_x_angle = NULL,
                     boxplot_x_wrap = NULL,
                     boxplot_x_lab = FALSE,
-                    boxplot_legend = TRUE,
+                    boxplot_x_text = TRUE,
+                    boxplot_legend_pos = "right",
+                    boxplot_points = TRUE,
                     boxplot_var_sep = FALSE,
                     colours = NULL,
                     plot_out_png = FALSE,
@@ -2168,7 +2172,7 @@ MultiVar = function(multivar_db,
   plot_db = cbind(multivar_db[, factors_cols, drop = FALSE], matrix_values)
 
   # Create base PCA plot
-  pca_plot_base = ggplot(data = plot_db) +
+  pca_plot_base = ggplot() +
     geom_point() +
     geom_hline(yintercept = 0, linetype = "dashed") +
     geom_vline(xintercept = 0, linetype = "dashed") +
@@ -2181,13 +2185,14 @@ MultiVar = function(multivar_db,
   # Create base boxplot
   boxplot = ggplot() +
     geom_boxplot(size = 0.8, outlier.size = -1, na.rm = TRUE) +
-    geom_jitter(width = 0.2, height = 0, shape = 21, na.rm = TRUE) +
     theme_minimal() +
     theme(axis.line = element_line(color = "black", linewidth = 0.4),
           strip.background = element_rect(fill = "grey", colour = NA),
-          axis.text.x = element_text(hjust = 0.5))
+          axis.text.x = element_text(hjust = 0.5),
+          legend.position = boxplot_legend_pos)
   if(!is.null(boxplot_x_angle)) {boxplot <- boxplot + theme(axis.text.x = element_text(angle = boxplot_x_angle, hjust = 1))}
   if(!is.null(boxplot_x_wrap)) {boxplot <- boxplot + scale_x_discrete(labels = scales::wrap_format(boxplot_x_wrap))}
+  if(boxplot_x_text == FALSE) {boxplot <- boxplot + theme(axis.text.x = element_blank())}
 
   # Colour plots if applicable
   if(!is.null(colours)){
@@ -2384,7 +2389,10 @@ MultiVar = function(multivar_db,
 
     # Create long database for boxplots
     if(missing_method == "na_omit") {
-      if(treatment_conds_i %in% c("none")){base_factor <- interaction(multivar_db_ori[, factors_cols], sep = " ")}
+      if(treatment_conds_i %in% c("none")){
+        base_factor = interaction(multivar_db_ori[, factors_cols], sep = " ")
+        second_factor = "none"
+      }
       if(treatment_conds_i %in% c("pooled2", "facet2")) {
         base_factor = multivar_db_ori[, factors_cols[1]]
         second_factor = multivar_db_ori[, factors_cols[2]]
@@ -2395,25 +2403,30 @@ MultiVar = function(multivar_db,
       }
     } else {
       base_factor = plot_db$base_factor
-      second_factor = plot_db$second_factor}
+      second_factor = plot_db$second_factor
+    }
 
     # Create long database from plot_db
     plot_db_long = data.frame(cbind(base_factor = base_factor,
-                                    second_factor = if(treatment_conds_i == "none"){"none"} else {second_factor},
+                                    second_factor = second_factor,
                                     matrix_values_ori) %>%
                                 tidyr::pivot_longer(cols = 3:(2 + length(values_cols)),
                                                     names_to = "variable", values_to = "values"))
     plot_db_long$variable = gsub("\\.", " ", plot_db_long$variable)
 
     # Create boxplots with variables facet
-    point_size_algo = 2.4 - (facet_col * length(unique(plot_db_long$base_factor)) - 4)/ (33 / 0.9)
-    box_height = 1.7 + 1.1 * facet_row + ifelse(boxplot_legend == FALSE, 0.8, 0)
+    box_num = length(unique(plot_db_long$base_factor)) * facet_col
+    point_size_algo = 2.6 - (box_num - 2)/20
+    box_height = 1.7 + 1.1 * facet_row + ifelse(boxplot_legend_pos %in% c("top", "bottom"), 1.2, 0) +
+      ifelse(boxplot_legend_pos == "none", 0.8, 0)
 
+    # Modifying base boxplot aesthethics (useful?)
     boxplot$data = plot_db_long
-    boxplot$mapping = aes(y = values, x = base_factor, colour = base_factor)
-    boxplot$guides = guides(colour = guide_legend(base_factor_name), fill = guide_legend(base_factor_name),
+    boxplot$guides = guides(colour = guide_legend(base_factor_name, nrow = 1), fill = guide_legend(base_factor_name, nrow = 1),
                             shape = guide_legend(base_factor_name))
-    boxplot$layers[[2]] = geom_jitter(width = 0.2, height = 0, shape = 21, size = point_size_algo, na.rm = TRUE)
+    if(boxplot_points == TRUE) {
+      boxplot$layers[[2]] = geom_jitter(width = 0.2, height = 0, shape = 21, size = point_size_algo, na.rm = TRUE)
+    }
     boxplot = boxplot +
       facet_wrap(~ variable, ncol = facet_col, nrow = facet_row, scales = "free_y") +
       ylab("Value") +
@@ -2421,45 +2434,14 @@ MultiVar = function(multivar_db,
             strip.text = element_text(size = 8.8, margin = margin(0.155, 0.1, 0.155, 0.1, unit = "cm")),
             strip.background = element_rect(fill = "grey", color = NA))
     if(boxplot_x_lab == TRUE) {boxplot <- boxplot + xlab(base_factor_name)}
-    if(boxplot_filled == TRUE) {boxplot$mapping <- aes(y = values, x = base_factor, fill = base_factor)}
-    if(boxplot_legend == FALSE) {boxplot = boxplot + theme(legend.position = "none")}
-
-    if(treatment_conds_i %in% c("pooled1", "pooled2")){
-      boxplot$mapping = aes(y = values, x = base_factor, fill = second_factor)
-      if(boxplot_filled == FALSE) {boxplot$mapping <- aes(y = values, x = base_factor, colour = second_factor)}
-      boxplot$guides = guides(colour = guide_legend(second_factor_name), fill = guide_legend(second_factor_name),
-                              shape = guide_legend(second_factor_name))
-      boxplot$layers[[2]] = geom_point(position = position_jitterdodge(jitter.width = 0.25, jitter.height = 0),
-                                       shape = 21, size = point_size_algo, na.rm = TRUE)
-
-      save_name = ifelse(treatment_conds_i == "pooled1", "facetvariables1", "facetvariables2")
-      boxplot_name = paste(sep = "", "Boxplot of Values Facet-Variables Group-", second_factor_name)
-      boxplot_list[[treatment_conds_i]][[save_name]] = boxplot
-
-      if(plot_out_pptx == TRUE) {
-        eoffice::topptx(figure = boxplot, filename = pptx_name,
-                        width = 6.4, height = box_height, append = TRUE)
-      }
-
-      ggsave(plot = suppressWarnings(boxplot), filename = paste(sep = "", boxplot_name, ".png"), path = img_path,
-             dpi = 600, width = 6.4, height = box_height)
-      results_doc_boxplot = results_doc_boxplot %>%
-        officer::body_add_img(sr = file.path(img_path, paste(sep = "", boxplot_name, ".png")),
-                              width = 6.4, height = box_height) %>%
-        officer::body_add_par(value = boxplot_name, style = "graphic title") %>%
-        officer::body_add_par("") %>%
-        officer::body_add_par("")
-
-      #Return to original params.
+    if(boxplot_filled == TRUE) {
       boxplot$mapping = aes(y = values, x = base_factor, fill = base_factor)
-      if(boxplot_filled == FALSE) {boxplot$mapping <- aes(y = values, x = base_factor, colour = base_factor)}
-      boxplot$guides = guides(colour = guide_legend(base_factor_name), fill = guide_legend(base_factor_name),
-                              shape = guide_legend(base_factor_name))
-      boxplot$layers[[2]] = geom_jitter(width = 0.2, height = 0, shape = 21, size = point_size_algo, na.rm = TRUE)
+    } else {
+      boxplot$mapping = aes(y = values, x = base_factor, colour = base_factor)
     }
 
+    # Below is to save plots with variables facet for none and pooling conditions
     if(treatment_conds_i %in% c("none", "pooled1", "pooled2")) {
-      # Save the boxplots with variables facet
       boxplot_name = ifelse(treatment_conds_i == "none", "Boxplot of Values Facet-Variables",
                             paste("Boxplot of Values Facet-Variables Pooled Across-", second_factor_name, sep = ""))
       boxplot_list[[treatment_conds_i]][["facetvariables"]] = boxplot
@@ -2479,6 +2461,42 @@ MultiVar = function(multivar_db,
         officer::body_add_par("")
     }
 
+    # Below is to create plots with variable faceted plots with groups
+    if(treatment_conds_i %in% c("pooled1", "pooled2")){
+      if(boxplot_points == TRUE) {
+        point_size_algo = 3 - (box_num * length(unique(plot_db_long$second_factor)) - 2)/15
+        boxplot$layers[[2]] = geom_point(position = position_jitterdodge(jitter.width = 0.25, jitter.height = 0),
+                                         shape = 21, size = point_size_algo, na.rm = TRUE)
+      }
+      if(boxplot_filled == TRUE){
+        boxplot$mapping = aes(y = values, x = base_factor, fill = second_factor)
+      } else {
+        boxplot$mapping = aes(y = values, x = base_factor, colour = second_factor)
+      }
+      boxplot$guides = guides(colour = guide_legend(second_factor_name, nrow = 1),
+                              fill = guide_legend(second_factor_name, nrow = 1),
+                              shape = guide_legend(second_factor_name, nrow = 1))
+
+      save_name = ifelse(treatment_conds_i == "pooled1", "facetvariables1", "facetvariables2")
+      boxplot_name = paste(sep = "", "Boxplot of Values Facet-Variables Group-", second_factor_name)
+      boxplot_list[[treatment_conds_i]][[save_name]] = boxplot
+
+      if(plot_out_pptx == TRUE) {
+        eoffice::topptx(figure = boxplot, filename = pptx_name,
+                        width = 6.4, height = box_height, append = TRUE)
+      }
+
+      ggsave(plot = suppressWarnings(boxplot), filename = paste(sep = "", boxplot_name, ".png"), path = img_path,
+             dpi = 600, width = 6.4, height = box_height)
+
+      results_doc_boxplot = results_doc_boxplot %>%
+        officer::body_add_img(sr = file.path(img_path, paste(sep = "", boxplot_name, ".png")),
+                              width = 6.4, height = box_height) %>%
+        officer::body_add_par(value = boxplot_name, style = "graphic title") %>%
+        officer::body_add_par("") %>%
+        officer::body_add_par("")
+    }
+
     if(treatment_conds_i %in% c("facet1", "facet2")) {
       results_doc_boxplot = results_doc_boxplot %>%
         officer::body_add_par(paste("NOTE: Plots with facets by",
@@ -2490,9 +2508,11 @@ MultiVar = function(multivar_db,
     if(boxplot_var_sep == TRUE) {
       box_num = length(unique(plot_db_long$base_factor)) * ifelse(treatment_conds_i %in% c("facet1", "facet2"), facet_col, 1)
       box_row = ifelse(treatment_conds_i %in% c("facet1", "facet2"), facet_row, 1)
-      point_size_algo = 3 - (box_num - 2)/ 24
+      point_size_algo = 3 - (box_num - 2)/20
 
-      box_height2 = 2.05 + (1.1 * box_row) + ifelse(box_num <= 6, 0.4, 0) + ifelse(boxplot_legend == FALSE, 0.8, 0)
+      box_height2 = 2.05 + (1.1 * box_row) + ifelse(box_num <= 6, 0.4, 0) +
+        ifelse(boxplot_legend_pos %in% c("bottom", "top"), 0.8, 0) + ifelse(boxplot_legend_pos == "none", 0.8, 0)
+
       for(values_cols_i in values_cols) {
         varname = gsub("\\.", " ", colnames(multivar_db)[values_cols_i])
 
@@ -2506,7 +2526,9 @@ MultiVar = function(multivar_db,
                 strip.background = element_blank(),
                 plot.margin = unit(c(0.0 + (0.04 * box_num), 0.25, 0.05 + (0.01 * box_num), 0.25), "in"))
         boxplot$data = plot_db_long_filtered
-        boxplot$layers[[2]] = geom_jitter(width = 0.2, height = 0, shape = 21, size = point_size_algo, na.rm = TRUE)
+        if(boxplot_points == TRUE) {
+          boxplot$layers[[2]] = geom_jitter(width = 0.2, height = 0, shape = 21, size = point_size_algo, na.rm = TRUE)
+        }
 
         if(treatment_conds_i %in% c("facet2", "facet1")) {
           boxplot$facet = facet_wrap(~ second_factor, ncol = facet_col, nrow = facet_row)
@@ -2514,16 +2536,44 @@ MultiVar = function(multivar_db,
             theme(strip.text = element_text(size = 8.8, margin = margin(0.155, 0.1, 0.155, 0.1, unit = "cm")),
                   strip.background = element_rect(fill = "grey", color = NA),
                   plot.margin = unit(c(0.0 + (0.04 * box_num), 0.25, 0.05 + (0.01 * box_num), 0.25), "in"))
-          if(boxplot_legend == FALSE) {boxplot = boxplot + theme(legend.position = "none")}
           boxplot_name = paste("Boxplot of ", varname, " Facet-", second_factor_name, sep = "")
         }
         if(treatment_conds_i == "none") {boxplot_name <- paste("Boxplot of ", varname, sep = "")}
-        if(treatment_conds_i %in% c("pooled2", "pooled1")) {boxplot_name <- paste("Boxplot of ", varname, " Pooled Across-", second_factor_name, sep = "")}
+        if(treatment_conds_i %in% c("pooled2", "pooled1")) {
+          boxplot_name = paste("Boxplot of ", varname, " Pooled Across-", second_factor_name, sep = "")
+          boxplot_name2 = paste("Boxplot of ", varname, " Group-", second_factor_name, sep = "")
+          boxplot2 = boxplot
+          if(boxplot_filled == TRUE){
+            boxplot$mapping = aes(x = base_factor, fill = base_factor, y = values)
+            boxplot2$mapping = aes(x = base_factor, fill = second_factor, y = values)
+          } else {
+            boxplot$mapping = aes(x = base_factor, colour = base_factor, y = values)
+            boxplot2$mapping = aes(x = base_factor, colour = second_factor, y = values)
+          }
+          if(boxplot_points == TRUE) {
+            boxplot2$layers[[2]] = geom_point(position = position_jitterdodge(jitter.width = 0.25, jitter.height = 0),
+                                              shape = 21, size = 3 - (box_num * length(unique(plot_db_long$second_factor)) - 2)/20,
+                                              na.rm = TRUE)
+          }
+          boxplot_list[[gsub("pooled", "grouped", treatment_conds_i)]][[varname]] = boxplot2
+          boxplot_name_vec = c(boxplot_name_vec, boxplot_name2)
+          box_height2_vec = c(box_height2_vec, box_height2)
+
+          ggsave(plot = suppressWarnings(boxplot2), filename = paste(boxplot_name2, ".png", sep = ""),
+                 dpi = 600, width = 6.4, height = box_height2, path = img_path)
+
+          if(plot_out_pptx == TRUE) {
+            eoffice::topptx(figure = boxplot2, filename = pptx_name,
+                            width = 6.4, height = box_height2, append = TRUE)
+          }
+        }
+
         boxplot_name_vec = c(boxplot_name_vec, boxplot_name)
         box_height2_vec = c(box_height2_vec, box_height2)
 
-        # Save these boxplots
+        # Save all non grouped boxplots
         boxplot_list[[treatment_conds_i]][[varname]] = boxplot
+
         if(plot_out_pptx == TRUE) {
           eoffice::topptx(figure = boxplot, filename = pptx_name,
                           width = 6.4, height = box_height2, append = TRUE)
@@ -2711,7 +2761,9 @@ MultiVar = function(multivar_db,
         p_tab = flextable::flextable(p_db) %>%
           flextable::set_caption(caption = paste("Table ", tab_counter + 2, ". ANOVA Results", sep = "")) %>%
           flextable::set_table_properties(layout = "autofit", width = 1) %>%
-          flextable::merge_v(j = "Variable")
+          flextable::merge_v(j = "Variable") %>%
+          flextable::valign(j = "Variable", valign = "top") %>%
+          flextable::theme_vanilla()
 
         # Create cld table (simple)
         cld_db = cld_db[order(cld_db$Factor),]
@@ -2720,9 +2772,11 @@ MultiVar = function(multivar_db,
         colnames(cld_db) = gsub("_", " ", colnames(cld_db))
         cld_tab = flextable::flextable(cld_db) %>%
           flextable::set_caption(caption = paste("Table ", tab_counter + 3,
-                                                 ". Statistical Classes from Simple Comparisons", sep = "")) %>%
+                                                 ". Statistical Classes from 'Pooled' Comparisons", sep = "")) %>%
           flextable::set_table_properties(layout = "autofit", width = 1) %>%
-          flextable::merge_v(j = c("Factor", "Variable"))
+          flextable::merge_v(j = c("Factor", "Variable")) %>%
+          flextable::valign(j = c("Factor", "Variable"), valign = "top") %>%
+          flextable::theme_vanilla()
 
         # Create contrast table (simple)
         contrast_db = contrast_db[order(contrast_db$Factor),]
@@ -2731,10 +2785,12 @@ MultiVar = function(multivar_db,
         colnames(contrast_db) = gsub("_", " ", colnames(contrast_db))
         contrast_tab = flextable::flextable(contrast_db) %>%
           flextable::set_caption(caption = paste("Table ", tab_counter + 4,
-                                                 ". Simple Pairwise Comparison Results", sep = "")) %>%
+                                                 ". 'Pooled' Pairwise Comparison Results", sep = "")) %>%
           flextable::colformat_double(digits = 5) %>%
           flextable::set_table_properties(layout = "autofit", width = 1) %>%
-          flextable::merge_v(j = c("Factor", "Variable"))
+          flextable::merge_v(j = c("Factor", "Variable")) %>%
+          flextable::valign(j = c("Factor", "Variable"), valign = "top") %>%
+          flextable::theme_vanilla()
 
         if(length(factors_cols) == 2){
 
@@ -2746,9 +2802,11 @@ MultiVar = function(multivar_db,
           cld_db2 = cld_db2[, -1]
           cld_tab2 = flextable::flextable(cld_db2) %>%
             flextable::set_caption(caption = paste("Table ", tab_counter + 5,
-                                                   ". Statistical Classes from Conditional Comparisons", sep = "")) %>%
+                                                   ". Statistical Classes from 'Conditional' Comparisons", sep = "")) %>%
             flextable::set_table_properties(layout = "autofit", width = 1) %>%
-            flextable::merge_v(j = c("Variable", "Condition"))
+            flextable::merge_v(j = c("Variable", "Condition")) %>%
+            flextable::valign(j = c("Variable", "Condition"), valign = "top") %>%
+            flextable::theme_vanilla()
 
           # Create contrast table (conditional)
           contrast_db2 = contrast_db2[order(contrast_db2$Factor),]
@@ -2758,10 +2816,12 @@ MultiVar = function(multivar_db,
           contrast_db2 = contrast_db2[, -1]
           contrast_tab2 = flextable::flextable(contrast_db2) %>%
             flextable::set_caption(caption = paste("Table ", tab_counter + 6,
-                                                   ". Conditional Pairwise Comparison Results", sep = "")) %>%
+                                                   ". 'Conditional' Pairwise Comparison Results", sep = "")) %>%
             flextable::colformat_double(digits = 5) %>%
             flextable::set_table_properties(layout = "autofit", width = 1) %>%
-            flextable::merge_v(j = c("Variable"))
+            flextable::merge_v(j = c("Variable", "Condition", "Contrast")) %>%
+            flextable::valign(j = c("Variable", "Condition", "Contrast"), valign = "top") %>%
+            flextable::theme_vanilla()
         }
 
         # Add results to word output
