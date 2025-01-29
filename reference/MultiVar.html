@@ -83,7 +83,7 @@
 
 
 <dt id="arg-factors-pool">factors_pool<a class="anchor" aria-label="anchor" href="#arg-factors-pool"></a></dt>
-<dd><p>A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in <code>factors_cols</code>. Defaults to c("col1", "col2").</p></dd>
+<dd><p>A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in <code>factors_cols</code>. Defaults to c("col1", "col2"). For boxplots, plots with grouping by the chosen factor will also be generated.</p></dd>
 
 
 <dt id="arg-factors-facet">factors_facet<a class="anchor" aria-label="anchor" href="#arg-factors-facet"></a></dt>
@@ -134,6 +134,10 @@
 <dd><p>TRUE/FALSE indicating whether to include the text for the x-axis of the boxplots. Defaults to TRUE.</p></dd>
 
 
+<dt id="arg-boxplot-legend-pos">boxplot_legend_pos<a class="anchor" aria-label="anchor" href="#arg-boxplot-legend-pos"></a></dt>
+<dd><p>A string representing the position of the legend for boxplot. Options are "none", "bottom", "top", "left", "right". Use "none" to remove legend. Defaults to "right".</p></dd>
+
+
 <dt id="arg-boxplot-points">boxplot_points<a class="anchor" aria-label="anchor" href="#arg-boxplot-points"></a></dt>
 <dd><p>TRUE/FALSE indicating whether to include points in boxplots. Defaults to TRUE.</p></dd>
 
@@ -156,10 +160,6 @@
 
 <dt id="arg-plot-out-r">plot_out_R<a class="anchor" aria-label="anchor" href="#arg-plot-out-r"></a></dt>
 <dd><p>TRUE/FALSE indicating whether to output plots as ggplot2 objects in a list in R. Defaults to FALSE.</p></dd>
-
-
-<dt id="arg-boxplot-legend">boxplot_legend<a class="anchor" aria-label="anchor" href="#arg-boxplot-legend"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to include the legend for the different groups in the boxplots. Defaults to TRUE.</p></dd>
 
 </dl></div>
     <div class="section level2">
