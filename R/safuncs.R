@@ -2149,7 +2149,8 @@ MultiVar = function(multivar_db,
   # Address NAs in matrix values
   if(missing_method == "imputation") {
     if(sum(is.na(matrix_values)) > 0) {
-      matrix_values = data.frame(missMDA::imputePCA(matrix_values, ncp = missMDA::estim_ncpPCA(matrix_values)$ncp)$completeObs)
+      matrix_values = data.frame(missMDA::imputePCA(matrix_values,
+                                                    ncp = missMDA::estim_ncpPCA(matrix_values)$ncp)$completeObs)
     }
   }
   if(missing_method == "na_omit") {
@@ -2403,7 +2404,7 @@ MultiVar = function(multivar_db,
       }
     } else {
       base_factor = plot_db$base_factor
-      second_factor = plot_db$second_factor
+      second_factor = ifelse(treatment_conds_i == "none", "none", plot_db$second_factor)
     }
 
     # Create long database from plot_db

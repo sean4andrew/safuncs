@@ -17,7 +17,7 @@ MultiVar(multivar_db = QCATC1092_DB,
          values_cols = 4:6,
          factors_cols = 1:2,
          factors_pool = c("col2", "col1"),
-         factors_facet = c("col1", "col2"),
+         factors_facet = c("none"),
          missing_method = "na_omit",
          boxplot_x_wrap = 4,
          boxplot_legend_pos = "bottom",
@@ -28,31 +28,41 @@ MultiVar(multivar_db = QCATC1092_DB,
          boxplot_filled = FALSE,
          plot_out_R = TRUE)
 ```
+```{r}
+MultiVar(multivar_db = iris,
+         values_cols = 1:4,
+         factors_cols = 5,
+         factors_pool = "none",
+         factors_facet = "none",
+         missing_method = "na_omit",
+         plot_out_R = TRUE)
+```
+
 
 ```{r MultiVar() function}
-MultiVar = function(multivar_db,
-                    values_cols,
-                    factors_cols,
-                    factors_pool = c("col1", "col2"),
-                    factors_facet = "none",
-                    pca_ellipse = c("confidence"),
-                    pca_labels = NULL,
-                    pca_shapes = FALSE,
-                    missing_method = "imputation",
-                    scale = TRUE,
-                    center = TRUE,
-                    boxplot_filled = TRUE,
-                    boxplot_x_angle = NULL,
-                    boxplot_x_wrap = NULL,
-                    boxplot_x_lab = FALSE,
-                    boxplot_x_text = TRUE,
-                    boxplot_legend_pos = "right",
-                    boxplot_points = TRUE,
-                    boxplot_var_sep = FALSE,
-                    colours = NULL,
-                    plot_out_png = FALSE,
-                    plot_out_pptx = FALSE,
-                    plot_out_R = FALSE) {
+multivar_db = iris
+                    values_cols = 1:4
+                    factors_cols = 5
+                    factors_pool = "none"
+                    factors_facet = "none"
+                    pca_ellipse = c("confidence")
+                    pca_labels = NULL
+                    pca_shapes = FALSE
+                    missing_method = "imputation"
+                    scale = TRUE
+                    center = TRUE
+                    boxplot_filled = TRUE
+                    boxplot_x_angle = NULL
+                    boxplot_x_wrap = NULL
+                    boxplot_x_lab = FALSE
+                    boxplot_x_text = TRUE
+                    boxplot_legend_pos = "right"
+                    boxplot_points = TRUE
+                    boxplot_var_sep = FALSE
+                    colours = NULL
+                    plot_out_png = FALSE
+                    plot_out_pptx = FALSE
+                    plot_out_R = FALSE
 
   # Initialize and define objects
   results_doc = officer::read_docx() %>%
@@ -109,7 +119,8 @@ MultiVar = function(multivar_db,
   # Address NAs in matrix values
   if(missing_method == "imputation") {
     if(sum(is.na(matrix_values)) > 0) {
-      matrix_values = data.frame(missMDA::imputePCA(matrix_values, ncp = missMDA::estim_ncpPCA(matrix_values)$ncp)$completeObs)
+      matrix_values = data.frame(missMDA::imputePCA(matrix_values, 
+                                                    ncp = missMDA::estim_ncpPCA(matrix_values)$ncp)$completeObs)
     }
   }
   if(missing_method == "na_omit") {
@@ -363,7 +374,7 @@ MultiVar = function(multivar_db,
       }
     } else {
       base_factor = plot_db$base_factor
-      second_factor = plot_db$second_factor
+      second_factor = ifelse(treatment_conds_i == "none", "none", plot_db$second_factor)
     }
 
     # Create long database from plot_db
@@ -824,6 +835,5 @@ MultiVar = function(multivar_db,
                 correl = varplot,
                 box = boxplot_list))
   }
-}
 ```
 
