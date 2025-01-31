@@ -3,12 +3,16 @@ title: "Testing Site"
 output: html_document
 date: "`r Sys.Date()`"
 ---
+1. Installing and loading the package
 ```{r Setup}
-remotes::install_github("sean4andrew/safuncs")
+#remotes::install_github("sean4andrew/safuncs")
 library(safuncs)
+```
 
+2. Load dataset
+```{r Setup}
 QCATC1092_DB = read.csv(file = "ONDA1092-4 Gene R Ready Format.csv")[-127,]
-QCATC1092_DB$Month = factor(QCATC1092_DB$Month, levels = c("May", "Jun", "Jul", "Oct", "Oct Rs", "Nov", "Dec"))
+QCATC1092_DB$Month = factor(QCATC1092_DB$Month, levels = c("May", "Jun", "Jul", "Oct", "Oct Rs", "Nov", "Dec")) # reordering levels
 QCATC1092_DB = QCATC1092_DB[QCATC1092_DB$Month != "Oct",]
 ```
 
@@ -16,22 +20,28 @@ QCATC1092_DB = QCATC1092_DB[QCATC1092_DB$Month != "Oct",]
 MultiVar(multivar_db = QCATC1092_DB,
          values_cols = 4:6,
          factors_cols = 1:2,
-         factors_pool = c("col2", "col1"),
-         factors_facet = c("none"),
+         factors_facet = c("col1", "col2"),
          missing_method = "na_omit",
-         boxplot_x_wrap = 4,
-         boxplot_legend_pos = "bottom",
-         boxplot_x_lab = FALSE,
-         boxplot_x_text = TRUE,
-         boxplot_points = TRUE,
-         boxplot_var_sep = FALSE,
-         boxplot_filled = FALSE,
+         boxplot_var_sep = TRUE,
          plot_out_R = TRUE)
+         # ,
+         # factors_pool = c("col1", "col2"),
+         # factors_facet = c("col1", "col2"),
+         # missing_method = "na_omit",
+         # boxplot_x_wrap = 4,
+         # boxplot_legend_pos = "bottom",
+         # boxplot_x_lab = FALSE,
+         # boxplot_x_text = TRUE,
+         # boxplot_points = TRUE,
+         # boxplot_var_sep = FALSE,
+         # boxplot_filled = FALSE,
+         # plot_out_R = TRUE)
 ```
 ```{r}
 MultiVar(multivar_db = iris,
          values_cols = 1:4,
          factors_cols = 5,
+         pca_ellipse = "distribution",
          factors_pool = "none",
          factors_facet = "none",
          missing_method = "na_omit",
