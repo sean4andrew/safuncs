@@ -3,7 +3,7 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   safuncs: safuncs.html
-last_built: 2025-01-31T21:30Z
+last_built: 2025-01-31T21:40Z
 urls:
   reference: https://sean4andrew.github.io/safuncs/reference
   article: https://sean4andrew.github.io/safuncs/articles
