@@ -1918,6 +1918,7 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' @param factors_pool A character vector indicating the factors which levels are to be pooled across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to c("col1", "col2"). For boxplots, plots with grouping by the chosen factor will also be generated.
 #' @param factors_facet A character vector indicating the factors which levels are to be faceted across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to "none" which creates no additional plots.
 #' @param pca_ellipse A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using \code{ggpubr::stat_conf_ellipse()}. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using \code{ggplot2::stat_ellipse()} with argument \code{type = "norm"}. "convexhull" represents the smallest convex polygon enclosing all points; drawn using \code{ggpubr::stat_chull()}. For plots without ellipses, include "none". Defaults to c("confidence").
+#' @param pca_facet_scales A string indicating whether the x and y axes in pca plots should be held constant across facets or variable. Options are "fixed", "free", "free_x", and "free_y" as according to \code{ggplot2::facet_wrap()}. Defaults to "fixed".
 #' @param pca_labels A character vector representing the labels to draw in PCA plots. Choose any combination of "ind" and/or "var". "ind" represents individual point labels by their row number. "var" represents variable loadings drawn as arrows; the arrow length and direction are calculated as in \code{factoextra::fviz_pca_biplot()}. Defaults to NULL (no labels drawn).
 #' @param pca_shapes TRUE/FALSE indicating whether to use different shapes for each factor level in PCA plots. Defaults to FALSE. Different shapes are not provided for plots with greater than 6 factor levels.
 #' @param missing_method A string representing the method to address missing values in \code{values_cols}. Choose from "imputation" or "na_omit". "imputation" fills in missing values with values created (imputed) based on the correlation between variables essentially; accomplished using \code{missMDA::imputePCA()} with the ncp parameter \code{missMDA::estim_ncpPCA()}. "na_omit" removes entire rows of data when at least one NA value is present. This method may result in a significant loss of data. Defaults to "imputation". The choice of \code{missing_method} would affect PCA, LDA, and MANOVA results but likely only to a small degree with few missing values. Has no impact on boxplots and ANOVAs.
@@ -1930,8 +1931,10 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' @param boxplot_x_text TRUE/FALSE indicating whether to include the text for the x-axis of the boxplots. Defaults to TRUE.
 #' @param boxplot_legend_pos A string representing the position of the legend for boxplot. Options are "none", "bottom", "top", "left", "right". Use "none" to remove legend. Defaults to "right".
 #' @param boxplot_points TRUE/FALSE indicating whether to include points in boxplots. Defaults to TRUE.
+#' @param boxplot_outliers TRUE/FALSE indicating whether to plot outliers in boxplots. Useful when points have been removed using \code{boxplot_points = FALSE}. Defaults to FALSE.
 #' @param boxplot_var_sep TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.
 #' @param colours A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).
+#' @param colours_theme A string representing the color palette to use for plots. Options listed in \code{ggplot2::scale_colour_brewer()} \strong{Palettes} section. Defaults to NULL.
 #' @param plot_out_png TRUE/FALSE indicating whether to save plots as .png in the working directory. Defaults to FALSE.
 #' @param plot_out_pptx TRUE/FALSE indicating whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.
 #' @param plot_out_R TRUE/FALSE indicating whether to output plots as ggplot2 objects in a list in R. Defaults to FALSE.
@@ -2076,6 +2079,7 @@ MultiVar = function(multivar_db,
                     factors_pool = c("col1", "col2"),
                     factors_facet = "none",
                     pca_ellipse = c("confidence"),
+                    pca_facet_scales = "fixed",
                     pca_labels = NULL,
                     pca_shapes = FALSE,
                     missing_method = "imputation",
@@ -2088,8 +2092,10 @@ MultiVar = function(multivar_db,
                     boxplot_x_text = TRUE,
                     boxplot_legend_pos = "right",
                     boxplot_points = TRUE,
+                    boxplot_outliers = FALSE,
                     boxplot_var_sep = FALSE,
                     colours = NULL,
+                    colours_theme = NULL,
                     plot_out_png = FALSE,
                     plot_out_pptx = FALSE,
                     plot_out_R = FALSE) {
@@ -2118,6 +2124,10 @@ MultiVar = function(multivar_db,
     } else {
       return(round(x, 4))
     }}
+  point_alpha = 0.75
+  dodge_width = 0.75
+  boxplot_width = 0.65
+  jit_width = 0.15
 
   # Set path and file names
   if(plot_out_png == TRUE) {
@@ -2182,17 +2192,27 @@ MultiVar = function(multivar_db,
     ylab(paste("Principal Component 2 (", round(summary(pc_values)$importance[2, 2] * 100, 1), "%)", sep = "")) +
     theme(axis.line = element_line(color = "black", linewidth = 0.4),
           strip.background = element_rect(fill = "grey", color = NA))
+  if(!is.null(colours_theme)){pca_plot_base <- pca_plot_base + scale_colour_brewer(palette = colours_theme, aesthetics = c("colour", "fill"))}
 
   # Create base boxplot
   boxplot = ggplot() +
-    geom_boxplot(size = 0.8, outlier.size = -1, na.rm = TRUE) +
+    stat_boxplot(linewidth = 0.83, geom = "errorbar", width = 0.35, position = position_dodge(width = dodge_width), na.rm = TRUE) +
+    geom_boxplot(size = 0.83, outlier.size = ifelse(boxplot_outliers == TRUE, 2, -1), outlier.fill = NULL, outlier.colour = NULL,
+                 outlier.shape = 21, na.rm = TRUE, position = position_dodge(width = dodge_width), width = boxplot_width,
+                 outlier.stroke = 0.8) +
     theme_minimal() +
     theme(axis.line = element_line(color = "black", linewidth = 0.4),
           strip.background = element_rect(fill = "grey", colour = NA),
+          plot.margin = unit(c(0.07, 0, 0.07, 0), "in"),
           axis.text.x = element_text(hjust = 0.5),
-          legend.position = boxplot_legend_pos)
+          legend.position = boxplot_legend_pos,
+          legend.margin = margin(0, 0, 0, 0),
+          legend.spacing.x = unit(0, "mm"),
+          legend.spacing.y = unit(0, "mm")) +
+    scale_x_discrete(expand = expansion(mult = 0.04, add = 0.38))
+  if(!is.null(colours_theme)){boxplot <- boxplot + scale_colour_brewer(palette = colours_theme, aesthetics = c("colour", "fill"))}
   if(!is.null(boxplot_x_angle)) {boxplot <- boxplot + theme(axis.text.x = element_text(angle = boxplot_x_angle, hjust = 1))}
-  if(!is.null(boxplot_x_wrap)) {boxplot <- boxplot + scale_x_discrete(labels = scales::wrap_format(boxplot_x_wrap))}
+  if(!is.null(boxplot_x_wrap)) {boxplot <- boxplot + scale_x_discrete(labels = scales::wrap_format(boxplot_x_wrap),  expand = expansion(mult = 0.04, add = 0.38))}
   if(boxplot_x_text == FALSE) {boxplot <- boxplot + theme(axis.text.x = element_blank())}
 
   # Colour plots if applicable
@@ -2211,6 +2231,7 @@ MultiVar = function(multivar_db,
   pca_height = 4.45
   varplot_width = 6.4
   varplot_height = 4.5
+  box_width = 6.4
 
   # Create factor conditions
   full_conds = c("none", "pooled1", "pooled2", "facet1", "facet2")
@@ -2281,7 +2302,7 @@ MultiVar = function(multivar_db,
 
     # Add PCA facets
     if(treatment_conds_i %in% c("facet2", "facet1")) {
-      pca_plot = pca_plot + facet_wrap(~ second_factor, ncol = facet_col, nrow = facet_row)
+      pca_plot = pca_plot + facet_wrap(~ second_factor, ncol = facet_col, nrow = facet_row, scales = pca_facet_scales)
 
       # Set plot height based on facet
       pca_height = 1.8 + 1.2 * facet_row
@@ -2417,7 +2438,7 @@ MultiVar = function(multivar_db,
 
     # Create boxplots with variables facet
     box_num = length(unique(plot_db_long$base_factor)) * facet_col
-    point_size_algo = 2.6 - (box_num - 2)/20
+    point_size_algo = 2.5 - (box_num - 2)/20
     box_height = 1.7 + 1.1 * facet_row + ifelse(boxplot_legend_pos %in% c("top", "bottom"), 1.2, 0) +
       ifelse(boxplot_legend_pos == "none", 0.8, 0)
 
@@ -2433,12 +2454,13 @@ MultiVar = function(multivar_db,
     }
 
     if(boxplot_points == TRUE) {
-      boxplot$layers[[2]] = geom_jitter(width = 0.2, height = 0, shape = 21, size = point_size_algo, na.rm = TRUE)
+      boxplot$layers[[3]] = geom_jitter(width = jit_width, height = 0, shape = 21, size = point_size_algo, na.rm = TRUE,
+                                        alpha = point_alpha)
     }
     boxplot = boxplot +
       facet_wrap(~ variable, ncol = facet_col, nrow = facet_row, scales = "free_y") +
       ylab("Value") +
-      theme(plot.margin = unit(c(0.07, 0.09, 0.07, 0.09), "in"),
+      theme(plot.margin = unit(c(0.07, 0, 0.07, 0), "in"),
             strip.text = element_text(size = 8.8, margin = margin(0.155, 0.1, 0.155, 0.1, unit = "cm")),
             strip.background = element_rect(fill = "grey", color = NA))
     if(boxplot_x_lab == TRUE) {boxplot <- boxplot + xlab(base_factor_name)}
@@ -2447,6 +2469,7 @@ MultiVar = function(multivar_db,
     } else {
       boxplot$mapping = aes(y = values, x = base_factor, colour = base_factor)
     }
+    boxplot = boxplot
 
     # Below is to save plots with variables facet for none and pooling conditions
     if(treatment_conds_i %in% c("none", "pooled1", "pooled2")) {
@@ -2456,14 +2479,14 @@ MultiVar = function(multivar_db,
 
       if(plot_out_pptx == TRUE) {
         eoffice::topptx(figure = boxplot, filename = pptx_name,
-                        width = 6.4, height = box_height, append = TRUE)
+                        width = box_width, height = box_height, append = TRUE)
       }
 
       ggsave(plot = suppressWarnings(boxplot), filename = paste(sep = "", boxplot_name, ".png"), path = img_path,
-             dpi = 600, width = 6.4, height = box_height)
+             dpi = 600, width = box_width, height = box_height)
       results_doc_boxplot = results_doc_boxplot %>%
         officer::body_add_img(sr = file.path(img_path, paste(sep = "", boxplot_name, ".png")),
-                              width = 6.4, height = box_height) %>%
+                              width = box_width, height = box_height) %>%
         officer::body_add_par(value = boxplot_name, style = "graphic title") %>%
         officer::body_add_par("") %>%
         officer::body_add_par("")
@@ -2472,9 +2495,10 @@ MultiVar = function(multivar_db,
     # Below is to create plots with variable faceted plots with groups
     if(treatment_conds_i %in% c("pooled1", "pooled2")){
       if(boxplot_points == TRUE) {
-        point_size_algo = 3 - (box_num * length(unique(plot_db_long$second_factor)) - 2)/15
-        boxplot$layers[[2]] = geom_point(position = position_jitterdodge(jitter.width = 0.25, jitter.height = 0),
-                                         shape = 21, size = point_size_algo, na.rm = TRUE)
+        point_size_algo = 2.9 - (box_num * length(unique(plot_db_long$second_factor)) - 2)/15
+        boxplot$layers[[3]] = geom_point(position = position_jitterdodge(jitter.width = jit_width, jitter.height = 0,
+                                                                         dodge.width = dodge_width),
+                                         shape = 21, size = point_size_algo, na.rm = TRUE, alpha = point_alpha)
       }
       if(boxplot_filled == TRUE){
         boxplot$mapping = aes(y = values, x = base_factor, fill = second_factor)
@@ -2497,15 +2521,15 @@ MultiVar = function(multivar_db,
 
       if(plot_out_pptx == TRUE) {
         eoffice::topptx(figure = boxplot, filename = pptx_name,
-                        width = 6.4, height = box_height, append = TRUE)
+                        width = box_width, height = box_height, append = TRUE)
       }
 
       ggsave(plot = suppressWarnings(boxplot), filename = paste(sep = "", boxplot_name, ".png"), path = img_path,
-             dpi = 600, width = 6.4, height = box_height)
+             dpi = 600, width = box_width, height = box_height)
 
       results_doc_boxplot = results_doc_boxplot %>%
         officer::body_add_img(sr = file.path(img_path, paste(sep = "", boxplot_name, ".png")),
-                              width = 6.4, height = box_height) %>%
+                              width = box_width, height = box_height) %>%
         officer::body_add_par(value = boxplot_name, style = "graphic title") %>%
         officer::body_add_par("") %>%
         officer::body_add_par("")
@@ -2522,7 +2546,7 @@ MultiVar = function(multivar_db,
     if(boxplot_var_sep == TRUE) {
       box_num = length(unique(plot_db_long$base_factor)) * ifelse(treatment_conds_i %in% c("facet1", "facet2"), facet_col, 1)
       box_row = ifelse(treatment_conds_i %in% c("facet1", "facet2"), facet_row, 1)
-      point_size_algo = 3 - (box_num - 2)/20
+      point_size_algo = 2.9 - (box_num - 2)/20
 
       box_height2 = 2.05 + (1.1 * box_row) + ifelse(box_num <= 6, 0.4, 0) +
         ifelse(boxplot_legend_pos %in% c("bottom", "top"), 0.8, 0) + ifelse(boxplot_legend_pos == "none", 0.8, 0)
@@ -2538,10 +2562,11 @@ MultiVar = function(multivar_db,
           ylab(varname) +
           theme(strip.text = element_blank(),
                 strip.background = element_blank(),
-                plot.margin = unit(c(0.0 + (0.04 * box_num), 0.25, 0.05 + (0.01 * box_num), 0.25), "in"))
+                plot.margin = unit(c(0.0 + (0.04 * box_num), 0.05, 0.05 + (0.01 * box_num), 0.05), "in"))
         boxplot$data = plot_db_long_filtered
         if(boxplot_points == TRUE) {
-          boxplot$layers[[2]] = geom_jitter(width = 0.2, height = 0, shape = 21, size = point_size_algo, na.rm = TRUE)
+          boxplot$layers[[3]] = geom_jitter(width = jit_width, height = 0, shape = 21, size = point_size_algo, na.rm = TRUE,
+                                            alpha = point_alpha)
         }
 
         if(treatment_conds_i %in% c("facet2", "facet1")) {
@@ -2549,7 +2574,7 @@ MultiVar = function(multivar_db,
           boxplot = boxplot +
             theme(strip.text = element_text(size = 8.8, margin = margin(0.155, 0.1, 0.155, 0.1, unit = "cm")),
                   strip.background = element_rect(fill = "grey", color = NA),
-                  plot.margin = unit(c(0.0 + (0.04 * box_num), 0.25, 0.05 + (0.01 * box_num), 0.25), "in"))
+                  plot.margin = unit(c(0.0 + (0.04 * box_num), 0.05, 0.05 + (0.01 * box_num), 0.05), "in"))
           boxplot_name = paste("Boxplot of ", varname, " Facet-", second_factor_name, sep = "")
         }
         if(treatment_conds_i == "none") {boxplot_name <- paste("Boxplot of ", varname, sep = "")}
@@ -2565,20 +2590,21 @@ MultiVar = function(multivar_db,
             boxplot2$mapping = aes(x = base_factor, colour = second_factor, y = values)
           }
           if(boxplot_points == TRUE) {
-            boxplot2$layers[[2]] = geom_point(position = position_jitterdodge(jitter.width = 0.25, jitter.height = 0),
+            boxplot2$layers[[3]] = geom_point(position = position_jitterdodge(jitter.width = jit_width, jitter.height = 0,
+                                                                              dodge.width = dodge_width),
                                               shape = 21, size = 3 - (box_num * length(unique(plot_db_long$second_factor)) - 2)/20,
-                                              na.rm = TRUE)
+                                              na.rm = TRUE, alpha = point_alpha)
           }
           boxplot_list[[gsub("pooled", "grouped", treatment_conds_i)]][[varname]] = boxplot2
           boxplot_name_vec = c(boxplot_name_vec, boxplot_name2)
           box_height2_vec = c(box_height2_vec, box_height2)
 
           ggsave(plot = suppressWarnings(boxplot2), filename = paste(boxplot_name2, ".png", sep = ""),
-                 dpi = 600, width = 6.4, height = box_height2, path = img_path)
+                 dpi = 600, width = box_width, height = box_height2, path = img_path)
 
           if(plot_out_pptx == TRUE) {
             eoffice::topptx(figure = boxplot2, filename = pptx_name,
-                            width = 6.4, height = box_height2, append = TRUE)
+                            width = box_width, height = box_height2, append = TRUE)
           }
         }
 
@@ -2590,10 +2616,10 @@ MultiVar = function(multivar_db,
 
         if(plot_out_pptx == TRUE) {
           eoffice::topptx(figure = boxplot, filename = pptx_name,
-                          width = 6.4, height = box_height2, append = TRUE)
+                          width = box_width, height = box_height2, append = TRUE)
         }
         ggsave(plot = suppressWarnings(boxplot), filename = paste(boxplot_name, ".png", sep = ""),
-               dpi = 600, width = 6.4, height = box_height2, path = img_path)
+               dpi = 600, width = box_width, height = box_height2, path = img_path)
       }
 
       # Add them to results_doc
@@ -2608,7 +2634,7 @@ MultiVar = function(multivar_db,
 
           results_doc_boxplot = results_doc_boxplot %>%
             officer::body_add_img(sr = file.path(img_path, paste(boxplot_name_i, ".png", sep = "")),
-                                  width = 6.4, height = box_height2_vec[i]) %>%
+                                  width = box_width, height = box_height2_vec[i]) %>%
             officer::body_add_par(value = boxplot_name_i, style = "graphic title") %>%
             officer::body_add_par("") %>%
             officer::body_add_par("")

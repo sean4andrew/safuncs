@@ -11,6 +11,7 @@ MultiVar(
   factors_pool = c("col1", "col2"),
   factors_facet = "none",
   pca_ellipse = c("confidence"),
+  pca_facet_scales = "fixed",
   pca_labels = NULL,
   pca_shapes = FALSE,
   missing_method = "imputation",
@@ -23,8 +24,10 @@ MultiVar(
   boxplot_x_text = TRUE,
   boxplot_legend_pos = "right",
   boxplot_points = TRUE,
+  boxplot_outliers = FALSE,
   boxplot_var_sep = FALSE,
   colours = NULL,
+  colours_theme = NULL,
   plot_out_png = FALSE,
   plot_out_pptx = FALSE,
   plot_out_R = FALSE
@@ -42,6 +45,8 @@ MultiVar(
 \item{factors_facet}{A character vector indicating the factors which levels are to be faceted across in additional plots. Choose any combination of "col1" and "col2" which refers to the first and second column in \code{factors_cols}. Defaults to "none" which creates no additional plots.}
 
 \item{pca_ellipse}{A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using \code{ggpubr::stat_conf_ellipse()}. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using \code{ggplot2::stat_ellipse()} with argument \code{type = "norm"}. "convexhull" represents the smallest convex polygon enclosing all points; drawn using \code{ggpubr::stat_chull()}. For plots without ellipses, include "none". Defaults to c("confidence").}
+
+\item{pca_facet_scales}{A string indicating whether the x and y axes in pca plots should be held constant across facets or variable. Options are "fixed", "free", "free_x", and "free_y" as according to \code{ggplot2::facet_wrap()}. Defaults to "fixed".}
 
 \item{pca_labels}{A character vector representing the labels to draw in PCA plots. Choose any combination of "ind" and/or "var". "ind" represents individual point labels by their row number. "var" represents variable loadings drawn as arrows; the arrow length and direction are calculated as in \code{factoextra::fviz_pca_biplot()}. Defaults to NULL (no labels drawn).}
 
@@ -67,9 +72,13 @@ MultiVar(
 
 \item{boxplot_points}{TRUE/FALSE indicating whether to include points in boxplots. Defaults to TRUE.}
 
+\item{boxplot_outliers}{TRUE/FALSE indicating whether to plot outliers in boxplots. Useful when points have been removed using \code{boxplot_points = FALSE}. Defaults to FALSE.}
+
 \item{boxplot_var_sep}{TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.}
 
 \item{colours}{A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).}
+
+\item{colours_theme}{A string representing the color palette to use for plots. Options listed in \code{ggplot2::scale_colour_brewer()} \strong{Palettes} section. Defaults to NULL.}
 
 \item{plot_out_png}{TRUE/FALSE indicating whether to save plots as .png in the working directory. Defaults to FALSE.}
 
