@@ -2197,9 +2197,9 @@ MultiVar = function(multivar_db,
   # Create base boxplot
   boxplot = ggplot() +
     stat_boxplot(linewidth = 0.83, geom = "errorbar", width = 0.35, position = position_dodge(width = dodge_width), na.rm = TRUE) +
-    geom_boxplot(size = 0.83, outlier.size = ifelse(boxplot_outliers == TRUE, 2, -1), outlier.fill = NULL, outlier.colour = NULL,
+    geom_boxplot(size = 0.83, outlier.size = ifelse(boxplot_outliers == TRUE, 1.5, -1), outlier.fill = NULL, outlier.colour = NULL,
                  outlier.shape = 21, na.rm = TRUE, position = position_dodge(width = dodge_width), width = boxplot_width,
-                 outlier.stroke = 0.8) +
+                 outlier.stroke = 0.7) +
     theme_minimal() +
     theme(axis.line = element_line(color = "black", linewidth = 0.4),
           strip.background = element_rect(fill = "grey", colour = NA),
