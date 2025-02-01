@@ -46,6 +46,7 @@
 <span>  factors_pool <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col1"</span>, <span class="st">"col2"</span><span class="op">)</span>,</span>
 <span>  factors_facet <span class="op">=</span> <span class="st">"none"</span>,</span>
 <span>  pca_ellipse <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"confidence"</span><span class="op">)</span>,</span>
+<span>  pca_facet_scales <span class="op">=</span> <span class="st">"fixed"</span>,</span>
 <span>  pca_labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pca_shapes <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  missing_method <span class="op">=</span> <span class="st">"imputation"</span>,</span>
@@ -58,8 +59,10 @@
 <span>  boxplot_x_text <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  boxplot_legend_pos <span class="op">=</span> <span class="st">"right"</span>,</span>
 <span>  boxplot_points <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  boxplot_outliers <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  boxplot_var_sep <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  colours <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  colours_theme <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  plot_out_png <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  plot_out_pptx <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  plot_out_R <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -92,6 +95,10 @@
 
 <dt id="arg-pca-ellipse">pca_ellipse<a class="anchor" aria-label="anchor" href="#arg-pca-ellipse"></a></dt>
 <dd><p>A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using <code><a href="https://rpkgs.datanovia.com/ggpubr/reference/stat_conf_ellipse.html" class="external-link">ggpubr::stat_conf_ellipse()</a></code>. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using <code><a href="https://ggplot2.tidyverse.org/reference/stat_ellipse.html" class="external-link">ggplot2::stat_ellipse()</a></code> with argument <code>type = "norm"</code>. "convexhull" represents the smallest convex polygon enclosing all points; drawn using <code><a href="https://rpkgs.datanovia.com/ggpubr/reference/stat_chull.html" class="external-link">ggpubr::stat_chull()</a></code>. For plots without ellipses, include "none". Defaults to c("confidence").</p></dd>
+
+
+<dt id="arg-pca-facet-scales">pca_facet_scales<a class="anchor" aria-label="anchor" href="#arg-pca-facet-scales"></a></dt>
+<dd><p>A string indicating whether the x and y axes in pca plots should be held constant across facets or variable. Options are "fixed", "free", "free_x", and "free_y" as according to <code><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">ggplot2::facet_wrap()</a></code>. Defaults to "fixed".</p></dd>
 
 
 <dt id="arg-pca-labels">pca_labels<a class="anchor" aria-label="anchor" href="#arg-pca-labels"></a></dt>
@@ -142,12 +149,20 @@
 <dd><p>TRUE/FALSE indicating whether to include points in boxplots. Defaults to TRUE.</p></dd>
 
 
+<dt id="arg-boxplot-outliers">boxplot_outliers<a class="anchor" aria-label="anchor" href="#arg-boxplot-outliers"></a></dt>
+<dd><p>TRUE/FALSE indicating whether to plot outliers in boxplots. Useful when points have been removed using <code>boxplot_points = FALSE</code>. Defaults to FALSE.</p></dd>
+
+
 <dt id="arg-boxplot-var-sep">boxplot_var_sep<a class="anchor" aria-label="anchor" href="#arg-boxplot-var-sep"></a></dt>
 <dd><p>TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.</p></dd>
 
 
 <dt id="arg-colours">colours<a class="anchor" aria-label="anchor" href="#arg-colours"></a></dt>
 <dd><p>A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the <code>colours</code> vector may look like <code>c('A' = "brown", B = 'blue', C = '#f8e723')</code>. Defaults to NULL (default ggplot2 colours).</p></dd>
+
+
+<dt id="arg-colours-theme">colours_theme<a class="anchor" aria-label="anchor" href="#arg-colours-theme"></a></dt>
+<dd><p>A string representing the color palette to use for plots. Options listed in <code><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">ggplot2::scale_colour_brewer()</a></code> <strong>Palettes</strong> section. Defaults to NULL.</p></dd>
 
 
 <dt id="arg-plot-out-png">plot_out_png<a class="anchor" aria-label="anchor" href="#arg-plot-out-png"></a></dt>
