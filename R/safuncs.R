@@ -1932,12 +1932,13 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' @param boxplot_legend_pos A string representing the position of the legend for boxplot. Options are "none", "bottom", "top", "left", "right". Use "none" to remove legend. Defaults to "right".
 #' @param boxplot_points TRUE/FALSE indicating whether to include points in boxplots. Defaults to TRUE.
 #' @param boxplot_outliers TRUE/FALSE indicating whether to plot outliers in boxplots. Useful when points have been removed using \code{boxplot_points = FALSE}. Defaults to FALSE.
+#' @param boxplot_letters TRUE/FALSE indicating whether statistical classes, denoted by different letters, should be displayed in boxplots. Classes are determined from pairwise comparisons of the appropriate type. "Faceted" and "Grouped" plots uses the "Conditional" pairwise comparisons with classes summarized in the corresponding table; "Pooled" plots uses "Pooled" comparisons; plots with all factor level combinations in the x-axis \emph{ticks} uses "Complete" comparisons.
 #' @param boxplot_var_sep TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.
 #' @param colours A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).
 #' @param colours_theme A string representing the color palette to use for plots. Options listed in \code{ggplot2::scale_colour_brewer()} \strong{Palettes} section. Defaults to NULL.
 #' @param plot_out_png TRUE/FALSE indicating whether to save plots as .png in the working directory. Defaults to FALSE.
 #' @param plot_out_pptx TRUE/FALSE indicating whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.
-#' @param plot_out_R TRUE/FALSE indicating whether to output plots as ggplot2 objects in a list in R. Defaults to FALSE.
+#' @param plot_out_R TRUE/FALSE indicating whether to output plots as ggplot2 objects in a list in R. Defaults to TRUE.
 #'
 #' @return Returns a Word document containing at least the following types of results (in the given order):
 #'
@@ -1955,7 +1956,7 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' \strong{(Bonus) Univariate Analyses:}
 #'
 #' \enumerate{
-#' \item Boxplot(s) comparing values of individual variables across groups
+#' \item Boxplot(s) comparing values of individual variables across groups.
 #' \item ANOVA results table (Two-Factor or One-Factor)
 #' \item Pairwise comparisons table
 #' }
@@ -1981,7 +1982,8 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' # the factor. Simply feed this information into Multivar()!
 #' MultiVar(multivar_db = iris,
 #'          values_cols = 1:4,
-#'          factors_cols = 5)
+#'          factors_cols = 5,
+#'          plot_out_R = FALSE) # hide R output for now
 #'
 #' # A report is now saved in your working directory, check it out! You can locate your
 #' # working directory using:
@@ -2045,7 +2047,8 @@ Surv_Power = function(simul_db = simul_db_ex,
 #'          values_cols = 2:8,
 #'          factors_cols = c(1, 9),
 #'          factors_pool = "none",
-#'          factors_facet = "none")
+#'          factors_facet = "none",
+#'          plot_out_R = FALSE)
 #'
 #' # Check out the report in your working directory!
 #'
@@ -2093,12 +2096,13 @@ MultiVar = function(multivar_db,
                     boxplot_legend_pos = "right",
                     boxplot_points = TRUE,
                     boxplot_outliers = FALSE,
+                    boxplot_letters = TRUE,
                     boxplot_var_sep = FALSE,
                     colours = NULL,
                     colours_theme = NULL,
                     plot_out_png = FALSE,
                     plot_out_pptx = FALSE,
-                    plot_out_R = FALSE) {
+                    plot_out_R = TRUE) {
 
   # Initialize and define objects
   results_doc = officer::read_docx() %>%
@@ -2124,7 +2128,7 @@ MultiVar = function(multivar_db,
     } else {
       return(round(x, 4))
     }}
-  point_alpha = 0.7
+  point_alpha = 0.72
   dodge_width = 0.75
   boxplot_width = 0.65
   jit_width = 0.15
@@ -2133,6 +2137,8 @@ MultiVar = function(multivar_db,
   layer_count = ifelse(boxplot_points == TRUE, 4, 3)
   point_shape = 21
   box_ratio = 1
+  boxplot_letters = ifelse(boxplot_letters == TRUE, 1, 0)
+  tc = 0
 
   # Set path and file names
   if(plot_out_png == TRUE) {
@@ -2277,8 +2283,10 @@ MultiVar = function(multivar_db,
     # Run Univariate Tests
     if(treatment_conds_i == first(treatment_conds)){
       p_no_adj = c()
+      contrast_db0 = data.frame()
       contrast_db = data.frame()
       contrast_db2 = data.frame()
+      cld_db0 = data.frame()
       cld_db = data.frame()
       cld_db2 = data.frame()
 
@@ -2297,20 +2305,28 @@ MultiVar = function(multivar_db,
         for(factor_conds_i in factor_conds){
           ## One Factor situations
           if(length(factors_cols) == 1){
-            emmeans_obj = emmeans::emmeans(lm_mod, as.formula(paste("pairwise ~", factor_conds_i)), adjust = "BH")
-            cld_obj = data.frame(multcomp::cld(emmeans_obj, Letter = letters, adjust = "BH"))
+            emmeans_obj0 = emmeans::emmeans(lm_mod, as.formula(paste("pairwise ~", factor_conds_i)), adjust = "BH")
+            emmeans_obj = emmeans_obj0
+            cld_obj0 = data.frame(multcomp::cld(emmeans_obj0, Letter = letters, adjust = "BH"))
+            cld_obj0 = cld_obj0[order(cld_obj0[, 1]), ]
+            cld_obj = cld_obj0
           }
           ## Two Factor situations
           if(length(factors_cols) == 2) {
+            emmeans_obj0 = suppressWarnings(emmeans::emmeans(lm_mod, as.formula(paste("pairwise ~", first(factor_conds), "*",
+                                                                                      last(factor_conds))),
+                                                             adjust = "BH"))
             emmeans_obj = suppressMessages(emmeans::emmeans(lm_mod, as.formula(paste("pairwise ~", factor_conds_i)),
                                                             adjust = "BH"))
             emmeans_obj2 = suppressMessages(emmeans::emmeans(lm_mod,
                                                              as.formula(paste("pairwise ~", factor_conds_i, "|",
                                                                               factor_conds[factor_conds != factor_conds_i])),
                                                              adjust = "BH"))
+            cld_obj0 = data.frame(multcomp::cld(emmeans_obj0, Letter = letters, adjust = "BH"))
             cld_obj = data.frame(multcomp::cld(emmeans_obj, Letter = letters, adjust = "BH"))
             cld_obj2 = data.frame(multcomp::cld(emmeans_obj2, Letter = letters, adjust = "BH"))
 
+            cld_obj0 = cld_obj0[order(cld_obj0[, 2], cld_obj0[, 1]), ]
             cld_obj = cld_obj[order(cld_obj[, 1]), ]
             cld_obj2 = cld_obj2[order(cld_obj2[, 2], cld_obj2[, 1]), ]
 
@@ -2327,7 +2343,6 @@ MultiVar = function(multivar_db,
                                                           Difference = data.frame(emmeans_obj2$contrasts)[, 3],
                                                           P_value = sapply(data.frame(emmeans_obj2$contrasts)[, 7], knife)))
           }
-
           # Create cld db
           cld_db = rbind(cld_db, data.frame(Factor = factor_conds_i,
                                             Variable = values_vec_i,
@@ -2341,17 +2356,22 @@ MultiVar = function(multivar_db,
                                                       Difference = data.frame(emmeans_obj$contrasts)[, 2],
                                                       P_value = sapply(data.frame(emmeans_obj$contrasts)[, 6], knife)))
         }
+        cld_db0 = rbind(cld_db0, data.frame(Variable = values_vec_i,
+                                            Levels = interaction(sep = " ", cld_obj0[, 1:length(factors_cols)]),
+                                            Statistical_Classes = cld_obj0[, ncol(cld_obj0)]))
+        contrast_db0 = rbind(contrast_db0, data.frame(Variable = values_vec_i,
+                                                      Contrast = data.frame(emmeans_obj0$contrasts)[, 1],
+                                                      Difference = data.frame(emmeans_obj0$contrasts)[, 2],
+                                                      P_value = sapply(data.frame(emmeans_obj0$contrasts)[, 6], knife)))
       }
     }
     options(contrasts = c("contr.treatment", "contr.poly"))
-
-
 
     # Create facet dimensions depending on treatment_conds_i
     facet_num = ifelse(treatment_conds_i %in% c("none", "pooled2", "pooled1"),
                        length(values_cols),
                        length(unique(plot_db$second_factor)))
-    facet_col = ifelse(facet_num %in% 1:3, 2, 3)
+    facet_col = ifelse(facet_num %in% 1:4, 2, 3)
     facet_row = ceiling(facet_num / facet_col)
 
     # Modify PCA Plot based on treatment_conds_i
@@ -2467,8 +2487,9 @@ MultiVar = function(multivar_db,
       colnames(correl_db) = gsub("\\.", " ", colnames(correl_db))
       correl_db[, 1] = gsub("\\.", " ", correl_db[, 1])
 
+      tc = tc + 1
       correl_tab = flextable::flextable(correl_db) %>%
-        flextable::set_caption(caption = "Table 1. Pearson correlation coefficient (r) between variables and principal components") %>%
+        flextable::set_caption(caption = paste(sep = "", "Table ", tc, ". Pearson correlation coefficient (r) between variables and principal components")) %>%
         flextable::colformat_double(digits = ifelse(length(values_cols) < 5, 4, 3)) %>%
         flextable::line_spacing(space = ifelse(length(values_cols) < 5, 1, 0.8), part = "all") %>%
         flextable::fontsize(size = ifelse(length(values_cols) < 5, 11, 9), part = "all") %>%
@@ -2481,8 +2502,10 @@ MultiVar = function(multivar_db,
                               Contrib.PC2 = as.vector(100 * pc_values$rotation[,2]^2),
                               Eigenvec.PC2 = as.vector(pc_values$rotation[,2])) %>% dplyr::arrange(desc(Contrib.PC1))
 
+      tc = tc + 1
       contrib_tab = flextable::flextable(contrib_db) %>%
-        flextable::set_caption(caption = "Table 2. Contribution of variables to principal components") %>%
+        flextable::set_caption(caption = paste(sep = "", "Table ", tc,
+                                               ". Contribution of variables to principal components")) %>%
         flextable::set_table_properties(layout = "autofit", width = 1) %>%
         flextable::bold(bold = TRUE, part = "header")
 
@@ -2496,7 +2519,7 @@ MultiVar = function(multivar_db,
         flextable::body_add_flextable(value = correl_tab, align = "left", topcaption = TRUE, split = FALSE) %>%
         officer::body_add_break() %>%
         flextable::body_add_flextable(value = contrib_tab, align = "left", topcaption = TRUE, split = FALSE) %>%
-        officer::body_add_par("The contribution describes how much (in %) of the PC is composed of that variable; a more precise definition is that it is the variable's Eigenvec.^2 when the sum of Eigenvec.s^2 (over all variables) is equal to 1 (100%) for each PC (this condition is implicit in PCA). The Eigenvec. represents both the magnitude and direction of change of the principal component for each unit increase of the variable. This variable is in the standardized scale (z-score normalized) if scale and center arguments are set to TRUE.", style = "Normal") %>%
+        officer::body_add_par("The contribution describes how much (in %) of the PC is composed of that variable; a more precise definition is that it is the variable's Eigenvecector^2 when the sum of Eigenvecectos^2 (over all variables) is equal to 1 (100%) for each PC (this condition is implicit in PCA). The Eigenvector represents both the magnitude and direction of change of the principal component for each unit increase of the variable. This variable is in the standardized scale (z-score normalized) if scale and center arguments are set to TRUE.", style = "Normal") %>%
         officer::body_add_break()
     }
 
@@ -2570,6 +2593,19 @@ MultiVar = function(multivar_db,
     if(treatment_conds_i %in% c("none", "pooled1", "pooled2")) {
       # Put in statistical letters
       boxplot$layers[[layer_count]] = NULL
+
+      if(treatment_conds_i == "none"){
+
+        cld_db0_plotb = cbind(cld_db0, layer_data(boxplot))
+        cld_db0_plotb$variable = gsub("\\.", " ", cld_db0_plotb$Variable)
+        cld_db0_plotb$Statistical_Classes = gsub(" ", "", cld_db0_plotb$Statistical_Classes, fixed = TRUE)
+
+        boxplot$layers[[layer_count]] = ggrepel::geom_text_repel(data = cld_db0_plotb, segment.color = NA, show.legend = FALSE,
+                                                                 size = base_text_size + 2 * (point_size_algo / 3),
+                                                                 aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
+                                                                 nudge_y = diff(layer_scales(boxplot)$y$range$range) * nudge_y_ratio)
+      }
+
       if(treatment_conds_i %in% c("pooled1", "pooled2")){
         cld_db_plot = cld_db[cld_db$Factor == base_factor_name, ]
         boxplot_db = layer_data(boxplot)
@@ -2577,13 +2613,15 @@ MultiVar = function(multivar_db,
         cld_db_plotb$variable = gsub("\\.", " ", cld_db_plotb$Variable)
         cld_db_plotb$Statistical_Classes = gsub(" ", "", cld_db_plotb$Statistical_Classes, fixed = TRUE)
 
-        boxplot$layers[[layer_count]] = geom_text(data = cld_db_plotb, size = base_text_size + 2 * (point_size_algo / 3),
-                                                  aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
-                                                  nudge_y = diff(layer_scales(boxplot)$y$range$range) * nudge_y_ratio)
+        boxplot$layers[[layer_count]] = ggrepel::geom_text_repel(data = cld_db_plotb, segment.color = NA, show.legend = FALSE,
+                                                                 size = base_text_size + 2 * (point_size_algo / 3),
+                                                                 aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
+                                                                 nudge_y = diff(layer_scales(boxplot)$y$range$range) * nudge_y_ratio)
       }
 
       boxplot_name = ifelse(treatment_conds_i == "none", "Boxplot of Values Facet-Variables",
                             paste("Boxplot of Values Facet-Variables Pooled-", second_factor_name, sep = ""))
+      if(boxplot_letters == FALSE) {boxplot$layers[[layer_count]] = NULL}
       boxplot_list[[treatment_conds_i]][["facetvariables"]] = boxplot
 
       if(plot_out_pptx == TRUE) {
@@ -2632,13 +2670,15 @@ MultiVar = function(multivar_db,
         cld_db2_plotb$variable = gsub("\\.", " ", cld_db2_plotb$Variable)
         cld_db2_plotb$Statistical_Classes = gsub(" ", "", cld_db2_plotb$Statistical_Classes, fixed = TRUE)
 
-        boxplot$layers[[layer_count]] = geom_text(data = cld_db2_plotb, size = base_text_size + 2 * (point_size_algo / 3),
-                                                  aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
-                                                  nudge_y = diff(layer_scales(boxplot)$y$range$range) * nudge_y_ratio)
+        boxplot$layers[[layer_count]] = ggrepel::geom_text_repel(data = cld_db2_plotb, segment.color = NA, show.legend = FALSE,
+                                                                 size = base_text_size + 2 * (point_size_algo / 3),
+                                                                 aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
+                                                                 nudge_y = diff(layer_scales(boxplot)$y$range$range) * nudge_y_ratio)
       }
 
       save_name = ifelse(treatment_conds_i == "pooled1", "facetvariables1", "facetvariables2")
       boxplot_name = paste(sep = "", "Boxplot of Values Facet-Variables Grouped-", second_factor_name)
+      if(boxplot_letters == FALSE) {boxplot$layers[[layer_count]] = NULL}
       boxplot_list[[treatment_conds_i]][[save_name]] = boxplot
 
       if(plot_out_pptx == TRUE) {
@@ -2671,7 +2711,8 @@ MultiVar = function(multivar_db,
       point_size_algo = 2.9 - (box_num - 2)/20
 
       box_height2 = 2.05 + (1.1 * box_row) + ifelse(box_num <= 6, 0.4, 0) +
-        ifelse(boxplot_legend_pos %in% c("bottom", "top"), 0.8, 0) + ifelse(boxplot_legend_pos == "none", 0.8, 0)
+        ifelse(boxplot_legend_pos %in% c("bottom", "top"), 0.8, 0) + ifelse(boxplot_legend_pos == "none", 0.8, 0) +
+        ifelse(box_num == 4 & box_row == 2, 0.8, 0)
       box_height2 = box_height2 * box_ratio
 
       for(values_cols_i in values_cols) {
@@ -2714,15 +2755,21 @@ MultiVar = function(multivar_db,
           cld_db2_plotb$Statistical_Classes = gsub(" ", "", cld_db2_plotb$Statistical_Classes, fixed = TRUE)
 
           # Add statistical letters
-          boxplot$layers[[layer_count]] = geom_text(data = cld_db2_plotb,
-                                                    size = base_text_size + 2.6 * (point_size_algo2 / 3),
-                                                    aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
-                                                    nudge_y = diff(layer_scales(boxplot2)$y$range$range) * nudge_y_ratio)
+          boxplot$layers[[layer_count]] = ggrepel::geom_text_repel(data = cld_db2_plotb, segment.color = NA,
+                                                                   size = base_text_size + 2.6 * (point_size_algo2 / 3), show.legend = FALSE,
+                                                                   aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
+                                                                   nudge_y = diff(layer_scales(boxplot)$y$range$range) * nudge_y_ratio)
 
         }
         if(treatment_conds_i == "none") {
           boxplot_name = paste("Boxplot of ", varname, sep = "")
           boxplot$layers[[layer_count]] = NULL
+
+          boxplot$layers[[layer_count]] = ggrepel::geom_text_repel(data = cld_db0_plotb[cld_db0_plotb$variable == varname, ],
+                                                                   size = base_text_size + 2.6 * (point_size_algo / 3), segment.color = NA,
+                                                                   aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
+                                                                   nudge_y = diff(layer_scales(boxplot)$y$range$range) * nudge_y_ratio,
+                                                                   show.legend = FALSE)
         }
         if(treatment_conds_i %in% c("pooled2", "pooled1")) {
           boxplot_name = paste("Boxplot of ", varname, " Pooled-", second_factor_name, sep = "")
@@ -2752,15 +2799,17 @@ MultiVar = function(multivar_db,
           }
 
           #Put in statistical letters
-          boxplot$layers[[layer_count]] = geom_text(data = cld_db_plotb[cld_db_plotb$variable == varname, ],
-                                                    size = base_text_size + 3 * (point_size_algo / 3),
-                                                    aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
-                                                    nudge_y = diff(layer_scales(boxplot)$y$range$range) * nudge_y_ratio)
+          boxplot$layers[[layer_count]] = ggrepel::geom_text_repel(data = cld_db_plotb[cld_db_plotb$variable == varname, ],
+                                                                   size = base_text_size + 3 * (point_size_algo / 3), segment.color = NA, show.legend = FALSE,
+                                                                   aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
+                                                                   nudge_y = diff(layer_scales(boxplot)$y$range$range) * nudge_y_ratio)
 
-          boxplot2$layers[[layer_count]] = geom_text(data = cld_db2_plotb[cld_db2_plotb$variable == varname, ],
-                                                     size = base_text_size + 3 * (point_size_algo2 / 3),
-                                                     aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
-                                                     nudge_y = diff(layer_scales(boxplot2)$y$range$range) * nudge_y_ratio)
+          boxplot2$layers[[layer_count]] = ggrepel::geom_text_repel(data = cld_db2_plotb[cld_db2_plotb$variable == varname, ],
+                                                                    size = base_text_size + 3 * (point_size_algo2 / 3), segment.color = NA, show.legend = FALSE,
+                                                                    aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
+                                                                    nudge_y = diff(layer_scales(boxplot2)$y$range$range) * nudge_y_ratio)
+
+          if(boxplot_letters == FALSE) {boxplot2$layers[[layer_count]] <- NULL}
 
           boxplot_list[[gsub("pooled", "grouped", treatment_conds_i)]][[varname]] = boxplot2
           boxplot_name_vec = c(boxplot_name_vec, boxplot_name2)
@@ -2779,6 +2828,7 @@ MultiVar = function(multivar_db,
         box_height2_vec = c(box_height2_vec, box_height2)
 
         # Save all non grouped boxplots
+        if(boxplot_letters == FALSE) {boxplot$layers[[layer_count]] <- NULL}
         boxplot_list[[treatment_conds_i]][[varname]] = boxplot
 
         if(plot_out_pptx == TRUE) {
@@ -2824,9 +2874,7 @@ MultiVar = function(multivar_db,
                            scale = scale, center = center))
       values_vec = paste(collapse = " + ", colnames(lda_db[, (1 + length(factors_cols)):ncol(lda_db)]))
 
-      tab_counter = 2
       for(lda_factor in colnames(multivar_db[, factors_cols, drop = FALSE])){
-        tab_counter = tab_counter + 1
 
         # Fit LDA mod
         lda_mod = MASS::lda(formula = as.formula(paste(lda_factor, "~", values_vec)),
@@ -2842,9 +2890,10 @@ MultiVar = function(multivar_db,
           lda_contrib_db$Coeff.LD2 = lda_mod$scaling[, 2]
         }
 
+        tc = tc + 1
         lda_contrib_db = lda_contrib_db %>% dplyr::arrange(dplyr::desc(Contrib.LD1))
         lda_contrib_tab = flextable::flextable(lda_contrib_db) %>%
-          flextable::set_caption(caption = paste("Table ", tab_counter, ". Contribution of variables to linear discriminants of ",
+          flextable::set_caption(caption = paste("Table ", tc, ". Contribution of variables to linear discriminants of ",
                                                  lda_factor, sep = "")) %>%
           flextable::set_table_properties(layout = "autofit", width = 1) %>%
           flextable::bold(bold = TRUE, part = "header")
@@ -2870,34 +2919,86 @@ MultiVar = function(multivar_db,
                           ")", sep = "")
 
       options(contrasts = c("contr.sum", "contr.poly"))
-      permanova = suppressWarnings(RVAideMemoire::adonis.II(formula = as.formula(paste(values_vec, "~", factors_vec)),
-                                                            data = manova_db, method = "euclidean"))
+      #permanova = suppressWarnings(RVAideMemoire::adonis.II(formula = as.formula(paste(values_vec, "~", factors_vec)),
+      #data = manova_db, method = "euclidean"))
       manova_mod = manova(formula = as.formula(paste(values_vec2, "~", factors_vec)),
                           data = manova_db)
       manova = car::Anova(type = 3, manova_mod)
       options(contrasts = c("contr.treatment", "contr.poly"))
       manova_p = suppressWarnings(as.numeric(na.omit(as.numeric(sub(".*\\s*(\\d+\\.[0-9e-]+)\\s*[*.]*",
                                                                     "\\1", capture.output(manova))))))
+
       # Create MANOVA table
       manova_db = data.frame(Factor = manova$terms[!manova$terms == "(Intercept)"],
-                             PERMANOVA = as.numeric(na.omit(permanova$`Pr(>F)`)),
+                             #PERMANOVA = as.numeric(na.omit(permanova$`Pr(>F)`)),
                              P_value = sapply(manova_p[!manova$terms == "(Intercept)"], knife))
-      manova_db$PERMANOVA = ifelse(manova_db$PERMANOVA < 0.001, formatC(manova_db$PERMANOVA, format = "e", digits = 4), manova_db$PERMANOVA)
-      manova_db = manova_db[, -2] #exclude PERMANOVA results for now to prevent confusion. May add some time in the future.
+      #manova_db$PERMANOVA = ifelse(manova_db$PERMANOVA < 0.001, formatC(manova_db$PERMANOVA, format = "e", digits = 4), manova_db$PERMANOVA)
+      #manova_db = manova_db[, -2] #exclude PERMANOVA results for now to prevent confusion. May add some time in the future.
       colnames(manova_db) = gsub("_", " ", colnames(manova_db))
 
+      tc = tc + 1
       manova_tab = flextable::flextable(manova_db) %>%
-        flextable::set_caption(caption = paste("Table ", tab_counter + 1, ". MANOVA Results", sep = "")) %>%
+        flextable::set_caption(caption = paste("Table ", tc, ". MANOVA Results", sep = "")) %>%
         flextable::set_table_properties(layout = "autofit", width = 1) %>%
         flextable::bold(bold = TRUE, part = "header")
 
       results_doc = results_doc %>%
         officer::body_add_break() %>%
         flextable::body_add_flextable(value = manova_tab, align = "left", topcaption = TRUE, split = FALSE) %>%
+        officer::body_add_par("")
+
+      # MANOVA pairwise comparisons
+      manova_pairs_con2_db = data.frame()
+      for(factor_conds_i in factor_conds){
+        nest_fac = NULL
+        if(length(factors_cols) == 2) {nest_fac <- factor_conds[!factor_conds == factor_conds_i]}
+        manova_pairs = biotools::mvpaircomp(manova_mod, factor_conds_i, adjust = "BH",
+                                            nesting.factor = nest_fac)
+
+        manova_p_col_vec = seq(5, ncol(data.frame(manova_pairs$st)), 5)
+        if(length(factors_cols) == 1) {
+          manova_pairs_con2_db = rbind(manova_pairs_con2_db,
+                                       data.frame(Contrast = rownames(data.frame(manova_pairs$st)),
+                                                  P_value = sapply(c(data.frame(manova_pairs$st)[, manova_p_col_vec]),
+                                                                   knife)))
+          merge_g = c("Contrast")
+        } else {
+          manova_pairs_con2_db = rbind(manova_pairs_con2_db,
+                                       data.frame(Condition = rep(levels(
+                                         factor(multivar_db[,factor_conds[!factor_conds == factor_conds_i]])),
+                                         each = nrow(manova_pairs$st)),
+                                         Contrast = rownames(data.frame(manova_pairs$st)),
+                                         P_value = sapply(stack(c(data.frame(manova_pairs$st)[, manova_p_col_vec]))$values,
+                                                          knife)))
+          merge_g = c("Condition", "Contrast")
+        }
+      }
+      colnames(manova_pairs_con2_db) = gsub("_", " ", colnames(manova_pairs_con2_db))
+
+      if(length(factors_cols) == 1){
+        tite2 = ". MANOVA Pairwise Comparison Results"
+        tite2b = "P-values were generated from pairwise comparisons of levels of a factor. Comparisons were conducted using the function mvpaircomp() with the Benjamini Hochberg correction to control for a False Discovery Rate of 5%."
+      } else {
+        tite2 = ". MANOVA 'Conditional' Pairwise Comparison Results"
+        tite2b = "P-values were generated from pairwise comparisons of levels of a factor, while holding a level from another factor constant. Comparisons were conducted using the function mvpaircomp() with the Benjamini Hochberg correction to control for a False Discovery Rate of 5%.. mvpaircomp() used the two-factor MANOVA model with interactions."
+      }
+
+      tc = tc + 1
+      manova_con2_tab = flextable::flextable(manova_pairs_con2_db) %>%
+        flextable::set_caption(caption = paste("Table ", tc, tite2, sep = "")) %>%
+        flextable::set_table_properties(layout = "autofit", width = 1) %>%
+        flextable::colformat_double(digits = 5) %>%
+        flextable::merge_v(j = merge_g) %>%
+        flextable::valign(j = merge_g, valign = "top") %>%
+        flextable::theme_vanilla()
+
+      results_doc = results_doc %>%
+        flextable::body_add_flextable(value = manova_con2_tab, align = "left", topcaption = TRUE, split = FALSE) %>%
+        officer::body_add_par(paste(tite2b)) %>%
         officer::body_add_par("") %>%
         officer::body_add_break()
 
-      p_bh = p.adjust(p_no_adj, method = "BH")
+      #p_bh = p.adjust(p_no_adj, method = "BH")
 
       # Create ANOVA p-values table
       anova_fac = rownames(data.frame(Anova_res))[-c(1, length(rownames(data.frame(Anova_res))))]
@@ -2906,40 +3007,50 @@ MultiVar = function(multivar_db,
                         P_value = sapply(p_no_adj, knife))
       p_db$Variable = gsub("\\.", " ", p_db$Variable)
 
+      tc = tc + 1
       colnames(p_db) = gsub("_", " ", colnames(p_db))
       p_tab = flextable::flextable(p_db) %>%
-        flextable::set_caption(caption = paste("Table ", tab_counter + 2, ". ANOVA Results", sep = "")) %>%
+        flextable::set_caption(caption = paste("Table ", tc, ". ANOVA Results", sep = "")) %>%
         flextable::set_table_properties(layout = "autofit", width = 1) %>%
-        flextable::merge_v(j = "Variable") %>%
-        flextable::valign(j = "Variable", valign = "top") %>%
+        flextable::merge_v(j = c("Variable")) %>%
+        flextable::valign(j = c("Variable"), valign = "top") %>%
         flextable::theme_vanilla() %>%
         flextable::bold(bold = TRUE, part = "header")
 
       # Create cld table (simple)
-      cld_db = cld_db[order(cld_db$Factor),]
+      if(length(factors_cols) == 1) {
+        cld_db = cld_db0[order(cld_db0$Variable, cld_db0$Levels),]
+        contrast_db = contrast_db0[order(contrast_db0$Variable, contrast_db0$Contrast),]
+        col_ord = c("Variable")
+        titex = ". Statistical Classes from 'Complete' Pairwise Comparisons"
+      } else {
+        cld_db = cld_db[order(cld_db$Factor),]
+        contrast_db = contrast_db[order(contrast_db$Factor),]
+        col_ord = c("Factor", "Variable")
+        titex = ". Statistical Classes from 'Pooled' Pairwise Comparisons"
+      }
       cld_db$Variable = gsub("\\.", " ", cld_db$Variable)
-
       colnames(cld_db) = gsub("_", " ", colnames(cld_db))
+
+      tc = tc + 1
       cld_tab = flextable::flextable(cld_db) %>%
-        flextable::set_caption(caption = paste("Table ", tab_counter + 3,
-                                               ". Statistical Classes from 'Pooled' Comparisons", sep = "")) %>%
+        flextable::set_caption(caption = paste("Table ", tc, titex, sep = "")) %>%
         flextable::set_table_properties(layout = "autofit", width = 1) %>%
-        flextable::merge_v(j = c("Factor", "Variable")) %>%
-        flextable::valign(j = c("Factor", "Variable"), valign = "top") %>%
+        flextable::merge_v(j = col_ord) %>%
+        flextable::valign(j = col_ord, valign = "top") %>%
         flextable::theme_vanilla()
 
       # Create contrast table (simple)
-      contrast_db = contrast_db[order(contrast_db$Factor),]
       contrast_db$Variable = gsub("\\.", " ", contrast_db$Variable)
 
+      tc = tc + 1
       colnames(contrast_db) = gsub("_", " ", colnames(contrast_db))
       contrast_tab = flextable::flextable(contrast_db) %>%
-        flextable::set_caption(caption = paste("Table ", tab_counter + 4,
-                                               ". 'Pooled' Pairwise Comparison Results", sep = "")) %>%
+        flextable::set_caption(caption = paste("Table ", tc, titex, sep = "")) %>%
         flextable::colformat_double(digits = 5) %>%
         flextable::set_table_properties(layout = "autofit", width = 1) %>%
-        flextable::merge_v(j = c("Factor", "Variable")) %>%
-        flextable::valign(j = c("Factor", "Variable"), valign = "top") %>%
+        flextable::merge_v(j = col_ord) %>%
+        flextable::valign(j = col_ord, valign = "top") %>%
         flextable::theme_vanilla()
 
       if(length(factors_cols) == 2){
@@ -2948,10 +3059,11 @@ MultiVar = function(multivar_db,
         cld_db2 = cld_db2[order(cld_db2$Factor),]
         cld_db2$Variable = gsub("\\.", " ", cld_db2$Variable)
 
+        tc = tc + 1
         colnames(cld_db2) = gsub("_", " ", colnames(cld_db2))
         cld_db2 = cld_db2[, -1]
         cld_tab2 = flextable::flextable(cld_db2) %>%
-          flextable::set_caption(caption = paste("Table ", tab_counter + 5,
+          flextable::set_caption(caption = paste("Table ", tc,
                                                  ". Statistical Classes from 'Conditional' Comparisons", sep = "")) %>%
           flextable::set_table_properties(layout = "autofit", width = 1) %>%
           flextable::merge_v(j = c("Variable", "Condition")) %>%
@@ -2962,15 +3074,43 @@ MultiVar = function(multivar_db,
         contrast_db2 = contrast_db2[order(contrast_db2$Factor),]
         contrast_db2$Variable = gsub("\\.", " ", contrast_db2$Variable)
 
+        tc = tc + 1
         colnames(contrast_db2) = gsub("_", " ", colnames(contrast_db2))
         contrast_db2 = contrast_db2[, -1]
         contrast_tab2 = flextable::flextable(contrast_db2) %>%
-          flextable::set_caption(caption = paste("Table ", tab_counter + 6,
+          flextable::set_caption(caption = paste("Table ", tc,
                                                  ". 'Conditional' Pairwise Comparison Results", sep = "")) %>%
           flextable::colformat_double(digits = 5) %>%
           flextable::set_table_properties(layout = "autofit", width = 1) %>%
           flextable::merge_v(j = c("Variable", "Condition", "Contrast")) %>%
           flextable::valign(j = c("Variable", "Condition", "Contrast"), valign = "top") %>%
+          flextable::theme_vanilla()
+
+        # Create cld table (complete)
+        cld_db0$Variable = gsub("\\.", " ", cld_db0$Variable)
+
+        tc = tc + 1
+        colnames(cld_db0) = gsub("_", " ", colnames(cld_db0))
+        cld_tab0 = flextable::flextable(cld_db0) %>%
+          flextable::set_caption(caption = paste("Table ", tc,
+                                                 ". Statistical Classes from 'Complete' Comparisons", sep = "")) %>%
+          flextable::set_table_properties(layout = "autofit", width = 1) %>%
+          flextable::merge_v(j = c("Variable", "Levels")) %>%
+          flextable::valign(j = c("Variable", "Levels"), valign = "top") %>%
+          flextable::theme_vanilla()
+
+        # Create contrast table (complete)
+        contrast_db0$Variable = gsub("\\.", " ", contrast_db0$Variable)
+
+        tc = tc + 1
+        colnames(contrast_db0) = gsub("_", " ", colnames(contrast_db0))
+        contrast_tab0 = flextable::flextable(contrast_db0) %>%
+          flextable::set_caption(caption = paste("Table ", tc,
+                                                 ". 'Complete' Pairwise Comparison Results", sep = "")) %>%
+          flextable::colformat_double(digits = 5) %>%
+          flextable::set_table_properties(layout = "autofit", width = 1) %>%
+          flextable::merge_v(j = c("Variable", "Contrast")) %>%
+          flextable::valign(j = c("Variable", "Contrast"), valign = "top") %>%
           flextable::theme_vanilla()
       }
 
@@ -2993,7 +3133,13 @@ MultiVar = function(multivar_db,
           officer::body_add_par("Different letters denote significantly different levels of a factor. Levels were compared pairwise within a factor while holding a level from another factor constant. Comparisons conducted using the function emmenas() with the Benjamini Hochberg correction to control for a False Discovery Rate of 5%. emmeans() were based on two-factor models (with interactions) fitted separately by variable.") %>%
           officer::body_add_par("") %>%
           flextable::body_add_flextable(value = contrast_tab2, align = "left", topcaption = TRUE, split = FALSE) %>%
-          officer::body_add_par("P-values were generated from pairwise comparisons of levels of a factor, while holding a level from another factor constant. Comparisons conducted using the function emmenas() with the Benjamini Hochberg correction to control for a False Discovery Rate of 5%. emmeans() were based on two-factor models (with interactions) fitted separately by variable.")
+          officer::body_add_par("P-values were generated from pairwise comparisons of levels of a factor, while holding a level from another factor constant. Comparisons conducted using the function emmeans() with the Benjamini Hochberg correction to control for a False Discovery Rate of 5%. emmeans() were based on two-factor models (with interactions) fitted separately by variable.") %>%
+          officer::body_add_par("") %>%
+          flextable::body_add_flextable(value = cld_tab0, align = "left", topcaption = TRUE, split = FALSE) %>%
+          officer::body_add_par("Different letters denote significantly different levels. All level combinations were compared pairwise. Comparisons conducted using the function emmenas() with the Benjamini Hochberg correction to control for a False Discovery Rate of 5%. emmeans() were based on two-factor models (with interactions) fitted separately by variable.") %>%
+          officer::body_add_par("") %>%
+          flextable::body_add_flextable(value = contrast_tab0, align = "left", topcaption = TRUE, split = FALSE) %>%
+          officer::body_add_par("P-values were generated from pairwise comparisons of all combination of levels. Comparisons conducted using the function emmeans() with the Benjamini Hochberg correction to control for a False Discovery Rate of 5%. emmeans() were based on two-factor models (with interactions) fitted separately by variable.")
       }
     }
   }

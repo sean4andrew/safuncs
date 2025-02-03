@@ -25,12 +25,13 @@ MultiVar(
   boxplot_legend_pos = "right",
   boxplot_points = TRUE,
   boxplot_outliers = FALSE,
+  boxplot_letters = TRUE,
   boxplot_var_sep = FALSE,
   colours = NULL,
   colours_theme = NULL,
   plot_out_png = FALSE,
   plot_out_pptx = FALSE,
-  plot_out_R = FALSE
+  plot_out_R = TRUE
 )
 }
 \arguments{
@@ -74,6 +75,8 @@ MultiVar(
 
 \item{boxplot_outliers}{TRUE/FALSE indicating whether to plot outliers in boxplots. Useful when points have been removed using \code{boxplot_points = FALSE}. Defaults to FALSE.}
 
+\item{boxplot_letters}{TRUE/FALSE indicating whether statistical classes, denoted by different letters, should be displayed in boxplots. Classes are determined from pairwise comparisons of the appropriate type. "Faceted" and "Grouped" plots uses the "Conditional" pairwise comparisons with classes summarized in the corresponding table; "Pooled" plots uses "Pooled" comparisons; plots with all factor level combinations in the x-axis \emph{ticks} uses "Complete" comparisons.}
+
 \item{boxplot_var_sep}{TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.}
 
 \item{colours}{A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).}
@@ -84,7 +87,7 @@ MultiVar(
 
 \item{plot_out_pptx}{TRUE/FALSE indicating whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.}
 
-\item{plot_out_R}{TRUE/FALSE indicating whether to output plots as ggplot2 objects in a list in R. Defaults to FALSE.}
+\item{plot_out_R}{TRUE/FALSE indicating whether to output plots as ggplot2 objects in a list in R. Defaults to TRUE.}
 }
 \value{
 Returns a Word document containing at least the following types of results (in the given order):
@@ -103,7 +106,7 @@ Returns a Word document containing at least the following types of results (in t
 \strong{(Bonus) Univariate Analyses:}
 
 \enumerate{
-\item Boxplot(s) comparing values of individual variables across groups
+\item Boxplot(s) comparing values of individual variables across groups.
 \item ANOVA results table (Two-Factor or One-Factor)
 \item Pairwise comparisons table
 }
@@ -137,7 +140,8 @@ head(iris, n = 5)
 # the factor. Simply feed this information into Multivar()!
 MultiVar(multivar_db = iris,
          values_cols = 1:4,
-         factors_cols = 5)
+         factors_cols = 5,
+         plot_out_R = FALSE) # hide R output for now
 
 # A report is now saved in your working directory, check it out! You can locate your
 # working directory using:
@@ -201,7 +205,8 @@ MultiVar(multivar_db = multivar_db_ex,
          values_cols = 2:8,
          factors_cols = c(1, 9),
          factors_pool = "none",
-         factors_facet = "none")
+         factors_facet = "none",
+         plot_out_R = FALSE)
 
 # Check out the report in your working directory!
 
