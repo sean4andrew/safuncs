@@ -122,9 +122,8 @@ Several functions published on CRAN are used by \code{MultiVar()} for various ty
  \item{LDA}{Uses \code{MASS::lda()}. Pre-LDA, values may be scaled, centered, and missing values imputed, with the same methods as described for PCA.}
  \item{MANOVA}{Uses \code{stats::manova()} and subsequently \code{car::Anova()} with the argument \code{type = 3} - relevant for analyses with two or more factors. Missing values may have been imputed with the same method described for PCA. By default, \code{stats::manova()} omits all rows with missing values. To achieve this in \code{MultiVar()}, set \code{missing_method} argument to "na_omit".}
  \item{PERMANOVA}{Output available upon request. Uses \code{RVAideMemoire::adonis.II()} with the argument \code{method = "euclidean"}. Missing values may be imputed using the same method described for PCA. By default, \code{RVAideMemoire::adonis.II()} omits all rows with missing values. To achieve this in \code{MultiVar()}, set \code{missing_method} argument to "na_omit".}
- \item{Post-MANOVA Pairwise Comparisons}{Uses \code{biotools::mvpaircomp()} with \code{adjust = "BH"}. P-values were adjusted using the Benjamini Hochberg procedure to control for a false Discovery Rate of 5 percent.}
  \item{ANOVA}{Uses \code{stats::anova()} and subsequently \code{car::Anova()} with the argument \code{type = 3} - relevant for analyses with two or more factors.}
- \item{Post-ANOVA Pairwise Comparisons}{Uses \code{emmeans::emmeans()} with \code{adjust = "BH"}. P-values were adjusted using the Benjamini Hochberg procedure to control for a false Discovery Rate of 5 percent.}
+ \item{Pairwise Comparisons}{Uses \code{biotools::mvpaircomp()} and \code{emmeans::emmeans()} for multivariate and univariate comparisons, both with \code{adjust = "BH"}. P-values were adjusted using the Benjamini Hochberg procedure to control for a false Discovery Rate of 5 percent.}
 }
 }
 \examples{
