@@ -40,5 +40,6 @@ Imports:
     ggpubr,
     flextable,
     emmeans,
-    multcomp
+    multcomp,
+    biotools
 Config/Needs/website: rmarkdown
