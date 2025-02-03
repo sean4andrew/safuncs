@@ -212,14 +212,11 @@
  <dt>PERMANOVA</dt>
 <dd><p>Output available upon request. Uses <code><a href="https://rdrr.io/pkg/RVAideMemoire/man/adonis.II.html" class="external-link">RVAideMemoire::adonis.II()</a></code> with the argument <code>method = "euclidean"</code>. Missing values may be imputed using the same method described for PCA. By default, <code><a href="https://rdrr.io/pkg/RVAideMemoire/man/adonis.II.html" class="external-link">RVAideMemoire::adonis.II()</a></code> omits all rows with missing values. To achieve this in <code>MultiVar()</code>, set <code>missing_method</code> argument to "na_omit".</p></dd>
 
- <dt>Post-MANOVA Pairwise Comparisons</dt>
-<dd><p>Uses <code><a href="https://arsilva87.github.io/biotools/reference/mvpaircomp.html" class="external-link">biotools::mvpaircomp()</a></code> with <code>adjust = "BH"</code>. P-values were adjusted using the Benjamini Hochberg procedure to control for a false Discovery Rate of 5 percent.</p></dd>
-
  <dt>ANOVA</dt>
 <dd><p>Uses <code><a href="https://rdrr.io/r/stats/anova.html" class="external-link">stats::anova()</a></code> and subsequently <code><a href="https://rdrr.io/pkg/car/man/Anova.html" class="external-link">car::Anova()</a></code> with the argument <code>type = 3</code> - relevant for analyses with two or more factors.</p></dd>
 
- <dt>Post-ANOVA Pairwise Comparisons</dt>
-<dd><p>Uses <code><a href="https://rvlenth.github.io/emmeans/reference/emmeans.html" class="external-link">emmeans::emmeans()</a></code> with <code>adjust = "BH"</code>. P-values were adjusted using the Benjamini Hochberg procedure to control for a false Discovery Rate of 5 percent.</p></dd>
+ <dt>Pairwise Comparisons</dt>
+<dd><p>Uses <code><a href="https://arsilva87.github.io/biotools/reference/mvpaircomp.html" class="external-link">biotools::mvpaircomp()</a></code> and <code><a href="https://rvlenth.github.io/emmeans/reference/emmeans.html" class="external-link">emmeans::emmeans()</a></code> for multivariate and univariate comparisons, both with <code>adjust = "BH"</code>. P-values were adjusted using the Benjamini Hochberg procedure to control for a false Discovery Rate of 5 percent.</p></dd>
 
 
 </dl></div>
