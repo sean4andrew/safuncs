@@ -115,15 +115,15 @@
 
 
 <dt id="arg-scale">scale<a class="anchor" aria-label="anchor" href="#arg-scale"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to scale variable values (such that SD = 1 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.</p></dd>
+<dd><p>Whether to scale variable values (such that SD = 1 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-center">center<a class="anchor" aria-label="anchor" href="#arg-center"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to center variable values (such that mean = 0 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.</p></dd>
+<dd><p>Whether to center variable values (such that mean = 0 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-boxplot-filled">boxplot_filled<a class="anchor" aria-label="anchor" href="#arg-boxplot-filled"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to color the insides of boxplots and points (i.e. fill them). If FALSE, boxplots and points are hollow with colored borders using <code>colour</code> in <code><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">ggplot2::aes()</a></code>, instead of using <code>fill</code>. Defaults to TRUE.</p></dd>
+<dd><p>Whether to color the insides of boxplots and points (i.e. fill them). If FALSE, boxplots and points are hollow with colored borders using <code>colour</code> in <code><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">ggplot2::aes()</a></code>, instead of using <code>fill</code>. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-boxplot-x-angle">boxplot_x_angle<a class="anchor" aria-label="anchor" href="#arg-boxplot-x-angle"></a></dt>
@@ -135,11 +135,11 @@
 
 
 <dt id="arg-boxplot-x-lab">boxplot_x_lab<a class="anchor" aria-label="anchor" href="#arg-boxplot-x-lab"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to include a title for the x-axis of the boxplots. Defaults to FALSE.</p></dd>
+<dd><p>Whether to include a title for the x-axis of the boxplots. Defaults to FALSE.</p></dd>
 
 
 <dt id="arg-boxplot-x-text">boxplot_x_text<a class="anchor" aria-label="anchor" href="#arg-boxplot-x-text"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to include the text for the x-axis of the boxplots. Defaults to TRUE.</p></dd>
+<dd><p>Whether to include the text for the x-axis of the boxplots. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-boxplot-legend-pos">boxplot_legend_pos<a class="anchor" aria-label="anchor" href="#arg-boxplot-legend-pos"></a></dt>
@@ -147,19 +147,19 @@
 
 
 <dt id="arg-boxplot-points">boxplot_points<a class="anchor" aria-label="anchor" href="#arg-boxplot-points"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to include points in boxplots. Defaults to TRUE.</p></dd>
+<dd><p>Whether to include points in boxplots. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-boxplot-outliers">boxplot_outliers<a class="anchor" aria-label="anchor" href="#arg-boxplot-outliers"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to plot outliers in boxplots. Useful when points have been removed using <code>boxplot_points = FALSE</code>. Defaults to FALSE.</p></dd>
+<dd><p>Whether to plot outliers in boxplots. Useful when points have been removed using <code>boxplot_points = FALSE</code>. Defaults to FALSE.</p></dd>
 
 
 <dt id="arg-boxplot-letters">boxplot_letters<a class="anchor" aria-label="anchor" href="#arg-boxplot-letters"></a></dt>
-<dd><p>TRUE/FALSE indicating whether statistical classes, denoted by different letters, should be displayed in boxplots. Classes are determined from pairwise comparisons of the appropriate type. "Faceted" and "Grouped" plots uses the "Conditional" pairwise comparisons with classes summarized in the corresponding table; "Pooled" plots uses "Pooled" comparisons; plots with all factor level combinations in the x-axis <em>ticks</em> uses "Complete" comparisons.</p></dd>
+<dd><p>Whether statistical classes, denoted by different letters, should be displayed in boxplots. Classes are determined from pairwise comparisons of the appropriate type. "Faceted" and "Grouped" plots uses the "Conditional" pairwise comparisons with classes summarized in the corresponding table; "Pooled" plots uses "Pooled" comparisons; plots with all factor level combinations in the x-axis <em>ticks</em> uses "Complete" comparisons. Defaults to TRUE.</p></dd>
 
 
 <dt id="arg-boxplot-var-sep">boxplot_var_sep<a class="anchor" aria-label="anchor" href="#arg-boxplot-var-sep"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.</p></dd>
+<dd><p>Whether to include boxplots made separately for every variable. Defaults to FALSE.</p></dd>
 
 
 <dt id="arg-colours">colours<a class="anchor" aria-label="anchor" href="#arg-colours"></a></dt>
@@ -171,15 +171,15 @@
 
 
 <dt id="arg-plot-out-png">plot_out_png<a class="anchor" aria-label="anchor" href="#arg-plot-out-png"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to save plots as .png in the working directory. Defaults to FALSE.</p></dd>
+<dd><p>Whether to save plots as .png in the working directory. Defaults to FALSE.</p></dd>
 
 
 <dt id="arg-plot-out-pptx">plot_out_pptx<a class="anchor" aria-label="anchor" href="#arg-plot-out-pptx"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.</p></dd>
+<dd><p>Whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.</p></dd>
 
 
 <dt id="arg-plot-out-r">plot_out_R<a class="anchor" aria-label="anchor" href="#arg-plot-out-r"></a></dt>
-<dd><p>TRUE/FALSE indicating whether to output plots as ggplot2 objects in a list in R. Defaults to TRUE.</p></dd>
+<dd><p>Whether to output plots as ggplot2 objects in a list in R. Defaults to TRUE.</p></dd>
 
 </dl></div>
     <div class="section level2">
