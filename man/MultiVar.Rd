@@ -55,39 +55,39 @@ MultiVar(
 
 \item{missing_method}{A string representing the method to address missing values in \code{values_cols}. Choose from "imputation" or "na_omit". "imputation" fills in missing values with values created (imputed) based on the correlation between variables essentially; accomplished using \code{missMDA::imputePCA()} with the ncp parameter \code{missMDA::estim_ncpPCA()}. "na_omit" removes entire rows of data when at least one NA value is present. This method may result in a significant loss of data. Defaults to "imputation". The choice of \code{missing_method} would affect PCA, LDA, and MANOVA results but likely only to a small degree with few missing values. Has no impact on boxplots and ANOVAs.}
 
-\item{scale}{TRUE/FALSE indicating whether to scale variable values (such that SD = 1 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.}
+\item{scale}{Whether to scale variable values (such that SD = 1 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.}
 
-\item{center}{TRUE/FALSE indicating whether to center variable values (such that mean = 0 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.}
+\item{center}{Whether to center variable values (such that mean = 0 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.}
 
-\item{boxplot_filled}{TRUE/FALSE indicating whether to color the insides of boxplots and points (i.e. fill them). If FALSE, boxplots and points are hollow with colored borders using \code{colour} in \code{ggplot2::aes()}, instead of using \code{fill}. Defaults to TRUE.}
+\item{boxplot_filled}{Whether to color the insides of boxplots and points (i.e. fill them). If FALSE, boxplots and points are hollow with colored borders using \code{colour} in \code{ggplot2::aes()}, instead of using \code{fill}. Defaults to TRUE.}
 
 \item{boxplot_x_angle}{A number describing the degree of tilt in the x-axis labels of the boxplots. Defaults to NULL (horizontal labels).}
 
 \item{boxplot_x_wrap}{The maximum number of characters on a single line that would be split if a space bar is available between them. Defaults to NULL (no text wrapping).}
 
-\item{boxplot_x_lab}{TRUE/FALSE indicating whether to include a title for the x-axis of the boxplots. Defaults to FALSE.}
+\item{boxplot_x_lab}{Whether to include a title for the x-axis of the boxplots. Defaults to FALSE.}
 
-\item{boxplot_x_text}{TRUE/FALSE indicating whether to include the text for the x-axis of the boxplots. Defaults to TRUE.}
+\item{boxplot_x_text}{Whether to include the text for the x-axis of the boxplots. Defaults to TRUE.}
 
 \item{boxplot_legend_pos}{A string representing the position of the legend for boxplot. Options are "none", "bottom", "top", "left", "right". Use "none" to remove legend. Defaults to "right".}
 
-\item{boxplot_points}{TRUE/FALSE indicating whether to include points in boxplots. Defaults to TRUE.}
+\item{boxplot_points}{Whether to include points in boxplots. Defaults to TRUE.}
 
-\item{boxplot_outliers}{TRUE/FALSE indicating whether to plot outliers in boxplots. Useful when points have been removed using \code{boxplot_points = FALSE}. Defaults to FALSE.}
+\item{boxplot_outliers}{Whether to plot outliers in boxplots. Useful when points have been removed using \code{boxplot_points = FALSE}. Defaults to FALSE.}
 
-\item{boxplot_letters}{TRUE/FALSE indicating whether statistical classes, denoted by different letters, should be displayed in boxplots. Classes are determined from pairwise comparisons of the appropriate type. "Faceted" and "Grouped" plots uses the "Conditional" pairwise comparisons with classes summarized in the corresponding table; "Pooled" plots uses "Pooled" comparisons; plots with all factor level combinations in the x-axis \emph{ticks} uses "Complete" comparisons.}
+\item{boxplot_letters}{Whether statistical classes, denoted by different letters, should be displayed in boxplots. Classes are determined from pairwise comparisons of the appropriate type. "Faceted" and "Grouped" plots uses the "Conditional" pairwise comparisons with classes summarized in the corresponding table; "Pooled" plots uses "Pooled" comparisons; plots with all factor level combinations in the x-axis \emph{ticks} uses "Complete" comparisons. Defaults to TRUE.}
 
-\item{boxplot_var_sep}{TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.}
+\item{boxplot_var_sep}{Whether to include boxplots made separately for every variable. Defaults to FALSE.}
 
 \item{colours}{A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).}
 
 \item{colours_theme}{A string representing the color palette to use for plots. Options listed in \code{ggplot2::scale_colour_brewer()} \strong{Palettes} section. Defaults to NULL.}
 
-\item{plot_out_png}{TRUE/FALSE indicating whether to save plots as .png in the working directory. Defaults to FALSE.}
+\item{plot_out_png}{Whether to save plots as .png in the working directory. Defaults to FALSE.}
 
-\item{plot_out_pptx}{TRUE/FALSE indicating whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.}
+\item{plot_out_pptx}{Whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.}
 
-\item{plot_out_R}{TRUE/FALSE indicating whether to output plots as ggplot2 objects in a list in R. Defaults to TRUE.}
+\item{plot_out_R}{Whether to output plots as ggplot2 objects in a list in R. Defaults to TRUE.}
 }
 \value{
 Returns a Word document containing at least the following types of results (in the given order):

@@ -5,29 +5,26 @@
 \title{Predict End Survival Rate}
 \usage{
 Surv_Pred(
-  pred_db,
-  ref_db,
-  predsr_tte,
-  method = 2,
-  coxph_mod = "GLMM",
-  lambda_pred = NULL,
-  phi_pred = NULL
+  surv_db,
+  ref_surv_db,
+  pred_tte,
+  pred_method = "simple",
+  plot_save = TRUE,
+  plot_prefix = "plot_prefix"
 )
 }
 \arguments{
-\item{pred_db}{Placeholder}
+\item{surv_db}{Placeholder}
 
-\item{ref_db}{Placeholder}
+\item{ref_surv_db}{Placeholder}
 
-\item{predsr_tte}{Placeholder}
+\item{pred_tte}{Placeholder}
 
-\item{method}{Placeholder}
+\item{pred_method}{Placeholder}
 
-\item{coxph_mod}{Placeholder}
+\item{plot_save}{Placeholder}
 
-\item{lambda_pred}{Placeholder}
-
-\item{phi_pred}{Placeholder}
+\item{plot_prefix}{Placeholder}
 }
 \value{
 Placeholder

@@ -427,7 +427,7 @@ Surv_Simul = function(haz_db,
   colnames(haz_db) = tolower(colnames(haz_db))
 
   #Validation checks
-  if(length(levels(factor(haz_db$tr.id))) > 1) {stop("Please use only one Trt.ID as reference in the supplied hazard dataframe.")}
+  if(length(levels(factor(haz_db$trt.id))) > 1) {stop("Please use only one Trt.ID as reference in the supplied hazard dataframe.")}
   if(n_sim >= 10000) {
     print("NOTE: It is not recommended to use n_sim > 10000 as this may create impractically large simulated data files (>1 GB).")
   }
@@ -846,19 +846,21 @@ theme_Publication = function(base_size = 14) {
 
 ################################################## Function 5 - Surv_Pred() #######################################################
 
-#' @title Predict End Survival Rate
+#' @title Predict Future Survival
 #'
-#' @description Predict survival rate for a given survival dataset provided a reference survival database used to estimate a reference hazard curve. Prediction done separately by treatment group.
+#' @description Compare survival characteristics to a reference data and predict future survival. Comparisons shown using Kaplan-Meier Survival Plot and Hazard Time Plot which are saved automatically to the working directory. Predictions tabulated and its history visualized. Outputs further detailed in \bold{Value}.
 #'
 #' @details P
 #'
-#' @param pred_db Placeholder
-#' @param ref_db Placeholder
-#' @param predsr_tte Placeholder
-#' @param method Placeholder
-#' @param coxph_mod Placeholder
-#' @param lambda_pred Placeholder
-#' @param phi_pred Placeholder
+#' @param surv_db A survival dataframe as described in \code{Surv_Plots()}, consisting of the four columns named TTE, Status, Trt.ID and Tank.ID. Example: \code{surv_db_ex} which is generated using \code{Surv_Gen()}.
+#' @param ref_surv_db A survival dataframe with the same column names as the supplied \code{surv_db}. Must only have one Trt.ID which represents the reference used for prediction.
+#' @param pred_tte A numeric representing the time to event at which the survival rate is to be predicted. Defaults to NULL where the maximum TTE observed in \code{ref_surv_db} is used.
+#' @param pred_method A string representing the method used to predict survival rate. Options are "simple" or "adaptive". Methods further discussed in \bold{Details}. Defaults to "simple".
+#' @param pred_dailybin Argument ignored if \code{ref_surv_db} contains multiple tanks. Whether to use daily (1 TTE interval) time bins in estimating the reference hazard curve. Defaults to TRUE. Further details in \code{Surv_Plots}.
+#' @param pred_phi Argument ignored if \code{ref_surv_db} contains multiple tanks. A numeric indicating the dispersion parameter to be used in the count model that estimates the reference hazard curve. Defaults to 1.5. Set to NULL for a data driven estimate. Further details in \code{Surv_Plots}.
+#' @param pred_lambda Argument ignored if \code{ref_surv_db} contains multiple tanks. A numeric indicating the smoothing parameter to be used in estimating the reference hazard curve. Ignored if \code{pred_phi} is not NULL. Defaults to NULL (data driven estimate). Further details in \code{Surv_Plots}.
+#' @param plot_save Whether to save plot outputs in the working directory. Defaults to TRUE.
+#' @param plot_prefix A string specifying the prefix of the filename of the saved plots.  Defaults to "ONDA_XX".
 #'
 #' @return Placeholder
 #'
@@ -871,108 +873,225 @@ theme_Publication = function(base_size = 14) {
 #'
 #' @examples
 #' #Placeholder
-Surv_Pred = function(pred_db, #Data from ongoing study, with SR to be predicted. See \bold{Details} for specifics.
-                     ref_db, #Reference survival data from to create the reference hazard function.
-                     predsr_tte, #The day at which SR is to be predicted. Minimum is Day 5 post challenge.
-                     method = 2, #SR prediction method. See \bold{Details} for more info.
-                     coxph_mod = "GLMM", #Model used to estimate HR. Can be either "GLMM" or "GEE". See \bold{Details} for more info.
-                     lambda_pred = NULL, #Lambda parameter for the bshazard curve of the predicted dataset.
-                     phi_pred = NULL)
-{
-  #Ensure positive TTE
-  pred_db = pred_db[pred_db$TTE > 0, ]
-  ref_db = ref_db[ref_db$TTE > 0, ]
+Surv_Pred = function(surv_db,
+                     ref_surv_db,
+                     pred_tte = NULL,
+                     pred_method = "simple",
+                     pred_dailybin = TRUE,
+                     pred_phi = 1.5,
+                     pred_lambda = NULL,
+                     plot_save = TRUE,
+                     plot_prefix = "ONDA_XX"){
 
-  #Get reference level hazard curve
-  ref_id = levels(as.factor(ref_db$Trt.ID))
-  ref_db$Trt.ID = paste("ref", ref_id)
-  ref_bshaz = bshazard::bshazard(data = ref_db, survival::Surv(TTE, Status) ~ Tank.ID,
-                                 verbose = FALSE)
+ #Default pred_tte
+ if(is.null(pred_tte)) {pred_tte <- max(ref_TTE0)}
 
-  #Initialize dataframes
-  pred_SR_DB = data.frame()
-  haz_db = data.frame()
+ #Set 0 offset time
+ ref_TTE0 = ref_surv_db$TTE
 
-  #Loop for every treatment
-  for(pred_trt in levels(as.factor(pred_db$Trt.ID))) {
+ #Initialize dataframes
+ Pred_Stats = data.frame()
+ Pred_Stats_Offset = data.frame()
 
-    #Combine reference and sample hazard dataframes
-    comb_db = rbind(ref_db, pred_db[pred_db$Trt.ID == pred_trt,])
-    comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = paste("ref", ref_id))
+ #Set parameters for ref_bshaz estimation
+ if(length(unique(ref_surv_db$Tank.ID)) == 1) {
+   if(pred_dailybin == TRUE) {dbin <- max(ref_surv_db$TTE)} else {dbin <- NULL}
+ } else {
+   pred_phi = NULL
+   pred_lambda = NULL
+   pred_dailybin = FALSE
+   dbin = NULL
+ }
 
-    #Get HR and SR for every predictable day
-    for(SR_Day in 5:(predsr_tte-1)) {
-      comb_db2 = survival::survSplit(comb_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
-      comb_db2 = comb_db2[comb_db2$Obs == 1, ]
+ #Get reference level hazard curve
+ ref_id = levels(as.factor(ref_surv_db$Trt.ID))
+ ref_surv_db$Trt.ID = paste("ref", ref_id)
+ ref_bshaz = bshazard::bshazard(data = ref_surv_db, survival::Surv(TTE, Status) ~ Tank.ID,
+                                verbose = FALSE, phi = pred_phi, lambda = pred_lambda,
+                                nbin = dbin)
 
-      #HR Calculation
-      if(coxph_mod == "GLMM"){cox_comp = coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID),
-                                                        data = comb_db2)}
-      if(coxph_mod == "GEE"){cox_comp = survival::coxph(survival::Surv(TTE, Status) ~ Trt.ID, cluster = Tank.ID,
-                                                          data = comb_db2)}
-      pred_HR = exp(coef(cox_comp))
+ #Produce offset times
+ show_offset = TRUE
+ if(show_offset == TRUE) {ref_tte_offset_vec <- c(-1, 0, 1) * 2} else {ref_tte_offset_vec <- 0}
 
-      #SR Calculation
-      ref_bshaz_t = data.frame(hazard = ref_bshaz$hazard[ref_bshaz$time < predsr_tte],
-                                 time = ref_bshaz$time[ref_bshaz$time < predsr_tte])
+ #Repeat for different offset times
+ for(ref_tte_offset in ref_tte_offset_vec) {
 
-        #Uses the shape of the reference hazard curve throughout
-        if(method == 1) {
-          cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time),
-                                  y = c(ref_bshaz_t$hazard) * pred_HR)
-          pred_SR = 100 * exp(-cumhaz)
-        }
+   #Ensure positive TTE
+   surv_db = surv_db[surv_db$TTE > 0, ]
+   ref_surv_db$TTE = ref_TTE0 + ref_tte_offset
+   ref_surv_db = ref_surv_db[ref_surv_db$TTE > 0, ]
 
-        #Uses the shape of the reference and supplied/observable hazard curve
-        if(method == 2) {
+   #Print warning message if ref_surv_db end TTE < pred_tte
+   if(max(ref_surv_db$TTE) < pred_tte) {
+     warning(paste(sep = "", "The desired 'pred_tte' (", pred_tte,
+                   ") is greater than the maximum in the reference database (",
+                   max(ref_surv_db$TTE) ,") given the TTE offset of ", ref_tte_offset,
+                   ". For this offset, predictions are for 'pred_tte' ", ref_tte_offset,
+                   " (i.e. TTE = ", max(ref_surv_db$TTE),")."))
+   }
 
-          #Split survival data for calculating cumulative hazard using the reference and the observable hazard curve
-          pred_db2 = survival::survSplit(pred_db, cut = SR_Day, end = "TTE", event = "Status", episode = "Obs")
-          pred_db2 = pred_db2[pred_db2$Obs == 1, ]
+   #Loop for every treatment
+   for(pred_trt in levels(as.factor(surv_db$Trt.ID))) {
 
-          #observable hazard curve
-          pred_bshaz = bshazard::bshazard(data = droplevels(pred_db2[pred_db2$Trt.ID == pred_trt,]),
-                                          survival::Surv(TTE, Status) ~ Tank.ID, verbose = FALSE, lambda = lambda_pred)
-          cumhaz_precut = DescTools::AUC(x = c(pred_bshaz$time),
-                                         y = c(pred_bshaz$hazard))
+     #Combine reference and observed hazard dataframes
+     surv_db_f = surv_db[surv_db$Trt.ID == pred_trt,]
+     comb_db = rbind(ref_surv_db, surv_db_f)
+     comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = paste("ref", ref_id))
 
-          #reference hazard curve
-          ref_bshaz_t2 = ref_bshaz_t[ref_bshaz_t$time > SR_Day,]
-          cumhaz_postcut = DescTools::AUC(x = c(ref_bshaz_t2$time),
-                                          y = c(ref_bshaz_t2$hazard) * pred_HR)
+     min2_tte = max(min(surv_db_f$TTE), min(ref_surv_db$TTE))
+     max_tte = max(surv_db_f$TTE)
 
-          if(is.na(cumhaz_postcut)) {cumhaz_postcut <- 0}
-          pred_SR = 100 * exp(-(cumhaz_precut + cumhaz_postcut))
-        }
+     #Predict End SR and HR using different cuts
+     for(cut_day in min2_tte:max_tte) {
+       comb_db2 = survival::survSplit(comb_db, cut = cut_day, end = "TTE", event = "Status", episode = "Obs")
+       comb_db2 = comb_db2[comb_db2$Obs == 1, ]
 
-      #Get prediction database
-      pred_SR_DB = rbind(pred_SR_DB, data.frame(Trt.ID = pred_trt,
-                                                Observable_SR_Day = SR_Day,
-                                                pred_SR,
-                                                pred_HR))
-    }
-  }
+       #HR Calculation
+       cox_comp = suppressWarnings(coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID),
+                                                data = comb_db2))
+       pred_HR = exp(coef(cox_comp))
 
-  row.names(pred_SR_DB) = NULL
+       #SR Calculation
+       ref_bshaz_t = data.frame(hazard = ref_bshaz$hazard[ref_bshaz$time < pred_tte],
+                                time = ref_bshaz$time[ref_bshaz$time < pred_tte])
 
-  #Create plots representing survival and hazard predictions over time
-  Pred_SR_Plot = ggplot(data = pred_SR_DB, aes(x = Observable_SR_Day, y = pred_SR, color = Trt.ID)) +
-    geom_point() +
-    geom_line() +
-    facet_wrap(~Trt.ID) +
-    scale_y_continuous(name = paste("Predicted Survival (%) on TTE = ", predsr_tte), breaks = seq(0, 100, 10), limits = c(0, 100)) +
-    scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, 1))
+       #Uses the shape of the reference hazard curve throughout
+       if(pred_method == "simple") {
+         cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time),
+                                 y = c(ref_bshaz_t$hazard) * pred_HR)
+         pred_SR = 100 * exp(-cumhaz)
+       }
 
-  Pred_HR_Plot = ggplot(data = pred_SR_DB, aes(x = Observable_SR_Day, y = pred_HR, color = Trt.ID)) +
-    geom_point() +
-    geom_line() +
-    facet_wrap(~Trt.ID) +
-    scale_y_continuous(name = paste("Predicted HR ", predsr_tte)) +
-    scale_x_continuous(name = "Observable TTEs used in Prediction", breaks = seq(0, 100, 1))
+       #Uses obseved survival and the reference hazard curve
+       if(pred_method == "adaptive") {
 
-  return(list(survival_prediction = pred_SR_DB,
-              surv_pred_time_plot = Pred_SR_Plot,
-              hr_pred_time_plot = Pred_HR_Plot))
+         #Split survival data for calculating cumulative hazard using the reference and the observable hazard curve
+         cut_db = survival::survSplit(surv_db, cut = cut_day + 1, end = "TTE", event = "Status", episode = "Obs")
+         precut_db = cut_db[cut_db$Obs == 1, ]
+
+         #Precut surv using surv_db
+         precut_surv = min(summary(survfit(Surv(TTE, Status) ~ 1,
+                                           data = droplevels(precut_db[precut_db$Trt.ID == pred_trt,])))$surv)
+         cumhaz_precut = -log(precut_surv)
+
+         #Postcut bshaz using ref_surv_db
+         postcut_bshaz = ref_bshaz_t[ref_bshaz_t$time > cut_day,]
+         if(nrow(postcut_bshaz) > 1) {
+           cumhaz_postcut = DescTools::AUC(x = c(postcut_bshaz$time),
+                                           y = c(postcut_bshaz$hazard) * pred_HR)
+         } else {
+           cumhaz_postcut = 0
+         }
+
+         if(is.na(cumhaz_postcut)) {cumhaz_postcut <- 0}
+         pred_SR = 100 * exp(-(cumhaz_precut + cumhaz_postcut))
+       }
+
+       #Rbind to create prediction database
+       if(ref_tte_offset == 0) {
+         Pred_Stats = rbind(Pred_Stats, data.frame(Trt.ID = pred_trt,
+                                                   TTE_Used = cut_day,
+                                                   pred_SR,
+                                                   pred_HR))
+       } else {
+         Pred_Stats_Offset = rbind(Pred_Stats_Offset, data.frame(ref_tte_offset,
+                                                                 Trt.ID = pred_trt,
+                                                                 TTE_Used = cut_day,
+                                                                 pred_SR,
+                                                                 pred_HR))
+       }
+     }
+   }
+ }
+
+ row.names(Pred_Stats) = NULL
+ row.names(Pred_Stats_Offset) = NULL
+
+ #Create plots representing survival and hazard predictions over time
+ x_breaks = round((max(Pred_Stats$TTE_Used) - min(Pred_Stats$TTE_Used)) / 5)
+
+ Pred_SR_Plot = ggplot(data = Pred_Stats, aes(x = TTE_Used, y = pred_SR, color = Trt.ID)) +
+   geom_point() +
+   geom_line() +
+   facet_wrap(~Trt.ID) +
+   scale_y_continuous(name = paste("Predicted SR at a TTE of", pred_tte),
+                      breaks = seq(0, 100, 20), limits = c(0, 100)) +
+   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, x_breaks)) +
+   ggtitle("SR Prediction History")
+
+ Pred_HR_Plot = ggplot(data = Pred_Stats, aes(x = TTE_Used, y = pred_HR, color = Trt.ID)) +
+   geom_point() +
+   geom_line() +
+   facet_wrap(~Trt.ID) +
+   scale_y_continuous(name = paste("Predicted HR at a TTE of", pred_tte), n.breaks = 6) +
+   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, x_breaks)) +
+   ggtitle("HR Prediction History")
+
+ if(show_offset == TRUE){
+   Pred_SR_Plot = Pred_SR_Plot +
+     geom_line(data = Pred_Stats_Offset[Pred_Stats_Offset$ref_tte_offset == ref_tte_offset_vec[1],],
+               linetype = "dashed", show.legend = FALSE) +
+     geom_line(data = Pred_Stats_Offset[Pred_Stats_Offset$ref_tte_offset == ref_tte_offset_vec[3],],
+               linetype = "dashed", show.legend = FALSE)
+
+   Pred_HR_Plot = Pred_HR_Plot +
+     geom_line(data = Pred_Stats_Offset[Pred_Stats_Offset$ref_tte_offset == ref_tte_offset_vec[1],],
+               linetype = "dashed", show.legend = FALSE) +
+     geom_line(data = Pred_Stats_Offset[Pred_Stats_Offset$ref_tte_offset == ref_tte_offset_vec[3],],
+               linetype = "dashed", show.legend = FALSE)
+ }
+
+ #Create Projection Plots
+ ref_surv_db$TTE = ref_TTE0
+ ref_plot_db = layer_data(safuncs::Surv_Plots(surv_db = ref_surv_db,
+                                              plot = "surv",
+                                              plot_save = FALSE))
+ ref_plot_db2 = layer_data(safuncs::Surv_Plots(surv_db = ref_surv_db,
+                                               plot = "haz",
+                                               lambda = pred_lambda,
+                                               phi = pred_phi,
+                                               dailybin = pred_dailybin,
+                                               plot_save = FALSE))
+
+ Comp_SR_Plot = safuncs::Surv_Plots(surv_db = surv_db,
+                                    plot = "surv",
+                                    xlim = c(0, pred_tte),
+                                    plot_save = FALSE) +
+   geom_step(data = ref_plot_db, inherit.aes = FALSE, show.legend = FALSE,
+             aes(x = x, y = y), linewidth = 1) +
+   ggtitle("Survival Rate Comparisons")
+
+ Comp_HR_Plot = safuncs::Surv_Plots(surv_db = surv_db,
+                                    plot = "haz",
+                                    xlim = c(0, pred_tte),
+                                    lambda = pred_lambda,
+                                    phi = pred_phi,
+                                    dailybin = pred_dailybin,
+                                    plot_save = FALSE) +
+   geom_line(data = ref_plot_db2, inherit.aes = FALSE, show.legend = FALSE, aes(x = x, y = y),
+             linewidth = 1) +
+   ggtitle("Hazard Rate Comparisons")
+
+ #Save plots
+ if(plot_save == TRUE) {
+   ggsave(plot = Pred_SR_Plot, filename = paste(sep = "", plot_prefix, " SR Prediction History.tiff"),
+          dpi = 400, width = 7, height = 4.1)
+   ggsave(plot = Pred_HR_Plot, filename = paste(sep = "", plot_prefix, " HR Prediction History.tiff"),
+          dpi = 400, width = 7, height = 4.1)
+   ggsave(plot = Comp_SR_Plot, dpi = 400, width = 6, height = 4,
+          filename = paste(sep = "", plot_prefix, " Survival Comparisons.tiff"))
+   ggsave(plot = Comp_HR_Plot, dpi = 400, width = 6, height = 4,
+          filename = paste(sep = "", plot_prefix, " Hazard Comparisons.tiff"))
+ }
+
+ #Return Outputs
+ return(list(Comp_SR_Plot = Comp_SR_Plot,
+             Comp_HR_Plot = Comp_HR_Plot,
+             Pred_TTE = Pred_Stats[Pred_Stats$TTE_Used == max(Pred_Stats$TTE_Used), - which(colnames(Pred_Stats) == "TTE Used")],
+             Pred_History = Pred_Stats,
+             Pred_SR_Plot = Pred_SR_Plot,
+             Pred_HR_Plot = Pred_HR_Plot))
 }
 
 ################################################## Function 6 - Surv_Gen() ########################################################
@@ -1057,7 +1176,7 @@ Surv_Gen = function(mort_db,
   #Count the number of rows in mort_db, for each combination of treatment and tank ID
   DB_Mort_Gensum = data.frame(mort_db %>%
                                 dplyr::group_by(Trt.ID, Tank.ID) %>%
-                                dplyr::summarise(Num_dead = dplyr::n()))
+                                dplyr::summarise(Num_dead = dplyr::n(), .groups = "keep"))
 
   #Include tanks without morts in the count database
   if(!is.null(tank_without_mort) && !is.null(trt_without_mort)) {
@@ -1118,7 +1237,7 @@ Surv_Gen = function(mort_db,
 
 #' Generate Survival Plots
 #'
-#' @description Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.
+#' @description Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Curves for each tank can also be generated using the argument \code{plot_bytank = TRUE}. Plots saved by automatically to working directory.
 #'
 #' @details The survival dataset should be a dataframe containing at least 4 different columns:
 #' * "Trt.ID" = Labels for treatment groups in the study.
@@ -1134,10 +1253,9 @@ Surv_Gen = function(mort_db,
 #' @md
 #'
 #' @param surv_db A survival dataframe as described in \bold{Details}.
-#' @param plot_prefix A string specifying the prefix for the filename of the saved plots.
 #' @param xlim A vector specifying the plots x-axis lower and upper limits, respectively.
-#' @param ylim A vector specifying the Survival Plot y-axis lower and upper limits, respectively.
-#' @param xlab A string specifying the plot x-axis label.
+#' @param ylim A vector specifying the Survival Plot y-axis lower and upper limits, respectively. Defaults to c(0, 1) which indicates 0 to 100% Survival Probability, respectively.
+#' @param xlab A string specifying the plot x-axis label. Defaults to "Days Post Challenge".
 #' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard::bshazard()} uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
 #' @param phi Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate phi; NULL specification is recommended for large sample size situations. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (QCATC997; phi ~ 0.8-1.4) where there are large sample sizes with tank-replication. The phi value of 1 indicates the set of counts (deaths) over time have a Poisson distribution, following the different hazard rates along the curve and are not overdispersed (phi > 1).
 #' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE for large sample sizes (often with tank replication), although at large sample sizes either TRUE or FALSE produces similar results usually. Defaults to TRUE.
@@ -1146,6 +1264,9 @@ Surv_Gen = function(mort_db,
 #' @param theme A string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
 #' @param trt_order Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.
 #' @param data_out Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.
+#' @param plot_bytank Whether to analyze and plot the data by tanks. Defaults to FALSE.
+#' @param plot_save Whether to save plots in the working directory.
+#' @param plot_prefix A string specifying the prefix for the filename of the saved plots. Defaults to "ONDA_XX".
 #' @param plot_dim Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.
 #'
 #' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed \bold{Examples} which includes any figure outputs.
@@ -1165,7 +1286,7 @@ Surv_Gen = function(mort_db,
 #'                     starting_fish_count = 100,
 #'                     last_tte = 54)
 #'
-#' # Create plot by inputting surv_dat into Surv_Plots()!
+#' # Create plot by feeding surv_dat to Surv_Plots()!
 #' Surv_Plots(surv_db = surv_dat,
 #'            plot_prefix = "QCATC777",
 #'            xlim = c(0, 54),
@@ -1173,8 +1294,18 @@ Surv_Gen = function(mort_db,
 #'            xlab = "TTE",
 #'            plot = "both",
 #'            dailybin = FALSE)
+#'
+#' # To get tank-specific plots and insights, set the argument plot_bytank to TRUE.
+#' Surv_Plots(surv_db = surv_dat,
+#'            plot_prefix = "QCATC777",
+#'            xlim = c(0, 54),
+#'            ylim = c(0, 1),
+#'            xlab = "TTE",
+#'            plot = "both",
+#'            dailybin = FALSE,
+#'            phi = 1.5, #often needed for accurate estimation in single tank/group cases
+#'            plot_bytank = TRUE)
 Surv_Plots = function(surv_db,
-                      plot_prefix = "plot_prefix",
                       xlim = NULL,
                       ylim = c(0, 1),
                       xlab = "Days Post Challenge",
@@ -1186,41 +1317,60 @@ Surv_Plots = function(surv_db,
                       theme = "ggplot",
                       trt_order = NULL,
                       data_out = FALSE,
+                      plot_bytank = FALSE,
+                      plot_save = TRUE,
+                      plot_prefix = "ONDA_XX",
                       plot_dim = c(6, 4)) {
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
   if(!is.null(trt_order)){surv_db$Trt.ID = factor(surv_db$Trt.ID, levels = trt_order)}
 
   if(plot == "surv" | plot == "both") {
-  surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
 
-    if(length(levels(as.factor(surv_db$Trt.ID))) > 1) {
-      attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
+    if(plot_bytank == TRUE) {
+      surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID + Tank.ID, data = surv_db)
     } else {
-      surv_obj$strata = length(surv_obj$surv)
-      attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
+      surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
     }
 
-  surv_dat = data.frame(Trt.ID = summary(surv_obj)$strata,
-                        Survprob = summary(surv_obj)$surv,
-                        Time = summary(surv_obj)$time)
+    surv_dat = data.frame(Trt.ID = summary(surv_obj)$strata,
+                          Survprob = summary(surv_obj)$surv,
+                          Time = summary(surv_obj)$time)
 
-  surv_plot = survminer::ggsurvplot(surv_obj,
-                                    conf.int = FALSE,
-                                    ggtheme = theme(plot.background = element_rect(fill = "white")),
-                                    break.y.by = 0.1,
-                                    break.x.by = max(round(max(xlim) / 13), 1),
-                                    xlim = xlim,
-                                    ylim = ylim,
-                                    xlab = xlab,
-                                    surv.scale = "percent")
-  Survival_Plot = surv_plot$plot + theme(legend.position = "right") + guides(color = guide_legend("Trt.ID"))
-  if(theme == "prism") {Survival_Plot = Survival_Plot + ggprism::theme_prism()}
-  eoffice::topptx(figure = Survival_Plot, filename = paste(plot_prefix, "Survival-Curve.pptx", sep = "-"), width = plot_dim[1], height = plot_dim[2])
+    if(plot_bytank == TRUE){
+      surv_dat = tidyr::separate(data = surv_dat, col = "Trt.ID", sep = ",", into = c("Trt.ID", "Tank.ID"))
+      surv_dat$Tank.ID = sub("^.*=", "", surv_dat$Tank.ID)
+    }
+    surv_dat$Trt.ID = sub("^.*=", "", surv_dat$Trt.ID)
 
-  if(!is.null(colours)) {Survival_Plot = Survival_Plot + scale_color_manual(values = colours)}
-  ggsave(paste(plot_prefix, "Survival-Curve.tiff", sep = "-"), dpi = 300, width = plot_dim[1], height = plot_dim[2], plot = Survival_Plot)
+    surv_plot = survminer::ggsurvplot(surv_obj,
+                                      conf.int = FALSE,
+                                      ggtheme = theme(plot.background = element_rect(fill = "white")),
+                                      facet.by = if(plot_bytank == TRUE) {"Trt.ID"} else {NULL},
+                                      surv.scale = "percent",
+                                      short.panel.labs = TRUE)
+    if(plot_bytank == TRUE){
+      surv_plot$scales$scales = list()
+      Survival_Plot = surv_plot + guides(color = guide_legend("Tank.ID")) + theme(legend.position = "right") +
+        scale_x_continuous(n.breaks = 10, name = xlab, limits = xlim) +
+        scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10)
+    } else {
+      surv_plot$plot$scales$scales = list()
+      Survival_Plot = surv_plot$plot + guides(color = guide_legend("Trt.ID")) + theme(legend.position = "right") +
+        scale_x_continuous(n.breaks = 10, name = xlab, limits = xlim) +
+        scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10)
+    }
 
+    if(theme == "prism") {Survival_Plot <- Survival_Plot + ggprism::theme_prism()}
+    if(!is.null(colours)) {Survival_Plot <- Survival_Plot + scale_color_manual(values = colours)}
+
+    #Save Plots
+    if(plot_save == TRUE){
+      ggsave(paste(plot_prefix, "Survival-Curve.tiff", sep = "-"), dpi = 300,
+             width = plot_dim[1], height = plot_dim[2], plot = Survival_Plot)
+      eoffice::topptx(figure = Survival_Plot, width = plot_dim[1], height = plot_dim[2],
+                      filename = paste(plot_prefix, "Survival-Curve.pptx", sep = "-"))
+    }
   }
 
   if(dailybin == TRUE) {dbin <- max(surv_db$TTE)}
@@ -1228,48 +1378,74 @@ Surv_Plots = function(surv_db,
 
   #create Haz_list
   if(plot == "haz" | plot == "both") {
-  Haz_list = list()
-  for(Haz_Trt in levels(as.factor(surv_db$Trt.ID))) {
-    surv_db_trt = surv_db[surv_db$Trt.ID == Haz_Trt,]
-    if(sum(surv_db_trt$Status) == 0){
-      Haz_list[[Haz_Trt]] = data.frame(Hazard = 0,
-                                       Time = rep(0, max(surv_db$TTE), 1))
+    Haz_list = list()
+    if(plot_bytank == TRUE) {
+      surv_db$group = interaction(surv_db$Trt.ID, surv_db$Tank.ID, lex.order = TRUE, sep = ",")
+      Haz_Group_Vec = levels(factor(surv_db$group))
     } else {
-      if(length(levels(as.factor(surv_db_trt$Tank.ID))) > 1) {
-        Haz_bs = bshazard::bshazard(nbin = dbin,
-                                    data = surv_db_trt,
-                                    survival::Surv(TTE, Status) ~ Tank.ID,
-                                    verbose = FALSE,
-                                    lambda = lambda,
-                                    phi = phi)
-      } else {
-        Haz_bs = bshazard::bshazard(nbin = dbin,
-                                    data = surv_db_trt,
-                                    survival::Surv(TTE, Status) ~ 1,
-                                    verbose = FALSE,
-                                    lambda = lambda,
-                                    phi = phi)
-      }
-      Haz_list[[Haz_Trt]] = data.frame(Hazard = Haz_bs$hazard,
-                                       Time = Haz_bs$time)
+      Haz_Group_Vec = levels(as.factor(surv_db$Trt.ID))
     }
-  }
 
-  haz_db = dplyr::bind_rows(Haz_list, .id = "Trt.ID")
-  if(!is.null(trt_order)){haz_db$Trt.ID = factor(haz_db$Trt.ID, levels = trt_order)}
-  Hazard_Plot = ggplot(data = haz_db, aes(x = Time, y = Hazard, color = Trt.ID)) +
-    geom_line(linewidth = 1) +
-    geom_point() +
-    xlab(xlab) +
-    scale_x_continuous(breaks = seq(from = min(xlim),
-                                    to = max(xlim),
-                                    by = max(round(max(xlim) / 13), 1)),
-                       limits = xlim)
+    for(Haz_Group in Haz_Group_Vec) {
+      if(plot_bytank == TRUE) {
+        surv_db_group = surv_db[surv_db$group == Haz_Group,]
+        surv_db_group$group = droplevels(surv_db_group$group)
+      } else {
+        surv_db_group = surv_db[surv_db$Trt.ID == Haz_Group,]
+      }
 
-  if(!is.null(colours)) {Hazard_Plot = Hazard_Plot + scale_color_manual(values = colours)}
-  if(theme == "prism") {Hazard_Plot = Hazard_Plot + ggprism::theme_prism()}
-  ggsave(paste(plot_prefix, "Hazard-Curve.tiff", sep = "-"), dpi = 300, width = plot_dim[1], height = plot_dim[2], plot = Hazard_Plot)
-  eoffice::topptx(figure = Hazard_Plot, filename = paste(plot_prefix, "Hazard-Curve.pptx", sep = "-"), width = plot_dim[1], height = plot_dim[2])
+      if(sum(surv_db_group$Status) == 0){
+        Haz_list[[Haz_Group]] = data.frame(Hazard = 0,
+                                           Time = rep(0, max(surv_db$TTE), 1))
+      } else {
+        if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {
+          Haz_bs = suppressWarnings(bshazard::bshazard(nbin = dbin,
+                                                       data = surv_db_group,
+                                                       survival::Surv(TTE, Status) ~ Tank.ID,
+                                                       verbose = FALSE,
+                                                       lambda = lambda,
+                                                       phi = phi))
+        } else {
+          Haz_bs = suppressWarnings(bshazard::bshazard(nbin = dbin,
+                                                       data = surv_db_group,
+                                                       survival::Surv(TTE, Status) ~ 1,
+                                                       verbose = FALSE,
+                                                       lambda = lambda,
+                                                       phi = phi))
+        }
+        Haz_list[[Haz_Group]] = data.frame(Hazard = Haz_bs$hazard,
+                                           Time = Haz_bs$time)
+      }
+    }
+
+    haz_db = dplyr::bind_rows(Haz_list, .id = "Trt.ID")
+    if(plot_bytank == TRUE){
+      haz_db = tidyr::separate(data = haz_db, col = "Trt.ID", into = c("Trt.ID", "Tank.ID"), sep = ",")
+    }
+    if(!is.null(trt_order)){haz_db$Trt.ID <- factor(haz_db$Trt.ID, levels = trt_order)}
+
+    Hazard_Plot = ggplot(data = haz_db, aes(x = Time, y = Hazard, color = Trt.ID)) +
+      geom_line(linewidth = 1) +
+      geom_point() +
+      xlab(xlab) +
+      scale_x_continuous(n.breaks = 10,
+                         limits = xlim) +
+      scale_y_continuous(n.breaks = 6, name = "Hazard Rate")
+
+    if(plot_bytank == TRUE) {
+      Hazard_Plot$mapping = aes(x = Time, y = Hazard, color = Tank.ID)
+      Hazard_Plot <- Hazard_Plot + facet_wrap(~ Trt.ID)
+    }
+    if(!is.null(colours)) {Hazard_Plot <- Hazard_Plot + scale_color_manual(values = colours)}
+    if(theme == "prism") {Hazard_Plot <- Hazard_Plot + ggprism::theme_prism()}
+
+    #Save plots
+    if(plot_save == TRUE) {
+      ggsave(paste(plot_prefix, "Hazard-Curve.tiff", sep = "-"), dpi = 300,
+             width = plot_dim[1], height = plot_dim[2], plot = Hazard_Plot)
+      eoffice::topptx(figure = Hazard_Plot, filename = paste(plot_prefix, "Hazard-Curve.pptx", sep = "-"),
+                      width = plot_dim[1], height = plot_dim[2])
+    }
   }
 
   if(data_out == TRUE) {
@@ -1922,23 +2098,23 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' @param pca_labels A character vector representing the labels to draw in PCA plots. Choose any combination of "ind" and/or "var". "ind" represents individual point labels by their row number. "var" represents variable loadings drawn as arrows; the arrow length and direction are calculated as in \code{factoextra::fviz_pca_biplot()}. Defaults to NULL (no labels drawn).
 #' @param pca_shapes TRUE/FALSE indicating whether to use different shapes for each factor level in PCA plots. Defaults to FALSE. Different shapes are not provided for plots with greater than 6 factor levels.
 #' @param missing_method A string representing the method to address missing values in \code{values_cols}. Choose from "imputation" or "na_omit". "imputation" fills in missing values with values created (imputed) based on the correlation between variables essentially; accomplished using \code{missMDA::imputePCA()} with the ncp parameter \code{missMDA::estim_ncpPCA()}. "na_omit" removes entire rows of data when at least one NA value is present. This method may result in a significant loss of data. Defaults to "imputation". The choice of \code{missing_method} would affect PCA, LDA, and MANOVA results but likely only to a small degree with few missing values. Has no impact on boxplots and ANOVAs.
-#' @param scale TRUE/FALSE indicating whether to scale variable values (such that SD = 1 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.
-#' @param center TRUE/FALSE indicating whether to center variable values (such that mean = 0 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.
-#' @param boxplot_filled TRUE/FALSE indicating whether to color the insides of boxplots and points (i.e. fill them). If FALSE, boxplots and points are hollow with colored borders using \code{colour} in \code{ggplot2::aes()}, instead of using \code{fill}. Defaults to TRUE.
+#' @param scale Whether to scale variable values (such that SD = 1 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.
+#' @param center Whether to center variable values (such that mean = 0 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.
+#' @param boxplot_filled Whether to color the insides of boxplots and points (i.e. fill them). If FALSE, boxplots and points are hollow with colored borders using \code{colour} in \code{ggplot2::aes()}, instead of using \code{fill}. Defaults to TRUE.
 #' @param boxplot_x_angle A number describing the degree of tilt in the x-axis labels of the boxplots. Defaults to NULL (horizontal labels).
 #' @param boxplot_x_wrap The maximum number of characters on a single line that would be split if a space bar is available between them. Defaults to NULL (no text wrapping).
-#' @param boxplot_x_lab TRUE/FALSE indicating whether to include a title for the x-axis of the boxplots. Defaults to FALSE.
-#' @param boxplot_x_text TRUE/FALSE indicating whether to include the text for the x-axis of the boxplots. Defaults to TRUE.
+#' @param boxplot_x_lab Whether to include a title for the x-axis of the boxplots. Defaults to FALSE.
+#' @param boxplot_x_text Whether to include the text for the x-axis of the boxplots. Defaults to TRUE.
 #' @param boxplot_legend_pos A string representing the position of the legend for boxplot. Options are "none", "bottom", "top", "left", "right". Use "none" to remove legend. Defaults to "right".
-#' @param boxplot_points TRUE/FALSE indicating whether to include points in boxplots. Defaults to TRUE.
-#' @param boxplot_outliers TRUE/FALSE indicating whether to plot outliers in boxplots. Useful when points have been removed using \code{boxplot_points = FALSE}. Defaults to FALSE.
-#' @param boxplot_letters TRUE/FALSE indicating whether statistical classes, denoted by different letters, should be displayed in boxplots. Classes are determined from pairwise comparisons of the appropriate type. "Faceted" and "Grouped" plots uses the "Conditional" pairwise comparisons with classes summarized in the corresponding table; "Pooled" plots uses "Pooled" comparisons; plots with all factor level combinations in the x-axis \emph{ticks} uses "Complete" comparisons.
-#' @param boxplot_var_sep TRUE/FALSE indicating whether to include boxplots made separately for every variable. Defaults to FALSE.
+#' @param boxplot_points Whether to include points in boxplots. Defaults to TRUE.
+#' @param boxplot_outliers Whether to plot outliers in boxplots. Useful when points have been removed using \code{boxplot_points = FALSE}. Defaults to FALSE.
+#' @param boxplot_letters Whether statistical classes, denoted by different letters, should be displayed in boxplots. Classes are determined from pairwise comparisons of the appropriate type. "Faceted" and "Grouped" plots uses the "Conditional" pairwise comparisons with classes summarized in the corresponding table; "Pooled" plots uses "Pooled" comparisons; plots with all factor level combinations in the x-axis \emph{ticks} uses "Complete" comparisons. Defaults to TRUE.
+#' @param boxplot_var_sep Whether to include boxplots made separately for every variable. Defaults to FALSE.
 #' @param colours A named character vector specifying the colors to use for different factor levels. E.g. For a factor with levels "A", "B", and "C", the \code{colours} vector may look like \code{c('A' = "brown", B = 'blue', C = '#f8e723')}. Defaults to NULL (default ggplot2 colours).
 #' @param colours_theme A string representing the color palette to use for plots. Options listed in \code{ggplot2::scale_colour_brewer()} \strong{Palettes} section. Defaults to NULL.
-#' @param plot_out_png TRUE/FALSE indicating whether to save plots as .png in the working directory. Defaults to FALSE.
-#' @param plot_out_pptx TRUE/FALSE indicating whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.
-#' @param plot_out_R TRUE/FALSE indicating whether to output plots as ggplot2 objects in a list in R. Defaults to TRUE.
+#' @param plot_out_png Whether to save plots as .png in the working directory. Defaults to FALSE.
+#' @param plot_out_pptx Whether to save plots as editable forms in .pptx in the working directory. Defaults to FALSE.
+#' @param plot_out_R Whether to output plots as ggplot2 objects in a list in R. Defaults to TRUE.
 #'
 #' @return Returns a Word document containing at least the following types of results (in the given order):
 #'
@@ -2436,9 +2612,11 @@ MultiVar = function(multivar_db,
                         width = pca_width, height = pca_height, append = TRUE)
       }
       ggsave(plot = pca_list[[ellipse_i]][[treatment_conds_i]], filename = paste(sep = "", pca_name, ".png"),
-             path = img_path, dpi = 600, width = pca_width, height = pca_height)
+             path = img_path, dpi = 600, height = ifelse(facet_col == 2, pca_height + 1, pca_height),
+             width = pca_width)
       results_doc = officer::body_add_img(x = results_doc, sr = file.path(img_path, paste(pca_name, ".png", sep = "")),
-                                          width = pca_width, height = pca_height) %>%
+                                          height = ifelse(facet_col == 2, pca_height + 1, pca_height),
+                                          width = pca_width) %>%
         officer::body_add_par(value = pca_name, style = "graphic title") %>%
         officer::body_add_par("")
       if((last(treatment_conds) == treatment_conds_i) & (last(pca_ellipse) == ellipse_i)){} else {

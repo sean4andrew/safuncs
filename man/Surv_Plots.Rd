@@ -18,6 +18,7 @@ Surv_Plots(
   theme = "ggplot",
   trt_order = NULL,
   data_out = FALSE,
+  plot_save = TRUE,
   plot_dim = c(6, 4)
 )
 }
@@ -48,6 +49,8 @@ Surv_Plots(
 
 \item{data_out}{Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.}
 
+\item{plot_save}{Whether to save plots in the working directory.}
+
 \item{plot_dim}{Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.}
 }
 \value{
@@ -56,7 +59,7 @@ Returns a list containing the Kaplan-Meier Survival Curve and the Hazard Curve i
 If \code{data_out = TRUE}, returns dataframes associated with the survival plots.
 }
 \description{
-Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Plots saved automatically to working directory.
+Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Plots saved by automatically to working directory.
 }
 \details{
 The survival dataset should be a dataframe containing at least 4 different columns:

@@ -1,34 +1,46 @@
 ---
-title: "MultiVar() on ONDA1092_DB"
+title: "Running Surv_Pred"
 output: html_document
 date: "`r Sys.Date()`"
 ---
 
-1. Installing and loading the package (you only have to install once)
-```{r Setup package}
-remotes::install_github("sean4andrew/safuncs")
+```{r}
 library(safuncs)
+library(dplyr)
+library(ggplot2)
+setwd("C:/Users/sean4/Downloads")
+
+ref_surv_db = read.csv(file = "QCATC997 Mort.csv")
+ref_surv_db2 = ref_surv_db[ref_surv_db$Trt.ID == "E",]
+ref_surv_db2$TTE = ref_surv_db2$TTE - 3
+
+pred_mort_DB = read.csv(file = "ONDA01166 Mort.csv")
+pred_start_DB = read.csv(file = "ONDA01166 starting_fish_count.csv")
+
+pred_DB = Surv_Gen(mort_db = pred_mort_DB,
+                   starting_fish_count = pred_start_DB,
+                   last_tte = 30)
 ```
 
-2. Load dataset
-```{r Setup data}
-ONDA1092_DB = read.csv(file = "ONDA1092-4 Gene.csv")[-97,] # remove data point #X - clear, strong outlier
-ONDA1092_DB$Month = factor(ONDA1092_DB$Month, levels = c("May", "Jun", "Jul", "Oct", "Nov", "Dec")) # reorder factor levels
+```{r}
+Surv_Plots(surv_db = pred_DB,
+           dailybin = FALSE)
 
-#NOTE: "Oct" data represents the resampled October data. It was assumed the original Oct dataset was wrong, hence the resampling. Original oct data removed.
-head(ONDA1092_DB)
+Surv_Plots(surv_db = pred_DB,
+           dailybin = TRUE,
+           phi = 0.1,
+           plot_bytank = TRUE)
 ```
 
-3. Running MultiVar()
-```{r Run MultiVar()}
-MultiVar(multivar_db = ONDA1092_DB,
-         values_cols = 4:6,
-         factors_cols = 1:2,
-         factors_facet = c("col1", "col2"),
-         missing_method = "na_omit",
-         boxplot_filled = TRUE,
-         boxplot_var_sep = TRUE,
-         boxplot_x_wrap = 4,
-         boxplot_points = TRUE,
-         plot_out_R = TRUE) # to create the power point output as well as pngs, use plot_out_pptx = TRUE and plot_out_png = TRUE, respectively.
+
+```{r}
+Surv_Pred(surv_db = pred_DB,
+                   ref_surv_db = ref_surv_db2,
+                   pred_tte = 54,
+                   pred_method = "simple",
+                   plot_save = TRUE,
+                   plot_prefix = "ONDA01166")
 ```
+
+
+
