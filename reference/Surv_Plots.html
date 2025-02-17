@@ -162,7 +162,7 @@
 <span class="r-in"><span><span class="co"># Create plot by feeding surv_dat to Surv_Plots()!</span></span></span>
 <span class="r-in"><span><span class="fu">Surv_Plots</span><span class="op">(</span>surv_db <span class="op">=</span> <span class="va">surv_dat</span>,</span></span>
 <span class="r-in"><span>           plot_prefix <span class="op">=</span> <span class="st">"QCATC777"</span>,</span></span>
-<span class="r-in"><span>           xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">54</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>           xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">56</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>           ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>           xlab <span class="op">=</span> <span class="st">"TTE"</span>,</span></span>
 <span class="r-in"><span>           plot <span class="op">=</span> <span class="st">"both"</span>,</span></span>
@@ -182,12 +182,12 @@
 <span class="r-in"><span><span class="co"># To get tank-specific plots and insights, set the argument plot_bytank to TRUE.</span></span></span>
 <span class="r-in"><span><span class="fu">Surv_Plots</span><span class="op">(</span>surv_db <span class="op">=</span> <span class="va">surv_dat</span>,</span></span>
 <span class="r-in"><span>           plot_prefix <span class="op">=</span> <span class="st">"QCATC777"</span>,</span></span>
-<span class="r-in"><span>           xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">54</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>           xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">56</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>           ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>           xlab <span class="op">=</span> <span class="st">"TTE"</span>,</span></span>
 <span class="r-in"><span>           plot <span class="op">=</span> <span class="st">"both"</span>,</span></span>
 <span class="r-in"><span>           dailybin <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>           phi <span class="op">=</span> <span class="fl">1.5</span>, <span class="co">#often needed for accurate estimation in single tank/group cases</span></span></span>
+<span class="r-in"><span>           phi <span class="op">=</span> <span class="fl">1.5</span>, <span class="co">#often needed for accurate estimation in single tank/group cases or low sample sizes</span></span></span>
 <span class="r-in"><span>           plot_bytank <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $Survival_Plot</span>
 <span class="r-plt img"><img src="Surv_Plots-3.png" alt="" width="700" height="433"></span>
