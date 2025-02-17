@@ -850,7 +850,7 @@ theme_Publication = function(base_size = 14) {
 #'
 #' @description Compare survival characteristics to a reference data and predict future survival. Comparisons shown using Kaplan-Meier Survival Plot and Hazard Time Plot which are saved automatically to the working directory. Predictions tabulated and its history visualized. Outputs further detailed in \bold{Value}.
 #'
-#' @details P
+#' @details Placeholder
 #'
 #' @param surv_db A survival dataframe as described in \code{Surv_Plots()}, consisting of the four columns named TTE, Status, Trt.ID and Tank.ID. Example: \code{surv_db_ex} which is generated using \code{Surv_Gen()}.
 #' @param ref_surv_db A survival dataframe with the same column names as the supplied \code{surv_db}. Must only have one Trt.ID which represents the reference used for prediction.

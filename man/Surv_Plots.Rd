@@ -6,7 +6,6 @@
 \usage{
 Surv_Plots(
   surv_db,
-  plot_prefix = "plot_prefix",
   xlim = NULL,
   ylim = c(0, 1),
   xlab = "Days Post Challenge",
@@ -18,20 +17,20 @@ Surv_Plots(
   theme = "ggplot",
   trt_order = NULL,
   data_out = FALSE,
+  plot_bytank = FALSE,
   plot_save = TRUE,
+  plot_prefix = "ONDA_XX",
   plot_dim = c(6, 4)
 )
 }
 \arguments{
 \item{surv_db}{A survival dataframe as described in \bold{Details}.}
 
-\item{plot_prefix}{A string specifying the prefix for the filename of the saved plots.}
-
 \item{xlim}{A vector specifying the plots x-axis lower and upper limits, respectively.}
 
-\item{ylim}{A vector specifying the Survival Plot y-axis lower and upper limits, respectively.}
+\item{ylim}{A vector specifying the Survival Plot y-axis lower and upper limits, respectively. Defaults to c(0, 1) which indicates 0 to 100\% Survival Probability, respectively.}
 
-\item{xlab}{A string specifying the plot x-axis label.}
+\item{xlab}{A string specifying the plot x-axis label. Defaults to "Days Post Challenge".}
 
 \item{lambda}{Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard::bshazard()} uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.}
 
@@ -49,7 +48,11 @@ Surv_Plots(
 
 \item{data_out}{Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.}
 
+\item{plot_bytank}{Whether to analyze and plot the data by tanks. Defaults to FALSE.}
+
 \item{plot_save}{Whether to save plots in the working directory.}
+
+\item{plot_prefix}{A string specifying the prefix for the filename of the saved plots. Defaults to "ONDA_XX".}
 
 \item{plot_dim}{Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.}
 }
@@ -59,7 +62,7 @@ Returns a list containing the Kaplan-Meier Survival Curve and the Hazard Curve i
 If \code{data_out = TRUE}, returns dataframes associated with the survival plots.
 }
 \description{
-Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Plots saved by automatically to working directory.
+Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Curves for each tank can also be generated using the argument \code{plot_bytank = TRUE}. Plots saved by automatically to working directory.
 }
 \details{
 The survival dataset should be a dataframe containing at least 4 different columns:
@@ -84,7 +87,7 @@ surv_dat = Surv_Gen(mort_db = mort_db_ex,
                     starting_fish_count = 100,
                     last_tte = 54)
 
-# Create plot by inputting surv_dat into Surv_Plots()!
+# Create plot by feeding surv_dat to Surv_Plots()!
 Surv_Plots(surv_db = surv_dat,
            plot_prefix = "QCATC777",
            xlim = c(0, 54),
@@ -92,6 +95,17 @@ Surv_Plots(surv_db = surv_dat,
            xlab = "TTE",
            plot = "both",
            dailybin = FALSE)
+
+# To get tank-specific plots and insights, set the argument plot_bytank to TRUE.
+Surv_Plots(surv_db = surv_dat,
+           plot_prefix = "QCATC777",
+           xlim = c(0, 54),
+           ylim = c(0, 1),
+           xlab = "TTE",
+           plot = "both",
+           dailybin = FALSE,
+           phi = 1.5, #often needed for accurate estimation in single tank/group cases
+           plot_bytank = TRUE)
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed \bold{Examples} which includes any figure outputs.

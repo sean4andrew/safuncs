@@ -2,38 +2,47 @@
 % Please edit documentation in R/safuncs.R
 \name{Surv_Pred}
 \alias{Surv_Pred}
-\title{Predict End Survival Rate}
+\title{Predict Future Survival}
 \usage{
 Surv_Pred(
   surv_db,
   ref_surv_db,
-  pred_tte,
+  pred_tte = NULL,
   pred_method = "simple",
+  pred_dailybin = TRUE,
+  pred_phi = 1.5,
+  pred_lambda = NULL,
   plot_save = TRUE,
-  plot_prefix = "plot_prefix"
+  plot_prefix = "ONDA_XX"
 )
 }
 \arguments{
-\item{surv_db}{Placeholder}
+\item{surv_db}{A survival dataframe as described in \code{Surv_Plots()}, consisting of the four columns named TTE, Status, Trt.ID and Tank.ID. Example: \code{surv_db_ex} which is generated using \code{Surv_Gen()}.}
 
-\item{ref_surv_db}{Placeholder}
+\item{ref_surv_db}{A survival dataframe with the same column names as the supplied \code{surv_db}. Must only have one Trt.ID which represents the reference used for prediction.}
 
-\item{pred_tte}{Placeholder}
+\item{pred_tte}{A numeric representing the time to event at which the survival rate is to be predicted. Defaults to NULL where the maximum TTE observed in \code{ref_surv_db} is used.}
 
-\item{pred_method}{Placeholder}
+\item{pred_method}{A string representing the method used to predict survival rate. Options are "simple" or "adaptive". Methods further discussed in \bold{Details}. Defaults to "simple".}
 
-\item{plot_save}{Placeholder}
+\item{pred_dailybin}{Argument ignored if \code{ref_surv_db} contains multiple tanks. Whether to use daily (1 TTE interval) time bins in estimating the reference hazard curve. Defaults to TRUE. Further details in \code{Surv_Plots}.}
 
-\item{plot_prefix}{Placeholder}
+\item{pred_phi}{Argument ignored if \code{ref_surv_db} contains multiple tanks. A numeric indicating the dispersion parameter to be used in the count model that estimates the reference hazard curve. Defaults to 1.5. Set to NULL for a data driven estimate. Further details in \code{Surv_Plots}.}
+
+\item{pred_lambda}{Argument ignored if \code{ref_surv_db} contains multiple tanks. A numeric indicating the smoothing parameter to be used in estimating the reference hazard curve. Ignored if \code{pred_phi} is not NULL. Defaults to NULL (data driven estimate). Further details in \code{Surv_Plots}.}
+
+\item{plot_save}{Whether to save plot outputs in the working directory. Defaults to TRUE.}
+
+\item{plot_prefix}{A string specifying the prefix of the filename of the saved plots.  Defaults to "ONDA_XX".}
 }
 \value{
 Placeholder
 }
 \description{
-Predict survival rate for a given survival dataset provided a reference survival database used to estimate a reference hazard curve. Prediction done separately by treatment group.
+Compare survival characteristics to a reference data and predict future survival. Comparisons shown using Kaplan-Meier Survival Plot and Hazard Time Plot which are saved automatically to the working directory. Predictions tabulated and its history visualized. Outputs further detailed in \bold{Value}.
 }
 \details{
-P
+Placeholder
 }
 \examples{
 #Placeholder
