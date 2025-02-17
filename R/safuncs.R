@@ -1449,7 +1449,8 @@ Surv_Plots = function(surv_db,
 
     if(plot_bytank == TRUE) {
       Hazard_Plot$mapping = aes(x = Time, y = Hazard, color = Tank.ID)
-      Hazard_Plot <- Hazard_Plot + facet_wrap(~ Trt.ID)
+      Hazard_Plot <- Hazard_Plot + facet_wrap(~ Trt.ID) + guides(color = guide_legend("Tank.ID"))
+
     }
     if(!is.null(colours)) {Hazard_Plot <- Hazard_Plot + scale_color_manual(values = colours)}
     if(theme == "prism") {Hazard_Plot <- Hazard_Plot + ggprism::theme_prism()}
