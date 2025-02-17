@@ -1,6 +1,7 @@
 # safuncs 2.3.0
 
 *Current*
+
 * Revamped function `Surv_Pred()`.
 * Completed `Surv_Pred()` documentation.
 * Added further functionalities to `Surv_Plot()` notably an argument to facet by tank.
@@ -8,6 +9,7 @@
 # safuncs 2.2.0
 
 *15Dec2024* - *17Feb2025*
+
 * Added function `MultiVar()` used to generate a report from multivariate analyses.
 * Completed `Surv_Power()` documentation.
 * Improved simulation speed for `Surv_Simul()`.
@@ -17,6 +19,7 @@
 # safuncs 2.1.0
 
 *14Dec2024* - *15Dec2024*
+
 * Added function `Surv_Power()` used to calculate power for survival experiments.
 * Changed various wording in function documentation.
 * Fixed end-TTEs from `Surv_Simul()` to be integers.

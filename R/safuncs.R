@@ -906,9 +906,15 @@ Surv_Pred = function(surv_db,
  #Get reference level hazard curve
  ref_id = levels(as.factor(ref_surv_db$Trt.ID))
  ref_surv_db$Trt.ID = paste("ref", ref_id)
- ref_bshaz = bshazard::bshazard(data = ref_surv_db, survival::Surv(TTE, Status) ~ Tank.ID,
-                                verbose = FALSE, phi = pred_phi, lambda = pred_lambda,
-                                nbin = dbin)
+
+ if(length(unique(ref_surv_db$Tank.ID)) == 1){
+   ref_bshaz = bshazard::bshazard(data = ref_surv_db, survival::Surv(TTE, Status) ~ 1,
+                                  verbose = FALSE)
+ } else {
+   ref_bshaz = bshazard::bshazard(data = ref_surv_db, survival::Surv(TTE, Status) ~ Tank.ID,
+                                  verbose = FALSE, phi = pred_phi, lambda = pred_lambda,
+                                  nbin = dbin)
+ }
 
  #Produce offset times
  show_offset = TRUE
@@ -1044,31 +1050,31 @@ Surv_Pred = function(surv_db,
 
  #Create Projection Plots
  ref_surv_db$TTE = ref_TTE0
- ref_plot_db = layer_data(safuncs::Surv_Plots(surv_db = ref_surv_db,
-                                              plot = "surv",
-                                              plot_save = FALSE))
- ref_plot_db2 = layer_data(safuncs::Surv_Plots(surv_db = ref_surv_db,
-                                               plot = "haz",
-                                               lambda = pred_lambda,
-                                               phi = pred_phi,
-                                               dailybin = pred_dailybin,
-                                               plot_save = FALSE))
+ ref_plot_db = layer_data(Surv_Plots(surv_db = ref_surv_db,
+                                     plot = "surv",
+                                     plot_save = FALSE))
+ ref_plot_db2 = layer_data(Surv_Plots(surv_db = ref_surv_db,
+                                      plot = "haz",
+                                      lambda = pred_lambda,
+                                      phi = pred_phi,
+                                      dailybin = pred_dailybin,
+                                      plot_save = FALSE))
 
- Comp_SR_Plot = safuncs::Surv_Plots(surv_db = surv_db,
-                                    plot = "surv",
-                                    xlim = c(0, pred_tte),
-                                    plot_save = FALSE) +
-   geom_step(data = ref_plot_db, inherit.aes = FALSE, show.legend = FALSE,
+ Comp_SR_Plot = Surv_Plots(surv_db = surv_db,
+                           plot = "surv",
+                           xlim = c(0, pred_tte),
+                           plot_save = FALSE) +
+     geom_step(data = ref_plot_db, inherit.aes = FALSE, show.legend = FALSE,
              aes(x = x, y = y), linewidth = 1) +
    ggtitle("Survival Rate Comparisons")
 
- Comp_HR_Plot = safuncs::Surv_Plots(surv_db = surv_db,
-                                    plot = "haz",
-                                    xlim = c(0, pred_tte),
-                                    lambda = pred_lambda,
-                                    phi = pred_phi,
-                                    dailybin = pred_dailybin,
-                                    plot_save = FALSE) +
+ Comp_HR_Plot = Surv_Plots(surv_db = surv_db,
+                           plot = "haz",
+                           xlim = c(0, pred_tte),
+                           lambda = pred_lambda,
+                           phi = pred_phi,
+                           dailybin = pred_dailybin,
+                           plot_save = FALSE) +
    geom_line(data = ref_plot_db2, inherit.aes = FALSE, show.legend = FALSE, aes(x = x, y = y),
              linewidth = 1) +
    ggtitle("Hazard Rate Comparisons")
@@ -1088,7 +1094,7 @@ Surv_Pred = function(surv_db,
  #Return Outputs
  return(list(Comp_SR_Plot = Comp_SR_Plot,
              Comp_HR_Plot = Comp_HR_Plot,
-             Pred_TTE = Pred_Stats[Pred_Stats$TTE_Used == max(Pred_Stats$TTE_Used), - which(colnames(Pred_Stats) == "TTE Used")],
+             Pred_TTE = Pred_Stats[Pred_Stats$TTE_Used == max(Pred_Stats$TTE_Used), -which(colnames(Pred_Stats) == "TTE_Used")],
              Pred_History = Pred_Stats,
              Pred_SR_Plot = Pred_SR_Plot,
              Pred_HR_Plot = Pred_HR_Plot))
@@ -1289,7 +1295,7 @@ Surv_Gen = function(mort_db,
 #' # Create plot by feeding surv_dat to Surv_Plots()!
 #' Surv_Plots(surv_db = surv_dat,
 #'            plot_prefix = "QCATC777",
-#'            xlim = c(0, 54),
+#'            xlim = c(0, 56),
 #'            ylim = c(0, 1),
 #'            xlab = "TTE",
 #'            plot = "both",
@@ -1298,12 +1304,12 @@ Surv_Gen = function(mort_db,
 #' # To get tank-specific plots and insights, set the argument plot_bytank to TRUE.
 #' Surv_Plots(surv_db = surv_dat,
 #'            plot_prefix = "QCATC777",
-#'            xlim = c(0, 54),
+#'            xlim = c(0, 56),
 #'            ylim = c(0, 1),
 #'            xlab = "TTE",
 #'            plot = "both",
 #'            dailybin = FALSE,
-#'            phi = 1.5, #often needed for accurate estimation in single tank/group cases
+#'            phi = 1.5, #often needed for accurate estimation in single tank/group cases or low sample sizes
 #'            plot_bytank = TRUE)
 Surv_Plots = function(surv_db,
                       xlim = NULL,
@@ -1331,6 +1337,13 @@ Surv_Plots = function(surv_db,
       surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID + Tank.ID, data = surv_db)
     } else {
       surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
+
+      if(length(levels(as.factor(surv_db$Trt.ID))) > 1) {
+        attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
+      } else {
+        surv_obj$strata = length(surv_obj$surv)
+        attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
+      }
     }
 
     surv_dat = data.frame(Trt.ID = summary(surv_obj)$strata,
@@ -1347,8 +1360,10 @@ Surv_Plots = function(surv_db,
                                       conf.int = FALSE,
                                       ggtheme = theme(plot.background = element_rect(fill = "white")),
                                       facet.by = if(plot_bytank == TRUE) {"Trt.ID"} else {NULL},
+                                      xlim = xlim,
+                                      ylim = ylim,
                                       surv.scale = "percent",
-                                      short.panel.labs = TRUE)
+                                      short.panel.labs = FALSE)
     if(plot_bytank == TRUE){
       surv_plot$scales$scales = list()
       Survival_Plot = surv_plot + guides(color = guide_legend("Tank.ID")) + theme(legend.position = "right") +
@@ -2588,7 +2603,7 @@ MultiVar = function(multivar_db,
       pca_plot = pca_plot + facet_wrap(~ second_factor, ncol = facet_col, nrow = facet_row, scales = pca_facet_scales)
 
       # Set plot height based on facet
-      pca_height = 1.8 + 1.2 * facet_row
+      pca_height = 1.8 + (1.2 * facet_row) + ifelse(facet_num %in% 3:4, 0.5, 0)
     }
 
     # Add ellipses and store PCA plots in a list
@@ -2612,10 +2627,10 @@ MultiVar = function(multivar_db,
                         width = pca_width, height = pca_height, append = TRUE)
       }
       ggsave(plot = pca_list[[ellipse_i]][[treatment_conds_i]], filename = paste(sep = "", pca_name, ".png"),
-             path = img_path, dpi = 600, height = ifelse(facet_col == 2, pca_height + 1, pca_height),
+             path = img_path, dpi = 600, height = pca_height,
              width = pca_width)
       results_doc = officer::body_add_img(x = results_doc, sr = file.path(img_path, paste(pca_name, ".png", sep = "")),
-                                          height = ifelse(facet_col == 2, pca_height + 1, pca_height),
+                                          height = pca_height,
                                           width = pca_width) %>%
         officer::body_add_par(value = pca_name, style = "graphic title") %>%
         officer::body_add_par("")

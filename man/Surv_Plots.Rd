@@ -90,7 +90,7 @@ surv_dat = Surv_Gen(mort_db = mort_db_ex,
 # Create plot by feeding surv_dat to Surv_Plots()!
 Surv_Plots(surv_db = surv_dat,
            plot_prefix = "QCATC777",
-           xlim = c(0, 54),
+           xlim = c(0, 56),
            ylim = c(0, 1),
            xlab = "TTE",
            plot = "both",
@@ -99,12 +99,12 @@ Surv_Plots(surv_db = surv_dat,
 # To get tank-specific plots and insights, set the argument plot_bytank to TRUE.
 Surv_Plots(surv_db = surv_dat,
            plot_prefix = "QCATC777",
-           xlim = c(0, 54),
+           xlim = c(0, 56),
            ylim = c(0, 1),
            xlab = "TTE",
            plot = "both",
            dailybin = FALSE,
-           phi = 1.5, #often needed for accurate estimation in single tank/group cases
+           phi = 1.5, #often needed for accurate estimation in single tank/group cases or low sample sizes
            plot_bytank = TRUE)
 }
 \seealso{
