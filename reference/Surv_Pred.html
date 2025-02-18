@@ -99,12 +99,28 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>The output is a list consisting of at least four ggplot objects and optionally
+    <p>The output is a list consisting of at least four ggplot2 objects and optionally
 two dataframes.</p>
-<ul><li><p>The first two plots 'Comp_SR_Plot' and 'Comp_HR_Plot' shows the survival rates and hazard rates (respectively) of the treatments in <code>surv_db</code> compared to the reference in <code>surv_db_ref</code> depicted with a black line.</p></li>
-<li><p>The third and fourth plots 'Pred_SR_Plot' and 'Pred_HR_Plot' shows the history of predictions for survival and hazard ratio (respectively) based on the utilized TTE depicted in the x-axis. For example, if the x-value is 30, this means the prediction is blind to all data after it and only used the TTEs before. The dashed lines indicate what the prediction would be had the TTE of <code>surv_db_ref</code> been offset by +/- 2 days. This is to show sensitivity to discrepancy in disease "starting times" (onset of significant mortality) between <code>surv_db</code> and <code>surv_db_ref</code></p></li>
-<li><p>The first table 'Pred_TTE' shows the predicted survival rate 'pred_SR' and hazard ratio 'pred_HR' at the specified tte (<code>pred_tte</code>) using all available data, while the second table 'Pred_History' shows the prediction based on different utilized TTEs.</p></li>
-</ul></div>
+<dl><dt>Comp_SR_Plot</dt>
+<dd><p>Kaplan-Meier Survival Curves of treatments in <code>surv_db</code> and <code>surv_db_ref</code>, with the latter color coded black.</p></dd>
+
+ <dt>Comp_HR_Plot</dt>
+<dd><p>Hazard Time Curves of treatments in <code>surv_db</code> and <code>surv_db_ref</code>, with the latter color coded black.</p></dd>
+
+ <dt>Pred_SR_Plot</dt>
+<dd><p>Plot of the history of predictions for survival rate based on the utilized TTEs depicted in the x-axis. For example, if the x-value is 30, this means the prediction is blind to all data after it and only utilized the TTEs before. The dashed lines indicate what the prediction would be had the TTE of <code>surv_db_ref</code> been offset by +/- 2 days. This is to show sensitivity to discrepancy in disease "starting times" (onset of significant mortality) between <code>surv_db</code> and <code>surv_db_ref</code>.</p></dd>
+
+ <dt>Pred_HR_Plot</dt>
+<dd><p>Like 'Pred_SR_Plot' but with Hazard Ratio in the y-axis.</p></dd>
+
+ <dt>Pred_TTE</dt>
+<dd><p>A table showing the predicted survival rate 'pred_SR' and hazard ratio 'pred_HR' at the specified TTE (<code>pred_tte</code>). All TTEs from <code>surv_db</code> are used in the prediction.</p></dd>
+
+ <dt>Pred_History</dt>
+<dd><p>A table showing the predicted survival rate and hazard ratio using various TTEs available in <code>surv_db</code>.</p></dd>
+
+
+</dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Placeholder</p>
