@@ -850,7 +850,15 @@ theme_Publication = function(base_size = 14) {
 #'
 #' @description Predict future survival based on comparisons of hazard ratios to reference data. Produces tables summarizing predicted survival rate and hazard ratios for each treatment. Additionally, produces Kaplan-Meier Survival Plots and Hazard Time Curves comparing survival data (\code{surv_db}) to its reference (\code{surv_db_ref}). Further details of outputs described in \bold{Value}, methods in \bold{Details}.
 #'
-#' @details Placeholder
+#' @details Two prediction methods are possible: "simple" and "adaptive" which can be specified using \code{pred_method}.
+#'
+#' Both methods entail firstly, the estimation of a \textcolor{darkblue}{hazard curve} for the reference group using \code{bshazard::bshazard()}. Several parameters for the estimation can be modified for quality purposes. These parameters are \code{pred_dailybin}, \code{pred_phi}, and \code{pred_lambda} which are discussed in details in the documentation for \code{Surv_Plots()}. For studies with multiple tanks per treatment, estimation of the hazard curve uses a data driven approach and aforementioned parameters cannot be modified (ignored).
+#'
+#' Both methods then involve estimating a \textcolor{darkblue}{hazard ratio} for each treatment in \code{surv_db}. This is achieved by fitting each treatment separately with the reference group in \code{surv_db_ref} to a cox proportional hazards model. The model may be fitted using \code{survival::coxph()} for data with single tanks per treatment or \code{coxme::coxme()} for data with multiple tanks per treatment.
+#'
+#' For the "simple" method, the estimated \textcolor{darkblue}{hazard ratio} is then multiplied by the \textcolor{darkblue}{hazard curve} to produce a \textcolor{darkred}{predicted hazard curve}. The hazard curve is then cut off up to \code{pred_tte}. The curve's cumulative value is then calculated using \code{DescTools::AUC()}, then turned negative and exponentiated to calculate survival rate at \code{pred_tte}. This "simple" method is recommended over the "adaptive".
+#'
+#' For the "adaptive" method, the \textcolor{darkred}{predicted hazard curve} is cut off to a range up to \code{pred_tte} and starting from the maximum TTE in \code{surv_db}. The cumulative hazard from the curve is then calculated using \code{DescTools::AUC()} and added with the observed cumulative hazard from \code{surv_db}. The total cumulative hazard is then turned negative and exponentiated to calculate survival rate at \code{pred_tte}. The idea of this method is to further use the observed data in \code{surv_db} for more accurate predictions, but I've found that it is often very sensitive to variations in \code{surv_db}, hence is not recommended for now.
 #'
 #' @param surv_db A survival dataframe as described in \code{Surv_Plots()}, consisting of the four columns named TTE, Status, Trt.ID and Tank.ID. Example: \code{surv_db_ex} which is generated using \code{Surv_Gen()}.
 #' @param surv_db_ref A survival dataframe with the same column names as the supplied \code{surv_db}. Must only have one Trt.ID which represents the reference used for prediction.
@@ -867,10 +875,9 @@ theme_Publication = function(base_size = 14) {
 #' two dataframes described further below.
 #'
 #' \itemize{
-#'  \item The first two plots 'Comp_SR_Plot' and 'Comp_HR_Plot' shows the survival rates and hazard rates (respectively) of the treatments in \code{surv_db} and \code{surv_db_ref} with the latter depicted by a black line.
-#'  \item The third and fourth plots 'Pred_SR_Plot' and 'Pred_HR_Plot' shows the history of
-#' predictions for survival and hazard ratio (respectively) based on the utilized TTE depicted in the x-axis. For example, if the x-value is 30, this means the prediction is blind to all data after it and only used the TTEs before. The dashed lines indicate what the prediction would be had the TTE of \code{surv_db_ref} been offset by +/- 2 days. This is to show sensitivity to discrepancy in disease "starting times" (onset of significant mortality) between \code{surv_db} and \code{surv_db_ref}.
-#'  \item The first table 'Pred_TTE' shows the predicted survival rate 'pred_SR' and hazard ratio 'pred_HR' at the specified tte (\code{pred_tte}) using all available TTEs, while the second table 'Pred_History' shows the prediction based on different utilized TTEs.
+#'  \item The first two plots '\emph{Comp_SR_Plot}' and '\emph{Comp_HR_Plot}' shows the survival rates and hazard rates (respectively) of the treatments in \code{surv_db} and \code{surv_db_ref} with the latter depicted by a black line.
+#'  \item The third and fourth plots '\emph{Pred_SR_Plot}' and '\emph{Pred_HR_Plot}' shows the history of predictions for survival and hazard ratio (respectively) based on the utilized TTE depicted in the x-axis. For example, if the x-value is 30, this means the prediction is blind to all data after it and only used the TTEs before. The dashed lines indicate what the prediction would be had the TTE of \code{surv_db_ref} been offset by +/- 2 days. This is to show sensitivity to discrepancy in disease "starting times" (onset of significant mortality) between \code{surv_db} and \code{surv_db_ref}.
+#'  \item The first table '\emph{Pred_TTE}' shows the predicted survival rate (pred_SR) and hazard ratio (pred_HR) at the specified TTE (\code{pred_tte}) using all available TTEs, while the second table '\emph{Pred_History}' shows the prediction based on different utilized TTEs.
 #' }
 #'
 #' @import dplyr
