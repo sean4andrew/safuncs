@@ -863,7 +863,22 @@ theme_Publication = function(base_size = 14) {
 #' @param plot_prefix A string specifying the prefix of the filename of the saved plots.  Defaults to "ONDA_XX".
 #' @param data_out Whether to output dataframes containing predicted survival rates and hazard ratios.
 #'
-#' @return Placeholder
+#' @return The output is a list consisting of at least four ggplot objects and optionally
+#' two dataframes.
+#'
+#' * The first two plots 'Comp_SR_Plot' and 'Comp_HR_Plot' shows the survival rates and
+#' and hazard rates (respectively) of the treatments in \code{surv_db} compared to the
+#' reference in \code{surv_db_ref} depicted with a black line.
+#' * The third and fourth plots 'Pred_SR_Plot' and 'Pred_HR_Plot' shows the history of
+#' predictions for survival and hazard ratio (respectively) based on the utilized TTE
+#' depicted in the x-axis. For example, if the x-value is 30, this means the prediction
+#' is blind to all data after it and only used the TTEs before. The dashed lines indicate
+#' what the prediction would be had the TTE of \code{surv_db_ref} been offset by +/- 2
+#' days. This is to show sensitivity to discrepancy in disease "starting times" (onset of
+#' significant mortality) between \code{surv_db} and \code{surv_db_ref}
+#' * The first table 'Pred_TTE' shows the predicted survival rate 'pred_SR' and hazard
+#' ratio 'pred_HR' at the specified tte (\code{pred_tte}) using all available data, while
+#' the second table 'Pred_History' shows the prediction based on different utilized TTEs.
 #'
 #' @import dplyr
 #' @import ggplot2
@@ -915,8 +930,8 @@ theme_Publication = function(base_size = 14) {
 #' # writing). Here, predictions appeared more stable which is to some extent attributed
 #' # to the greater mortality counts leading to more reliable hazard ratio estimates.
 #'
-#' Surv_Pred(surv_db = surv_db_ex2, #undocumented real data with anonymized Trt.IDs
-#'           surv_db_ref = surv_db_ex3, #undocumented real data
+#' Surv_Pred(surv_db = surv_db_ex2, #real data with anonymized Trt.IDs
+#'           surv_db_ref = surv_db_ex3, #real past data as reference
 #'           pred_tte = 54,
 #'           pred_method = "simple",
 #'           plot_save = FALSE,
@@ -1083,7 +1098,7 @@ Surv_Pred = function(surv_db,
    geom_line() +
    facet_wrap(~Trt.ID) +
    scale_y_continuous(name = paste("Predicted SR at a TTE of", pred_tte),
-                      breaks = seq(0, 100, 20), limits = c(0, 100)) +
+                      breaks = seq(0, 100, 10), limits = c(0, 100)) +
    scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, x_breaks)) +
    ggtitle("SR Prediction History")
 

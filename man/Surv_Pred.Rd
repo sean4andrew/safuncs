@@ -39,7 +39,22 @@ Surv_Pred(
 \item{data_out}{Whether to output dataframes containing predicted survival rates and hazard ratios.}
 }
 \value{
-Placeholder
+The output is a list consisting of at least four ggplot objects and optionally
+two dataframes.
+
+* The first two plots 'Comp_SR_Plot' and 'Comp_HR_Plot' shows the survival rates and
+and hazard rates (respectively) of the treatments in \code{surv_db} compared to the
+reference in \code{surv_db_ref} depicted with a black line.
+* The third and fourth plots 'Pred_SR_Plot' and 'Pred_HR_Plot' shows the history of
+predictions for survival and hazard ratio (respectively) based on the utilized TTE
+depicted in the x-axis. For example, if the x-value is 30, this means the prediction
+is blind to all data after it and only used the TTEs before. The dashed lines indicate
+what the prediction would be had the TTE of \code{surv_db_ref} been offset by +/- 2
+days. This is to show sensitivity to discrepancy in disease "starting times" (onset of
+significant mortality) between \code{surv_db} and \code{surv_db_ref}
+* The first table 'Pred_TTE' shows the predicted survival rate 'pred_SR' and hazard
+ratio 'pred_HR' at the specified tte (\code{pred_tte}) using all available data, while
+the second table 'Pred_History' shows the prediction based on different utilized TTEs.
 }
 \description{
 Predict future survival based on comparisons of hazard ratios to reference data. Produces tables summarizing predicted survival rate and hazard ratios for each treatment. Additionally, produces Kaplan-Meier Survival Plots and Hazard Time Curves comparing survival data (\code{surv_db}) to its reference (\code{surv_db_ref}). Further details of outputs described in \bold{Value}, methods in \bold{Details}.
@@ -90,8 +105,8 @@ Surv_Pred(surv_db = surv_db,
 # writing). Here, predictions appeared more stable which is to some extent attributed
 # to the greater mortality counts leading to more reliable hazard ratio estimates.
 
-Surv_Pred(surv_db = surv_db_ex2, #undocumented real data with anonymized Trt.IDs
-          surv_db_ref = surv_db_ex3, #undocumented real data
+Surv_Pred(surv_db = surv_db_ex2, #real data with anonymized Trt.IDs
+          surv_db_ref = surv_db_ex3, #real past data as reference
           pred_tte = 54,
           pred_method = "simple",
           plot_save = FALSE,
