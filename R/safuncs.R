@@ -848,19 +848,20 @@ theme_Publication = function(base_size = 14) {
 
 #' @title Predict Future Survival
 #'
-#' @description Compare survival characteristics to a reference data and predict future survival. Comparisons shown using Kaplan-Meier Survival Plot and Hazard Time Plot which are saved automatically to the working directory. Predictions tabulated and its history visualized. Outputs further detailed in \bold{Value}.
+#' @description Predict future survival based on comparisons of hazard ratios to reference data. Produces tables summarizing predicted survival rate and hazard ratios for each treatment. Additionally, produces Kaplan-Meier Survival Plots and Hazard Time Curves comparing survival data (\code{surv_db}) to its reference (\code{surv_db_ref}). Further details of outputs described in \bold{Value}, methods in \bold{Details}.
 #'
 #' @details Placeholder
 #'
 #' @param surv_db A survival dataframe as described in \code{Surv_Plots()}, consisting of the four columns named TTE, Status, Trt.ID and Tank.ID. Example: \code{surv_db_ex} which is generated using \code{Surv_Gen()}.
-#' @param ref_surv_db A survival dataframe with the same column names as the supplied \code{surv_db}. Must only have one Trt.ID which represents the reference used for prediction.
-#' @param pred_tte A numeric representing the time to event at which the survival rate is to be predicted. Defaults to NULL where the maximum TTE observed in \code{ref_surv_db} is used.
+#' @param surv_db_ref A survival dataframe with the same column names as the supplied \code{surv_db}. Must only have one Trt.ID which represents the reference used for prediction.
+#' @param pred_tte A numeric representing the time to event at which the survival rate is to be predicted. Defaults to NULL where the maximum TTE observed in \code{surv_db_ref} is used.
 #' @param pred_method A string representing the method used to predict survival rate. Options are "simple" or "adaptive". Methods further discussed in \bold{Details}. Defaults to "simple".
-#' @param pred_dailybin Argument ignored if \code{ref_surv_db} contains multiple tanks. Whether to use daily (1 TTE interval) time bins in estimating the reference hazard curve. Defaults to TRUE. Further details in \code{Surv_Plots}.
-#' @param pred_phi Argument ignored if \code{ref_surv_db} contains multiple tanks. A numeric indicating the dispersion parameter to be used in the count model that estimates the reference hazard curve. Defaults to 1.5. Set to NULL for a data driven estimate. Further details in \code{Surv_Plots}.
-#' @param pred_lambda Argument ignored if \code{ref_surv_db} contains multiple tanks. A numeric indicating the smoothing parameter to be used in estimating the reference hazard curve. Ignored if \code{pred_phi} is not NULL. Defaults to NULL (data driven estimate). Further details in \code{Surv_Plots}.
+#' @param pred_dailybin Argument ignored if both \code{surv_db} and \code{surv_db_ref} contains multiple tanks. Whether to use daily (1 TTE interval) time bins in estimating hazard curves. Defaults to TRUE. Further details in \code{Surv_Plots}.
+#' @param pred_phi Argument ignored if both \code{surv_db} and \code{surv_db_ref} contains multiple tanks. A numeric indicating the dispersion parameter to be used in the count model that estimates the reference hazard curve. Defaults to 1.5. Set to NULL for a data driven estimate. Further details in \code{Surv_Plots}.
+#' @param pred_lambda Argument ignored if both \code{surv_db} and \code{surv_db_ref} contains multiple tanks. A numeric indicating the smoothing parameter to be used in estimating the reference hazard curve. Ignored if \code{pred_phi} is not NULL. Defaults to NULL (data driven estimate). Further details in \code{Surv_Plots}.
 #' @param plot_save Whether to save plot outputs in the working directory. Defaults to TRUE.
 #' @param plot_prefix A string specifying the prefix of the filename of the saved plots.  Defaults to "ONDA_XX".
+#' @param data_out Whether to output dataframes containing predicted survival rates and hazard ratios.
 #'
 #' @return Placeholder
 #'
@@ -872,30 +873,87 @@ theme_Publication = function(base_size = 14) {
 #' @export
 #'
 #' @examples
-#' #Placeholder
+#' # Below is a brief tutorial showing how to use Surv_Pred() to predict future survival.
+#'
+#' # In the first step, we load the data for which survival is to be predicted and its
+#' # reference (e.g. a past survival data involving the same disease). The reference must
+#' # contain only one treatment group:
+#' surv_db_ref = surv_db_ex[surv_db_ex$Trt.ID == "D",]
+#'
+#' # For demonstration purposes, we pretend the survival data to be predicted only extends
+#' # to 35 TTE / DPC. Survival rate at 54 TTE is to be predicted. To create such data from
+#' # the example, I use survival::survSplit(). For real applications, creating the data
+#' # this way would be unnecessary, instead refer to safuncs::Surv_Gen().
+#' surv_db = survival::survSplit(data = surv_db_ex[-1,], cut = 35, end = "TTE",
+#'                               event = "Status", episode = "Eps")
+#'
+#' surv_db = surv_db[surv_db$Eps == 1 & surv_db$Trt.ID != "D",
+#'                   -c(3, 6)] #remove unnecessary rows and columns
+#'
+#' tail(surv_db, n = 5)
+#'
+#' # Next, we feed both datasets to Surv_Pred() and execute!
+#' Surv_Pred(surv_db = surv_db,
+#'           surv_db_ref = surv_db_ref,
+#'           pred_tte = 54,
+#'           pred_method = "simple",
+#'           plot_save = FALSE,
+#'           data_out = FALSE)[-4] #exclude data output and fourth plot for now for brevity
+#'
+#' # In the first two comparative plots, the black line shows the characteristics of the
+#' # reference group. Colored lines show treatments from surv_db.
+#'
+#' # Notably, the third plot shows instability of the survival predictions. Using the
+#' # latest TTE, predictions compared to actual survival at 54 TTE is 76 vs 64% (+8%) for
+#' # Trt.A, 56 vs 64% (-8%) for Trt.B, and 70 vs 73% (-3%) for Trt.C. Notably, for Trt.B,
+#' # predictions took ~ 2 weeks to become close to accurate. A potential culprit is the
+#' # low(?) mortality counts that would led to an unreliable estimate of the hazard ratio
+#' # on which the survival prediction is based on. Due to sampling variability, early
+#' # predictions should be scrutinized.
+#'
+#' # Next, we attempt to predict survival for an ongoing real study (at the time of
+#' # writing). Here, predictions appeared more stable which is to some extent attributed
+#' # to the greater mortality counts leading to more reliable hazard ratio estimates.
+#'
+#' Surv_Pred(surv_db = surv_db_ex2, #undocumented real data with anonymized Trt.IDs
+#'           surv_db_ref = surv_db_ex3, #undocumented real data
+#'           pred_tte = 54,
+#'           pred_method = "simple",
+#'           plot_save = FALSE,
+#'           data_out = FALSE)[-4]
 Surv_Pred = function(surv_db,
-                     ref_surv_db,
+                     surv_db_ref,
                      pred_tte = NULL,
                      pred_method = "simple",
                      pred_dailybin = TRUE,
                      pred_phi = 1.5,
                      pred_lambda = NULL,
                      plot_save = TRUE,
-                     plot_prefix = "ONDA_XX"){
+                     plot_prefix = "ONDA_XX",
+                     data_out = TRUE){
 
  #Default pred_tte
  if(is.null(pred_tte)) {pred_tte <- max(ref_TTE0)}
 
  #Set 0 offset time
- ref_TTE0 = ref_surv_db$TTE
+ ref_TTE0 = surv_db_ref$TTE
 
  #Initialize dataframes
  Pred_Stats = data.frame()
  Pred_Stats_Offset = data.frame()
 
+ #Determine experimental design
+ if(length(unique(surv_db_ref$Trt.ID)) > 1) {
+   stop("surv_db_ref must contain only one Trt.ID.")
+ }
+
+ exp_design = ifelse((length(unique(surv_db$Trt.ID)) == length(unique(surv_db$Tank.ID))) &
+                       (length(unique(surv_db_ref$Trt.ID)) == length(unique(surv_db_ref$Tank.ID))),
+                       "single_tank", "multi-tank")
+
  #Set parameters for ref_bshaz estimation
- if(length(unique(ref_surv_db$Tank.ID)) == 1) {
-   if(pred_dailybin == TRUE) {dbin <- max(ref_surv_db$TTE)} else {dbin <- NULL}
+ if(exp_design == "single-tank") {
+   if(pred_dailybin == TRUE) {dbin <- max(surv_db_ref$TTE)} else {dbin <- NULL}
  } else {
    pred_phi = NULL
    pred_lambda = NULL
@@ -904,14 +962,15 @@ Surv_Pred = function(surv_db,
  }
 
  #Get reference level hazard curve
- ref_id = levels(as.factor(ref_surv_db$Trt.ID))
- ref_surv_db$Trt.ID = paste("ref", ref_id)
+ ref_id = levels(as.factor(surv_db_ref$Trt.ID))
+ surv_db_ref$Trt.ID = paste("ref", ref_id)
 
- if(length(unique(ref_surv_db$Tank.ID)) == 1){
-   ref_bshaz = bshazard::bshazard(data = ref_surv_db, survival::Surv(TTE, Status) ~ 1,
-                                  verbose = FALSE)
+ if(exp_design == "single-tank"){
+   ref_bshaz = bshazard::bshazard(data = surv_db_ref, survival::Surv(TTE, Status) ~ 1,
+                                  verbose = FALSE, phi = pred_phi, lambda = pred_lambda,
+                                  nbin = dbin)
  } else {
-   ref_bshaz = bshazard::bshazard(data = ref_surv_db, survival::Surv(TTE, Status) ~ Tank.ID,
+   ref_bshaz = bshazard::bshazard(data = surv_db_ref, survival::Surv(TTE, Status) ~ Tank.ID,
                                   verbose = FALSE, phi = pred_phi, lambda = pred_lambda,
                                   nbin = dbin)
  }
@@ -925,16 +984,16 @@ Surv_Pred = function(surv_db,
 
    #Ensure positive TTE
    surv_db = surv_db[surv_db$TTE > 0, ]
-   ref_surv_db$TTE = ref_TTE0 + ref_tte_offset
-   ref_surv_db = ref_surv_db[ref_surv_db$TTE > 0, ]
+   surv_db_ref$TTE = ref_TTE0 + ref_tte_offset
+   surv_db_ref = surv_db_ref[surv_db_ref$TTE > 0, ]
 
-   #Print warning message if ref_surv_db end TTE < pred_tte
-   if(max(ref_surv_db$TTE) < pred_tte) {
+   #Print warning message if surv_db_ref end TTE < pred_tte
+   if(max(surv_db_ref$TTE) < pred_tte) {
      warning(paste(sep = "", "The desired 'pred_tte' (", pred_tte,
                    ") is greater than the maximum in the reference database (",
-                   max(ref_surv_db$TTE) ,") given the TTE offset of ", ref_tte_offset,
+                   max(surv_db_ref$TTE) ,") given the TTE offset of ", ref_tte_offset,
                    ". For this offset, predictions are for 'pred_tte' ", ref_tte_offset,
-                   " (i.e. TTE = ", max(ref_surv_db$TTE),")."))
+                   " (i.e. TTE = ", max(surv_db_ref$TTE),")."))
    }
 
    #Loop for every treatment
@@ -942,10 +1001,10 @@ Surv_Pred = function(surv_db,
 
      #Combine reference and observed hazard dataframes
      surv_db_f = surv_db[surv_db$Trt.ID == pred_trt,]
-     comb_db = rbind(ref_surv_db, surv_db_f)
+     comb_db = rbind(surv_db_ref, surv_db_f)
      comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = paste("ref", ref_id))
 
-     min2_tte = max(min(surv_db_f$TTE), min(ref_surv_db$TTE))
+     min2_tte = max(min(surv_db_f$TTE), min(surv_db_ref$TTE))
      max_tte = max(surv_db_f$TTE)
 
      #Predict End SR and HR using different cuts
@@ -977,11 +1036,11 @@ Surv_Pred = function(surv_db,
          precut_db = cut_db[cut_db$Obs == 1, ]
 
          #Precut surv using surv_db
-         precut_surv = min(summary(survfit(Surv(TTE, Status) ~ 1,
+         precut_surv = min(summary(survival::survfit(survival::Surv(TTE, Status) ~ 1,
                                            data = droplevels(precut_db[precut_db$Trt.ID == pred_trt,])))$surv)
          cumhaz_precut = -log(precut_surv)
 
-         #Postcut bshaz using ref_surv_db
+         #Postcut bshaz using surv_db_ref
          postcut_bshaz = ref_bshaz_t[ref_bshaz_t$time > cut_day,]
          if(nrow(postcut_bshaz) > 1) {
            cumhaz_postcut = DescTools::AUC(x = c(postcut_bshaz$time),
@@ -1049,11 +1108,11 @@ Surv_Pred = function(surv_db,
  }
 
  #Create Projection Plots
- ref_surv_db$TTE = ref_TTE0
- ref_plot_db = layer_data(Surv_Plots(surv_db = ref_surv_db,
+ surv_db_ref$TTE = ref_TTE0
+ ref_plot_db = layer_data(Surv_Plots(surv_db = surv_db_ref,
                                      plot = "surv",
                                      plot_save = FALSE))
- ref_plot_db2 = layer_data(Surv_Plots(surv_db = ref_surv_db,
+ ref_plot_db2 = layer_data(Surv_Plots(surv_db = surv_db_ref,
                                       plot = "haz",
                                       lambda = pred_lambda,
                                       phi = pred_phi,
@@ -1092,12 +1151,18 @@ Surv_Pred = function(surv_db,
  }
 
  #Return Outputs
- return(list(Comp_SR_Plot = Comp_SR_Plot,
-             Comp_HR_Plot = Comp_HR_Plot,
-             Pred_TTE = Pred_Stats[Pred_Stats$TTE_Used == max(Pred_Stats$TTE_Used), -which(colnames(Pred_Stats) == "TTE_Used")],
-             Pred_History = Pred_Stats,
-             Pred_SR_Plot = Pred_SR_Plot,
-             Pred_HR_Plot = Pred_HR_Plot))
+ Output_list = list(Comp_SR_Plot = Comp_SR_Plot,
+                    Comp_HR_Plot = Comp_HR_Plot,
+                    Pred_SR_Plot = Pred_SR_Plot,
+                    Pred_HR_Plot = Pred_HR_Plot)
+
+ if(data_out == TRUE) {
+   Output_list = append(Output_list,
+                        list(Pred_TTE = Pred_Stats[Pred_Stats$TTE_Used == max(Pred_Stats$TTE_Used),
+                                                   -which(colnames(Pred_Stats) == "TTE_Used")],
+                             Pred_History = Pred_Stats))
+ }
+ return(Output_list)
 }
 
 ################################################## Function 6 - Surv_Gen() ########################################################

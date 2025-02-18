@@ -6,46 +6,96 @@
 \usage{
 Surv_Pred(
   surv_db,
-  ref_surv_db,
+  surv_db_ref,
   pred_tte = NULL,
   pred_method = "simple",
   pred_dailybin = TRUE,
   pred_phi = 1.5,
   pred_lambda = NULL,
   plot_save = TRUE,
-  plot_prefix = "ONDA_XX"
+  plot_prefix = "ONDA_XX",
+  data_out = TRUE
 )
 }
 \arguments{
 \item{surv_db}{A survival dataframe as described in \code{Surv_Plots()}, consisting of the four columns named TTE, Status, Trt.ID and Tank.ID. Example: \code{surv_db_ex} which is generated using \code{Surv_Gen()}.}
 
-\item{ref_surv_db}{A survival dataframe with the same column names as the supplied \code{surv_db}. Must only have one Trt.ID which represents the reference used for prediction.}
+\item{surv_db_ref}{A survival dataframe with the same column names as the supplied \code{surv_db}. Must only have one Trt.ID which represents the reference used for prediction.}
 
-\item{pred_tte}{A numeric representing the time to event at which the survival rate is to be predicted. Defaults to NULL where the maximum TTE observed in \code{ref_surv_db} is used.}
+\item{pred_tte}{A numeric representing the time to event at which the survival rate is to be predicted. Defaults to NULL where the maximum TTE observed in \code{surv_db_ref} is used.}
 
 \item{pred_method}{A string representing the method used to predict survival rate. Options are "simple" or "adaptive". Methods further discussed in \bold{Details}. Defaults to "simple".}
 
-\item{pred_dailybin}{Argument ignored if \code{ref_surv_db} contains multiple tanks. Whether to use daily (1 TTE interval) time bins in estimating the reference hazard curve. Defaults to TRUE. Further details in \code{Surv_Plots}.}
+\item{pred_dailybin}{Argument ignored if both \code{surv_db} and \code{surv_db_ref} contains multiple tanks. Whether to use daily (1 TTE interval) time bins in estimating hazard curves. Defaults to TRUE. Further details in \code{Surv_Plots}.}
 
-\item{pred_phi}{Argument ignored if \code{ref_surv_db} contains multiple tanks. A numeric indicating the dispersion parameter to be used in the count model that estimates the reference hazard curve. Defaults to 1.5. Set to NULL for a data driven estimate. Further details in \code{Surv_Plots}.}
+\item{pred_phi}{Argument ignored if both \code{surv_db} and \code{surv_db_ref} contains multiple tanks. A numeric indicating the dispersion parameter to be used in the count model that estimates the reference hazard curve. Defaults to 1.5. Set to NULL for a data driven estimate. Further details in \code{Surv_Plots}.}
 
-\item{pred_lambda}{Argument ignored if \code{ref_surv_db} contains multiple tanks. A numeric indicating the smoothing parameter to be used in estimating the reference hazard curve. Ignored if \code{pred_phi} is not NULL. Defaults to NULL (data driven estimate). Further details in \code{Surv_Plots}.}
+\item{pred_lambda}{Argument ignored if both \code{surv_db} and \code{surv_db_ref} contains multiple tanks. A numeric indicating the smoothing parameter to be used in estimating the reference hazard curve. Ignored if \code{pred_phi} is not NULL. Defaults to NULL (data driven estimate). Further details in \code{Surv_Plots}.}
 
 \item{plot_save}{Whether to save plot outputs in the working directory. Defaults to TRUE.}
 
 \item{plot_prefix}{A string specifying the prefix of the filename of the saved plots.  Defaults to "ONDA_XX".}
+
+\item{data_out}{Whether to output dataframes containing predicted survival rates and hazard ratios.}
 }
 \value{
 Placeholder
 }
 \description{
-Compare survival characteristics to a reference data and predict future survival. Comparisons shown using Kaplan-Meier Survival Plot and Hazard Time Plot which are saved automatically to the working directory. Predictions tabulated and its history visualized. Outputs further detailed in \bold{Value}.
+Predict future survival based on comparisons of hazard ratios to reference data. Produces tables summarizing predicted survival rate and hazard ratios for each treatment. Additionally, produces Kaplan-Meier Survival Plots and Hazard Time Curves comparing survival data (\code{surv_db}) to its reference (\code{surv_db_ref}). Further details of outputs described in \bold{Value}, methods in \bold{Details}.
 }
 \details{
 Placeholder
 }
 \examples{
-#Placeholder
+# Below is a brief tutorial showing how to use Surv_Pred() to predict future survival.
+
+# In the first step, we load the data for which survival is to be predicted and its
+# reference (e.g. a past survival data involving the same disease). The reference must
+# contain only one treatment group:
+surv_db_ref = surv_db_ex[surv_db_ex$Trt.ID == "D",]
+
+# For demonstration purposes, we pretend the survival data to be predicted only extends
+# to 35 TTE / DPC. Survival rate at 54 TTE is to be predicted. To create such data from
+# the example, I use survival::survSplit(). For real applications, creating the data
+# this way would be unnecessary, instead refer to safuncs::Surv_Gen().
+surv_db = survival::survSplit(data = surv_db_ex[-1,], cut = 35, end = "TTE",
+                              event = "Status", episode = "Eps")
+
+surv_db = surv_db[surv_db$Eps == 1 & surv_db$Trt.ID != "D",
+                  -c(3, 6)] #remove unnecessary rows and columns
+
+tail(surv_db, n = 5)
+
+# Next, we feed both datasets to Surv_Pred() and execute!
+Surv_Pred(surv_db = surv_db,
+          surv_db_ref = surv_db_ref,
+          pred_tte = 54,
+          pred_method = "simple",
+          plot_save = FALSE,
+          data_out = FALSE)[-4] #exclude data output and fourth plot for now for brevity
+
+# In the first two comparative plots, the black line shows the characteristics of the
+# reference group. Colored lines show treatments from surv_db.
+
+# Notably, the third plot shows instability of the survival predictions. Using the
+# latest TTE, predictions compared to actual survival at 54 TTE is 76 vs 64\% (+8\%) for
+# Trt.A, 56 vs 64\% (-8\%) for Trt.B, and 70 vs 73\% (-3\%) for Trt.C. Notably, for Trt.B,
+# predictions took ~ 2 weeks to become close to accurate. A potential culprit is the
+# low(?) mortality counts that would led to an unreliable estimate of the hazard ratio
+# on which the survival prediction is based on. Due to sampling variability, early
+# predictions should be scrutinized.
+
+# Next, we attempt to predict survival for an ongoing real study (at the time of
+# writing). Here, predictions appeared more stable which is to some extent attributed
+# to the greater mortality counts leading to more reliable hazard ratio estimates.
+
+Surv_Pred(surv_db = surv_db_ex2, #undocumented real data with anonymized Trt.IDs
+          surv_db_ref = surv_db_ex3, #undocumented real data
+          pred_tte = 54,
+          pred_method = "simple",
+          plot_save = FALSE,
+          data_out = FALSE)[-4]
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Pred.html}{Link} for executed \bold{Examples} which includes any figure outputs.
