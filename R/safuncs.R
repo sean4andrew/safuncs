@@ -920,7 +920,7 @@ theme_Publication = function(base_size = 14) {
 #'           pred_tte = 54,
 #'           pred_method = "simple",
 #'           plot_save = FALSE,
-#'           data_out = FALSE)[-4]
+#'           data_out = FALSE)
 Surv_Pred = function(surv_db,
                      surv_db_ref,
                      pred_tte = NULL,
@@ -965,6 +965,7 @@ Surv_Pred = function(surv_db,
  ref_id = levels(as.factor(surv_db_ref$Trt.ID))
  surv_db_ref$Trt.ID = paste("ref", ref_id)
 
+ sink(tempfile())
  if(exp_design == "single-tank"){
    ref_bshaz = bshazard::bshazard(data = surv_db_ref, survival::Surv(TTE, Status) ~ 1,
                                   verbose = FALSE, phi = pred_phi, lambda = pred_lambda,
@@ -974,6 +975,7 @@ Surv_Pred = function(surv_db,
                                   verbose = FALSE, phi = pred_phi, lambda = pred_lambda,
                                   nbin = dbin)
  }
+ sink()
 
  #Produce offset times
  show_offset = TRUE
@@ -1478,21 +1480,23 @@ Surv_Plots = function(surv_db,
         Haz_list[[Haz_Group]] = data.frame(Hazard = 0,
                                            Time = rep(0, max(surv_db$TTE), 1))
       } else {
+        sink(tempfile())
         if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {
-          Haz_bs = suppressWarnings(bshazard::bshazard(nbin = dbin,
-                                                       data = surv_db_group,
-                                                       survival::Surv(TTE, Status) ~ Tank.ID,
-                                                       verbose = FALSE,
-                                                       lambda = lambda,
-                                                       phi = phi))
+          Haz_bs = bshazard::bshazard(nbin = dbin,
+                                      data = surv_db_group,
+                                      survival::Surv(TTE, Status) ~ Tank.ID,
+                                      verbose = FALSE,
+                                      lambda = lambda,
+                                      phi = phi)
         } else {
-          Haz_bs = suppressWarnings(bshazard::bshazard(nbin = dbin,
-                                                       data = surv_db_group,
-                                                       survival::Surv(TTE, Status) ~ 1,
-                                                       verbose = FALSE,
-                                                       lambda = lambda,
-                                                       phi = phi))
+          Haz_bs = bshazard::bshazard(nbin = dbin,
+                                      data = surv_db_group,
+                                      survival::Surv(TTE, Status) ~ 1,
+                                      verbose = FALSE,
+                                      lambda = lambda,
+                                      phi = phi)
         }
+        sink()
         Haz_list[[Haz_Group]] = data.frame(Hazard = Haz_bs$hazard,
                                            Time = Haz_bs$time)
       }

@@ -95,7 +95,7 @@ Surv_Pred(surv_db = surv_db_ex2, #undocumented real data with anonymized Trt.IDs
           pred_tte = 54,
           pred_method = "simple",
           plot_save = FALSE,
-          data_out = FALSE)[-4]
+          data_out = FALSE)
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Pred.html}{Link} for executed \bold{Examples} which includes any figure outputs.

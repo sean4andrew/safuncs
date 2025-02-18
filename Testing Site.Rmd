@@ -47,7 +47,6 @@ Surv_Pred(surv_db = surv_db,
 # Next, we attempt to predict survival for an ongoing real study (at the time of writing).
 # Here, predictions appeared more stable which is to some extent attributed to the greater
 # mortality counts leading to more reliable hazard ratio estimates.
-
 Surv_Pred(surv_db = surv_db_ex2, #undocumented real data with anonymized Trt.IDs
           surv_db_ref = surv_db_ex3, #undocumented real data
           pred_tte = 54,
