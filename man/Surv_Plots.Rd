@@ -96,7 +96,7 @@ Surv_Plots(surv_db = surv_dat,
            plot = "both",
            dailybin = FALSE)
 
-# To get tank-specific plots and insights, set the argument plot_bytank to TRUE.
+# To create tank-specific plots, set the argument plot_bytank to TRUE.
 Surv_Plots(surv_db = surv_dat,
            plot_prefix = "QCATC777",
            xlim = c(0, 56),
