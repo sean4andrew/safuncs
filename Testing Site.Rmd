@@ -5,55 +5,6 @@ date: "`r Sys.Date()`"
 ---
 
 
-```{r}
-# Below is a brief tutorial showing how to use Surv_Pred() to predict future survival. 
-
-# In the first step, we load the data for which survival is to be predicted and its
-# reference (e.g. a past survival data involving the same disease). The reference must
-# contain only one treatment group:
-surv_db_ref = surv_db_ex[surv_db_ex$Trt.ID == "D",] 
-
-# For demonstration purposes, we pretend the survival data to be predicted only extends
-# to 35 TTE / DPC. Survival rate at 54 TTE is to be predicted. To create such data from
-# the example, I use survival::survSplit(). For real applications, creating the data
-# this way would be unnecessary, instead refer to safuncs::Surv_Gen(). 
-surv_db = survival::survSplit(data = surv_db_ex[-1,], cut = 35, end = "TTE", 
-                              event = "Status", episode = "Eps")
-
-surv_db = surv_db[surv_db$Eps == 1 & surv_db$Trt.ID != "D", 
-                  -c(3, 6)] #remove unnecessary rows and columns
-
-tail(surv_db, n = 5)
-
-# Next, we feed both datasets to Surv_Pred() and execute!
-Surv_Pred(surv_db = surv_db,
-          surv_db_ref = surv_db_ref,
-          pred_tte = 54,
-          pred_method = "simple",
-          plot_save = FALSE,
-          data_out = FALSE) #remove data from output to keep things clean
-
-# In the first two comparative plots, the black line shows the characteristics of the 
-# reference group. Colored lines show treatments from surv_db. 
-
-# Notably, in the third plot, we see the instability of the survival predictions. Using  
-# the latest TTE, predictions compared to actual survival at 54 TTE is 76 vs 64% (+8%) for 
-# Trt.A, 56 vs 64% (-8%) for Trt.B, and 70 vs 73% (-3%) for Trt.C. Notably, for Trt.B, 
-# predictions took ~ 2 weeks to become close to accurate. A potential culprit is the low
-# (?) mortality counts that would led to an unreliable estimate of the hazard ratio on 
-# which the survival prediction is based on. For such reasons, early predictions need to 
-# be scrutinized. 
-
-# Next, we attempt to predict survival for an ongoing real study (at the time of writing).
-# Here, predictions appeared more stable which is to some extent attributed to the greater
-# mortality counts leading to more reliable hazard ratio estimates.
-Surv_Pred(surv_db = surv_db_ex2, #undocumented real data with anonymized Trt.IDs
-          surv_db_ref = surv_db_ex3, #undocumented real data
-          pred_tte = 54,
-          pred_method = "simple",
-          plot_save = FALSE,
-          data_out = FALSE) #remove data from output to keep things clean
-```
 
 ```{r}
 library(safuncs)
@@ -70,18 +21,22 @@ pred_start_DB = read.csv(file = "ONDA01166 starting_fish_count.csv")
 
 pred_DB = Surv_Gen(mort_db = pred_mort_DB,
                    starting_fish_count = pred_start_DB,
-                   last_tte = 31)
+                   last_tte = 32)
 ```
 
 ```{r}
 Surv_Plots(surv_db = pred_DB,
-           dailybin = FALSE)
-
-Surv_Plots(surv_db = pred_DB,
            dailybin = FALSE,
-           phi = 1.5,
-           plot_bytank = TRUE,
-           plot = "haz")
+           plot_prefix = "ONDA01166")
+
+# Surv_Plots(surv_db = pred_DB,
+#            dailybin = FALSE,
+#            plot_bytank = TRUE,
+#            phi = 1.5,
+#            plot_prefix = "ONDA01166")
+
+a = summary(survival::survfit(survival::Surv(TTE, Status) ~ 1, data = pred_DB))
+(1 - last(a$surv)) * 100
 ```
 
 ```{r}
