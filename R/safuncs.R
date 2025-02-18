@@ -866,19 +866,11 @@ theme_Publication = function(base_size = 14) {
 #' @return The output is a list consisting of at least four ggplot objects and optionally
 #' two dataframes.
 #'
-#' * The first two plots 'Comp_SR_Plot' and 'Comp_HR_Plot' shows the survival rates and
-#' and hazard rates (respectively) of the treatments in \code{surv_db} compared to the
-#' reference in \code{surv_db_ref} depicted with a black line.
-#' * The third and fourth plots 'Pred_SR_Plot' and 'Pred_HR_Plot' shows the history of
-#' predictions for survival and hazard ratio (respectively) based on the utilized TTE
-#' depicted in the x-axis. For example, if the x-value is 30, this means the prediction
-#' is blind to all data after it and only used the TTEs before. The dashed lines indicate
-#' what the prediction would be had the TTE of \code{surv_db_ref} been offset by +/- 2
-#' days. This is to show sensitivity to discrepancy in disease "starting times" (onset of
-#' significant mortality) between \code{surv_db} and \code{surv_db_ref}
-#' * The first table 'Pred_TTE' shows the predicted survival rate 'pred_SR' and hazard
-#' ratio 'pred_HR' at the specified tte (\code{pred_tte}) using all available data, while
-#' the second table 'Pred_History' shows the prediction based on different utilized TTEs.
+#' \itemize{
+#'  \item The first two plots 'Comp_SR_Plot' and 'Comp_HR_Plot' shows the survival rates and hazard rates (respectively) of the treatments in \code{surv_db} compared to the reference in \code{surv_db_ref} depicted with a black line.
+#'  \item The third and fourth plots 'Pred_SR_Plot' and 'Pred_HR_Plot' shows the history of predictions for survival and hazard ratio (respectively) based on the utilized TTE depicted in the x-axis. For example, if the x-value is 30, this means the prediction is blind to all data after it and only used the TTEs before. The dashed lines indicate what the prediction would be had the TTE of \code{surv_db_ref} been offset by +/- 2 days. This is to show sensitivity to discrepancy in disease "starting times" (onset of significant mortality) between \code{surv_db} and \code{surv_db_ref}
+#'  \item The first table 'Pred_TTE' shows the predicted survival rate 'pred_SR' and hazard ratio 'pred_HR' at the specified tte (\code{pred_tte}) using all available data, while the second table 'Pred_History' shows the prediction based on different utilized TTEs.
+#' }
 #'
 #' @import dplyr
 #' @import ggplot2
