@@ -4,7 +4,7 @@
 
 * Revamped function `Surv_Pred()`.
 * Completed `Surv_Pred()` documentation.
-* Added further functionalities to `Surv_Plot()` notably an argument to facet by tank.
+* Added further functionalities to `Surv_Plot()` notably an argument to plot by tank.
 
 # safuncs 2.2.0
 
