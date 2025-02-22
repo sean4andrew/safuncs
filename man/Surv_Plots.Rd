@@ -42,7 +42,7 @@ Surv_Plots(
 
 \item{colours}{Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.}
 
-\item{theme}{A string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".}
+\item{theme}{A string specifying the graphics theme for the plots. Theme "ggplot2", "prism", and "publication", currently available. Defaults to "ggplot2".}
 
 \item{trt_order}{Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.}
 
@@ -90,22 +90,20 @@ surv_dat = Surv_Gen(mort_db = mort_db_ex,
 # Create plot by feeding surv_dat to Surv_Plots()!
 Surv_Plots(surv_db = surv_dat,
            plot_prefix = "QCATC777",
-           xlim = c(0, 56),
-           ylim = c(0, 1),
            xlab = "TTE",
            plot = "both",
-           dailybin = FALSE)
+           dailybin = FALSE,
+           theme = "publication")
 
 # To create tank-specific plots, set the argument plot_bytank to TRUE.
 Surv_Plots(surv_db = surv_dat,
            plot_prefix = "QCATC777",
-           xlim = c(0, 56),
-           ylim = c(0, 1),
            xlab = "TTE",
            plot = "both",
            dailybin = FALSE,
            phi = 1.5, #often needed for accurate estimation in single tank/group cases or low sample sizes
-           plot_bytank = TRUE)
+           plot_bytank = TRUE,
+           theme = "publication")
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed \bold{Examples} which includes any figure outputs.

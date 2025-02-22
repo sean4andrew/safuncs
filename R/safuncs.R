@@ -431,10 +431,6 @@ Surv_Simul = function(haz_db,
   if(n_sim >= 10000) {
     print("NOTE: It is not recommended to use n_sim > 10000 as this may create impractically large simulated data files (>1 GB).")
   }
-  if(plot_out == TRUE & n_sim > 100) {
-    print("Plot too slow to render with n_sim > 50. No plot output is provided")
-    plot_out = FALSE
-  }
 
   #Add blank for last time point in haz_db, for convenience on later calculations
   haz_db = rbind(haz_db, data.frame(trt.id = haz_db$trt.id[1], hazard = last(cumsum(haz_db$hazard)) * .Machine$double.eps * 10,
@@ -838,7 +834,8 @@ theme_Publication = function(base_size = 14) {
             legend.key.size= unit(0.4, "cm"),
             legend.spacing = unit(0, "cm"),
             legend.title = element_text(size = 12),
-            plot.margin = unit(c(10, 15, 5, 5),"mm"),
+            plot.margin = margin(10, 10, 10, 10),
+            legend.margin = margin(0, 0, 0, 0),
             strip.background = element_rect(colour = "#f0f0f0", fill = "#f0f0f0"),
             strip.text = element_text(face = "bold")
     ))
@@ -1350,7 +1347,7 @@ Surv_Gen = function(mort_db,
 #' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE for large sample sizes (often with tank replication), although at large sample sizes either TRUE or FALSE produces similar results usually. Defaults to TRUE.
 #' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
 #' @param colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
-#' @param theme A string specifying the graphics theme for the plots. Theme "ggplot2" and "prism" currently available. Defaults to "ggplot2".
+#' @param theme A string specifying the graphics theme for the plots. Theme "ggplot2", "prism", and "publication", currently available. Defaults to "ggplot2".
 #' @param trt_order Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.
 #' @param data_out Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.
 #' @param plot_bytank Whether to analyze and plot the data by tanks. Defaults to FALSE.
@@ -1378,22 +1375,20 @@ Surv_Gen = function(mort_db,
 #' # Create plot by feeding surv_dat to Surv_Plots()!
 #' Surv_Plots(surv_db = surv_dat,
 #'            plot_prefix = "QCATC777",
-#'            xlim = c(0, 56),
-#'            ylim = c(0, 1),
 #'            xlab = "TTE",
 #'            plot = "both",
-#'            dailybin = FALSE)
+#'            dailybin = FALSE,
+#'            theme = "publication")
 #'
 #' # To create tank-specific plots, set the argument plot_bytank to TRUE.
 #' Surv_Plots(surv_db = surv_dat,
 #'            plot_prefix = "QCATC777",
-#'            xlim = c(0, 56),
-#'            ylim = c(0, 1),
 #'            xlab = "TTE",
 #'            plot = "both",
 #'            dailybin = FALSE,
 #'            phi = 1.5, #often needed for accurate estimation in single tank/group cases or low sample sizes
-#'            plot_bytank = TRUE)
+#'            plot_bytank = TRUE,
+#'            theme = "publication")
 Surv_Plots = function(surv_db,
                       xlim = NULL,
                       ylim = c(0, 1),
@@ -1447,19 +1442,23 @@ Surv_Plots = function(surv_db,
                                       ylim = ylim,
                                       surv.scale = "percent",
                                       short.panel.labs = FALSE)
+
+    x_breaks = round((xlim[2] - xlim[1]) / 13)
+
     if(plot_bytank == TRUE){
       surv_plot$scales$scales = list()
       Survival_Plot = surv_plot + guides(color = guide_legend("Tank.ID")) + theme(legend.position = "right") +
-        scale_x_continuous(n.breaks = 10, name = xlab, limits = xlim) +
+        scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks), name = xlab, limits = xlim) +
         scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10)
     } else {
       surv_plot$plot$scales$scales = list()
       Survival_Plot = surv_plot$plot + guides(color = guide_legend("Trt.ID")) + theme(legend.position = "right") +
-        scale_x_continuous(n.breaks = 10, name = xlab, limits = xlim) +
+        scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks), name = xlab, limits = xlim) +
         scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10)
     }
 
     if(theme == "prism") {Survival_Plot <- Survival_Plot + ggprism::theme_prism()}
+    if(theme == "publication") {Survival_Plot <- Survival_Plot + safuncs::theme_Publication()}
     if(!is.null(colours)) {Survival_Plot <- Survival_Plot + scale_color_manual(values = colours)}
 
     #Save Plots
@@ -1528,17 +1527,18 @@ Surv_Plots = function(surv_db,
       geom_line(linewidth = 1) +
       geom_point() +
       xlab(xlab) +
-      scale_x_continuous(n.breaks = 10,
+      scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks),
                          limits = xlim) +
       scale_y_continuous(n.breaks = 6, name = "Hazard Rate")
 
     if(plot_bytank == TRUE) {
       Hazard_Plot$mapping = aes(x = Time, y = Hazard, color = Tank.ID)
       Hazard_Plot <- Hazard_Plot + facet_wrap(~ Trt.ID) + guides(color = guide_legend("Tank.ID"))
-
     }
+
     if(!is.null(colours)) {Hazard_Plot <- Hazard_Plot + scale_color_manual(values = colours)}
     if(theme == "prism") {Hazard_Plot <- Hazard_Plot + ggprism::theme_prism()}
+    if(theme == "publication") {Hazard_Plot <- Hazard_Plot + safuncs::theme_Publication()}
 
     #Save plots
     if(plot_save == TRUE) {
