@@ -18,7 +18,9 @@ reference:
   - GG_Colour_Hue
   - Label_Gen
   - MultiVar
-- title: "Example Datasets"
+- title: "Data"
   contents:
   - ends_with("_db_ex")
+  - onda_cols1
+  - onda_cols2
 news:

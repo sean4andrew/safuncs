@@ -103,7 +103,8 @@ Surv_Plots(surv_db = surv_dat,
            dailybin = FALSE,
            phi = 1.5, #often needed for accurate estimation in single tank/group cases or low sample sizes
            plot_bytank = TRUE,
-           theme = "publication")
+           theme = "publication",
+           plot_dim = c(6, 6))
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed \bold{Examples} which includes any figure outputs.
