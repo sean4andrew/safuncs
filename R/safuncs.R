@@ -1448,7 +1448,7 @@ Surv_Plots = function(surv_db,
     if(plot_bytank == TRUE){
       surv_plot$scales$scales = list()
       Survival_Plot = surv_plot + guides(color = guide_legend("Tank.ID")) + theme(legend.position = "right") +
-        scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks), name = xlab, limits = xlim) +
+        scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks*2), name = xlab, limits = xlim) +
         scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10)
     } else {
       surv_plot$plot$scales$scales = list()
@@ -1527,7 +1527,7 @@ Surv_Plots = function(surv_db,
       geom_line(linewidth = 1) +
       geom_point() +
       xlab(xlab) +
-      scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks),
+      scale_x_continuous(breaks = seq(0, xlim[2] + 100, ifelse(plot_bytank == TRUE, x_breaks, x_breaks * 2)),
                          limits = xlim) +
       scale_y_continuous(n.breaks = 6, name = "Hazard Rate")
 
@@ -3525,3 +3525,27 @@ MultiVar = function(multivar_db,
 #' View(surv_sim_db_ex$surv_plots)
 #'
 "surv_sim_db_ex"
+
+###################################################### Data 6 - onda_cols1 ###########################################################
+
+#' Primary ONDA Color Vector
+#'
+#' @description A vector containing the hex codes for the primary theme of colors for ONDA: c("#004750", "#006B68", "#65BBB0").
+#'
+#' @usage
+#' data(onda_cols1)
+#' print(onda_cols1)
+#'
+"onda_cols1"
+
+###################################################### Data 6 - onda_cols1 ###########################################################
+
+#' Secondary ONDA Color Vector
+#'
+#' @description A vector containing the hex codes for the secondary theme of colors for ONDA: c("#163029", "#80C7BC", "#AFE2E3", "#D0D0AA", "#CEDFD7", "#FFFFFF").
+#'
+#' @usage
+#' data(onda_cols1)
+#' print(onda_cols1)
+#'
+"onda_cols2"
