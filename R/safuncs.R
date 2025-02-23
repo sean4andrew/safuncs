@@ -945,11 +945,11 @@ Surv_Pred = function(surv_db,
                      plot_prefix = "ONDA_XX",
                      data_out = TRUE){
 
- #Default pred_tte
- if(is.null(pred_tte)) {pred_tte <- max(ref_TTE0)}
-
  #Set 0 offset time
  ref_TTE0 = surv_db_ref$TTE
+
+ #Default pred_tte
+ if(is.null(pred_tte)) {pred_tte <- max(ref_TTE0)}
 
  #Initialize dataframes
  Pred_Stats = data.frame()
@@ -1409,6 +1409,7 @@ Surv_Plots = function(surv_db,
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
   if(!is.null(trt_order)){surv_db$Trt.ID = factor(surv_db$Trt.ID, levels = trt_order)}
+  x_breaks = round((xlim[2] - xlim[1]) / 13)
 
   if(plot == "surv" | plot == "both") {
 
@@ -1443,8 +1444,6 @@ Surv_Plots = function(surv_db,
                                       ylim = ylim,
                                       surv.scale = "percent",
                                       short.panel.labs = TRUE)
-
-    x_breaks = round((xlim[2] - xlim[1]) / 13)
 
     if(plot_bytank == TRUE){
       surv_plot$scales$scales = list()
