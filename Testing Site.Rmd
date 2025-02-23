@@ -62,12 +62,13 @@ surv_dat = Surv_Gen(mort_db = mort_db_ex,
                     last_tte = 54)
 
 # Create plot by feeding surv_dat to Surv_Plots()!
-safuncs::Surv_Plots(surv_db = surv_dat,
+Surv_Plots(surv_db = surv_dat,
            plot_prefix = "QCATC777",
            xlim = c(0, 56),
            ylim = c(0, 1),
-           plot = "both",
+           plot = "surv",
            dailybin = FALSE,
-           theme = "publication")
+           theme = "publication",
+           plot_bytank = TRUE)
 ```
 

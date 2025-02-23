@@ -1442,7 +1442,7 @@ Surv_Plots = function(surv_db,
                                       xlim = xlim,
                                       ylim = ylim,
                                       surv.scale = "percent",
-                                      short.panel.labs = FALSE)
+                                      short.panel.labs = TRUE)
 
     x_breaks = round((xlim[2] - xlim[1]) / 13)
 
