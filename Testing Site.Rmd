@@ -21,9 +21,7 @@ pred_start_DB = read.csv(file = "ONDA01166 starting_fish_count.csv")
 
 pred_DB = Surv_Gen(mort_db = pred_mort_DB,
                    starting_fish_count = pred_start_DB,
-                   last_tte = 35)
-
-coxme::coxme(Surv(TTE, Status) ~ 1 + (1|Tank.ID), pred_DB[pred_DB$Trt.ID == 2,])
+                   last_tte = 38)
 ```
 
 ```{r}

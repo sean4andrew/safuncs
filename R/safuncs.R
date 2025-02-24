@@ -1096,7 +1096,7 @@ Surv_Pred = function(surv_db,
    geom_line() +
    facet_wrap(~Trt.ID) +
    scale_y_continuous(name = paste("Predicted SR at a TTE of", pred_tte),
-                      breaks = seq(0, 100, 10), limits = c(0, 100)) +
+                      breaks = seq(0, 100, 20), limits = c(0, 100)) +
    scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, x_breaks)) +
    ggtitle("SR Prediction History")
 
