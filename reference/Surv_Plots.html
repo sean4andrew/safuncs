@@ -42,6 +42,7 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Surv_Plots</span><span class="op">(</span></span>
 <span>  <span class="va">surv_db</span>,</span>
 <span>  xlim <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  x_breaks <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"Days Post Challenge"</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -125,6 +126,10 @@
 
 <dt id="arg-plot-dim">plot_dim<a class="anchor" aria-label="anchor" href="#arg-plot-dim"></a></dt>
 <dd><p>Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.</p></dd>
+
+
+<dt id="arg-xbreaks">xbreaks<a class="anchor" aria-label="anchor" href="#arg-xbreaks"></a></dt>
+<dd><p>A number specifying the interval for every major tick in the x-axis.</p></dd>
 
 </dl></div>
     <div class="section level2">
