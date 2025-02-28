@@ -25,11 +25,15 @@ pred_DB = Surv_Gen(mort_db = pred_mort_DB,
 ```
 
 ```{r}
-Surv_Plots(surv_db = pred_DB,
+safuncs::Surv_Plots(surv_db = pred_DB,
+           x_breaks = 4,
            dailybin = FALSE,
            plot_prefix = "ONDA01166",
-           plot_bytank = TRUE,
-           plot = "surv")
+           plot_bytank = FALSE,
+           plot = "both",
+           theme = "prism",
+           plot_dim = c(7.2, 4.5),
+           colours = c("#007200", "#BABA00", "#FF0000", "#00748E", "#690091", "#4F4F4F"))
 
 # Surv_Plots(surv_db = pred_DB,
 #            dailybin = FALSE,

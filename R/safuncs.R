@@ -1340,6 +1340,7 @@ Surv_Gen = function(mort_db,
 #'
 #' @param surv_db A survival dataframe as described in \bold{Details}.
 #' @param xlim A vector specifying the plots x-axis lower and upper limits, respectively.
+#' @param xbreaks A number specifying the interval for every major tick in the x-axis.
 #' @param ylim A vector specifying the Survival Plot y-axis lower and upper limits, respectively. Defaults to c(0, 1) which indicates 0 to 100% Survival Probability, respectively.
 #' @param xlab A string specifying the plot x-axis label. Defaults to "Days Post Challenge".
 #' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard::bshazard()} uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
@@ -1392,6 +1393,7 @@ Surv_Gen = function(mort_db,
 #'            plot_dim = c(6, 6))
 Surv_Plots = function(surv_db,
                       xlim = NULL,
+                      x_breaks = NULL,
                       ylim = c(0, 1),
                       xlab = "Days Post Challenge",
                       lambda = NULL,
@@ -1409,7 +1411,8 @@ Surv_Plots = function(surv_db,
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
   if(!is.null(trt_order)){surv_db$Trt.ID = factor(surv_db$Trt.ID, levels = trt_order)}
-  x_breaks = round((xlim[2] - xlim[1]) / 13)
+
+  if(is.null(x_breaks)) {x_breaks <- round((xlim[2] - xlim[1]) / 13)}
 
   if(plot == "surv" | plot == "both") {
 
@@ -1527,13 +1530,13 @@ Surv_Plots = function(surv_db,
       geom_line(linewidth = 1) +
       geom_point() +
       xlab(xlab) +
-      scale_x_continuous(breaks = seq(0, xlim[2] + 100, ifelse(plot_bytank == TRUE, x_breaks, x_breaks * 2)),
+      scale_x_continuous(breaks = seq(0, xlim[2] + 100, ifelse(plot_bytank == FALSE, x_breaks, x_breaks * 2)),
                          limits = xlim) +
       scale_y_continuous(n.breaks = 6, name = "Hazard Rate")
 
     if(plot_bytank == TRUE) {
       Hazard_Plot$mapping = aes(x = Time, y = Hazard, color = Tank.ID)
-      Hazard_Plot <- Hazard_Plot + facet_wrap(~ Trt.ID) + guides(color = guide_legend("Tank.ID"))
+      Hazard_Plot = Hazard_Plot + facet_wrap(~ Trt.ID) + guides(color = guide_legend("Tank.ID"))
     }
 
     if(!is.null(colours)) {Hazard_Plot <- Hazard_Plot + scale_color_manual(values = colours)}
@@ -2197,7 +2200,8 @@ Surv_Power = function(simul_db = simul_db_ex,
 #' @param pca_ellipse A character vector representing the type of ellipses to draw in PCA plots. Generates a plot for every specified type. Choose any combination of "confidence", "distribution", "convexhull", and/or "none". "confidence" draws ellipses representing the 95 percent confidence interval about the center of multivariate normal data (principal component scores); drawn using \code{ggpubr::stat_conf_ellipse()}. "distribution" represents ellipses expected to cover 95 percent of all multivariate normal data; drawn using \code{ggplot2::stat_ellipse()} with argument \code{type = "norm"}. "convexhull" represents the smallest convex polygon enclosing all points; drawn using \code{ggpubr::stat_chull()}. For plots without ellipses, include "none". Defaults to c("confidence").
 #' @param pca_facet_scales A string indicating whether the x and y axes in pca plots should be held constant across facets or variable. Options are "fixed", "free", "free_x", and "free_y" as according to \code{ggplot2::facet_wrap()}. Defaults to "fixed".
 #' @param pca_labels A character vector representing the labels to draw in PCA plots. Choose any combination of "ind" and/or "var". "ind" represents individual point labels by their row number. "var" represents variable loadings drawn as arrows; the arrow length and direction are calculated as in \code{factoextra::fviz_pca_biplot()}. Defaults to NULL (no labels drawn).
-#' @param pca_shapes TRUE/FALSE indicating whether to use different shapes for each factor level in PCA plots. Defaults to FALSE. Different shapes are not provided for plots with greater than 6 factor levels.
+#' @param pca_shapes TRUE/FALSE indicating whether to use different shapes for each factor level in PCA plots. Defaults to FALSE. Different shapes are not supported for plots with greater than 6 factor levels.
+#' @param pca_grid Whether to plot grid lines in pca plots. Defaults to TRUE.
 #' @param missing_method A string representing the method to address missing values in \code{values_cols}. Choose from "imputation" or "na_omit". "imputation" fills in missing values with values created (imputed) based on the correlation between variables essentially; accomplished using \code{missMDA::imputePCA()} with the ncp parameter \code{missMDA::estim_ncpPCA()}. "na_omit" removes entire rows of data when at least one NA value is present. This method may result in a significant loss of data. Defaults to "imputation". The choice of \code{missing_method} would affect PCA, LDA, and MANOVA results but likely only to a small degree with few missing values. Has no impact on boxplots and ANOVAs.
 #' @param scale Whether to scale variable values (such that SD = 1 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.
 #' @param center Whether to center variable values (such that mean = 0 for each variable) before PCA or LDA. A common procedure in the z-score normalization of values that commonly precede PCA. It is not recommended to set this to FALSE, unless justified. Defaults to TRUE.
@@ -2362,6 +2366,7 @@ MultiVar = function(multivar_db,
                     pca_facet_scales = "fixed",
                     pca_labels = NULL,
                     pca_shapes = FALSE,
+                    pca_grid = TRUE,
                     missing_method = "imputation",
                     scale = TRUE,
                     center = TRUE,
@@ -2489,6 +2494,7 @@ MultiVar = function(multivar_db,
           panel.grid.minor = element_line(linewidth = 0.5, color = "grey92"),
           panel.grid.major = element_line(linewidth = 0.5, color = "grey92"))
   if(!is.null(colours_theme)){pca_plot_base <- pca_plot_base + scale_colour_brewer(palette = colours_theme, aesthetics = c("colour", "fill"))}
+  if(pca_grid == FALSE){pca_plot_base <- pca_plot_base + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())}
 
   # Create base boxplot
   boxplot = ggplot() +
@@ -3086,12 +3092,14 @@ MultiVar = function(multivar_db,
 
           #Put in statistical letters
           boxplot$layers[[layer_count]] = ggrepel::geom_text_repel(data = cld_db_plotb[cld_db_plotb$variable == varname, ],
-                                                                   size = base_text_size + 3 * (point_size_algo / 3), segment.color = NA, show.legend = FALSE,
+                                                                   size = base_text_size + 3 * (point_size_algo / 3),
+                                                                   segment.color = NA, show.legend = FALSE,
                                                                    aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
                                                                    nudge_y = diff(layer_scales(boxplot)$y$range$range) * nudge_y_ratio)
 
           boxplot2$layers[[layer_count]] = ggrepel::geom_text_repel(data = cld_db2_plotb[cld_db2_plotb$variable == varname, ],
-                                                                    size = base_text_size + 3 * (point_size_algo2 / 3), segment.color = NA, show.legend = FALSE,
+                                                                    size = base_text_size + 3 * (point_size_algo2 / 3),
+                                                                    segment.color = NA, show.legend = FALSE,
                                                                     aes(x = x, y = ymax, label = Statistical_Classes, fill = NULL, colour = NULL),
                                                                     nudge_y = diff(layer_scales(boxplot2)$y$range$range) * nudge_y_ratio)
 

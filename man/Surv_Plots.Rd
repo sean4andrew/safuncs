@@ -7,6 +7,7 @@
 Surv_Plots(
   surv_db,
   xlim = NULL,
+  x_breaks = NULL,
   ylim = c(0, 1),
   xlab = "Days Post Challenge",
   lambda = NULL,
@@ -55,6 +56,8 @@ Surv_Plots(
 \item{plot_prefix}{A string specifying the prefix for the filename of the saved plots. Defaults to "ONDA_XX".}
 
 \item{plot_dim}{Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.}
+
+\item{xbreaks}{A number specifying the interval for every major tick in the x-axis.}
 }
 \value{
 Returns a list containing the Kaplan-Meier Survival Curve and the Hazard Curve if {\code{plot = "both"}}. If only one plot is to be calculated and shown, set either \code{plot = "haz"} or \code{plot = "surv"}.

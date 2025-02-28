@@ -14,6 +14,7 @@ MultiVar(
   pca_facet_scales = "fixed",
   pca_labels = NULL,
   pca_shapes = FALSE,
+  pca_grid = TRUE,
   missing_method = "imputation",
   scale = TRUE,
   center = TRUE,
@@ -51,7 +52,9 @@ MultiVar(
 
 \item{pca_labels}{A character vector representing the labels to draw in PCA plots. Choose any combination of "ind" and/or "var". "ind" represents individual point labels by their row number. "var" represents variable loadings drawn as arrows; the arrow length and direction are calculated as in \code{factoextra::fviz_pca_biplot()}. Defaults to NULL (no labels drawn).}
 
-\item{pca_shapes}{TRUE/FALSE indicating whether to use different shapes for each factor level in PCA plots. Defaults to FALSE. Different shapes are not provided for plots with greater than 6 factor levels.}
+\item{pca_shapes}{TRUE/FALSE indicating whether to use different shapes for each factor level in PCA plots. Defaults to FALSE. Different shapes are not supported for plots with greater than 6 factor levels.}
+
+\item{pca_grid}{Whether to plot grid lines in pca plots. Defaults to TRUE.}
 
 \item{missing_method}{A string representing the method to address missing values in \code{values_cols}. Choose from "imputation" or "na_omit". "imputation" fills in missing values with values created (imputed) based on the correlation between variables essentially; accomplished using \code{missMDA::imputePCA()} with the ncp parameter \code{missMDA::estim_ncpPCA()}. "na_omit" removes entire rows of data when at least one NA value is present. This method may result in a significant loss of data. Defaults to "imputation". The choice of \code{missing_method} would affect PCA, LDA, and MANOVA results but likely only to a small degree with few missing values. Has no impact on boxplots and ANOVAs.}
 
