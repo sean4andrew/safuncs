@@ -4,7 +4,30 @@ output: html_document
 date: "`r Sys.Date()`"
 ---
 
+```{r}
+excel_db = read_xlsx("QCATC1096-3 CRF11 Post Challenge Mortality Record.xlsx")
 
+xlsx_row2coln = function(x) {
+  x = data.frame(x)
+  colnames(x) = x[1, ]
+  x = x[-1, ]
+  
+  return(x)
+}
+
+excel_db2 = xlsx_row2coln(excel_db)
+
+xlsx_trimrow = function(x, coli = 1) {
+  colsel = x[, coli]
+  x = x[!is.na(colsel), ]
+  
+  return(x)
+}
+
+excel_db3 = xlsx_trimrow(excel_row2colnames(excel_db))
+
+str(excel_db3)
+```
 
 ```{r}
 library(safuncs)

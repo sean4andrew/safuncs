@@ -3465,9 +3465,6 @@ MultiVar = function(multivar_db,
 #'
 #' @return A dataframe where the previous first rows are now column names
 #' @export
-#'
-#' @examples
-#'
 xlsx_row2coln = function(x) {
   x = data.frame(x)
   colnames(x) = x[1, ]
@@ -3476,6 +3473,17 @@ xlsx_row2coln = function(x) {
   return(x)
 }
 
+################################################ Function 13 - xlsx_trimrow ################################################
+
+#' @title Trim Rows Based on Non-NA Values
+#'
+#' @description Remove rows after the last non-NA value in a selected column. Select column based on the \code{coli} argument.
+#'
+#' @param x A dataframe.
+#' @param coli A number indicating the index of the column to base the trimming on.
+#'
+#' @return A dataframe object without the "extra" NA values on the selected rows.
+#' @export
 xlsx_trimrow = function(x, coli = 1) {
   colsel = x[, coli]
   x = x[!is.na(colsel), ]
