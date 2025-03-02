@@ -3455,7 +3455,35 @@ MultiVar = function(multivar_db,
   }
 }
 
-##################################################### Data 1 - mort_db_ex #######################################################
+################################################# Function 12 - xlsx_row2coln ################################################
+
+#' @title Set First Row as Column Headers
+#'
+#' @description Transform first row of the data into column names and subsequently remove that row.
+#'
+#' @param x A tibble / dataframe object. Initially designed for the output of \code{readxl::read_xlsx()}.
+#'
+#' @return A dataframe where the previous first rows are now column names
+#' @export
+#'
+#' @examples
+#'
+xlsx_row2coln = function(x) {
+  x = data.frame(x)
+  colnames(x) = x[1, ]
+  x = x[-1, ]
+
+  return(x)
+}
+
+xlsx_trimrow = function(x, coli = 1) {
+  colsel = x[, coli]
+  x = x[!is.na(colsel), ]
+
+  return(x)
+}
+
+##################################################### Data 1 - mort_db_ex ####################################################
 
 #' Example Mort Data
 #'
