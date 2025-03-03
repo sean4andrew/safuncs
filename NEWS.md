@@ -4,7 +4,8 @@
 
 * Revamped function `Surv_Pred()`.
 * Completed `Surv_Pred()` documentation.
-* Added further functionalities to `Surv_Plot()` notably an argument to plot by tank.
+* Added an argument to `Surv_Gen()` and `Surv_Plot()` to account for an additional factor.
+* Added data transformation assisting functions `xlsx_row2coln()` and `xlsx_trimrow()`.
 
 # safuncs 2.2.0
 

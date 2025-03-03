@@ -6,6 +6,7 @@
 \usage{
 Surv_Plots(
   surv_db,
+  add_factor = NULL,
   xlim = NULL,
   x_breaks = NULL,
   ylim = c(0, 1),
@@ -26,6 +27,8 @@ Surv_Plots(
 }
 \arguments{
 \item{surv_db}{A survival dataframe as described in \bold{Details}.}
+
+\item{add_factor}{A string representing the name of a column in \code{surv_db} to use as an additional factor in plot creation. Will generate plot for every interaction of the additional factor and "Trt.ID".}
 
 \item{xlim}{A vector specifying the plots x-axis lower and upper limits, respectively.}
 
@@ -98,16 +101,31 @@ Surv_Plots(surv_db = surv_dat,
            dailybin = FALSE,
            theme = "publication")
 
-# To create tank-specific plots, set the argument plot_bytank to TRUE.
+# If we want a plot for each tank, we can specify "Tank.ID" as an additional factor:
+Tank_Plot = Surv_Plots(surv_db = surv_dat,
+                       add_factor = "Tank.ID",
+                       plot_prefix = "QCATC777",
+                       xlab = "TTE",
+                       plot = "surv",
+                       dailybin = FALSE,
+                       theme = "publication")
+Tank_Plot
+
+# The plot can be modified like any ggplot2 object, for example, faceting by treatment:
+Tank_Plot + ggplot2::facet_wrap(~ Trt.ID)
+
+# Tank specific hazard curves can also be created. For accurate estimation, the
+# parameter phi often has to be specified in low sample size or single tank cases. A
+# phi of 1-2 is recommended based on estimates from past data with larger sample sizes.
 Surv_Plots(surv_db = surv_dat,
+           add_factor = "Tank.ID",
            plot_prefix = "QCATC777",
+           phi = 1.5,
            xlab = "TTE",
-           plot = "both",
+           x_breaks = 10,
+           plot = "haz",
            dailybin = FALSE,
-           phi = 1.5, #often needed for accurate estimation in single tank/group cases or low sample sizes
-           plot_bytank = TRUE,
-           theme = "publication",
-           plot_dim = c(6, 6))
+           theme = "publication") + ggplot2::facet_wrap(~ Trt.ID)
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed \bold{Examples} which includes any figure outputs.

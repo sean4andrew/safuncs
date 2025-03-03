@@ -12,7 +12,7 @@ xlsx_trimrow(x, coli = 1)
 \item{coli}{A number indicating the index of the column to base the trimming on.}
 }
 \value{
-A dataframe object without the "extra" NA values on the selected rows.
+Returns a dataframe object without the "extra" NA values on the selected rows.
 }
 \description{
 Remove rows after the last non-NA value in a selected column. Select column based on the \code{coli} argument.

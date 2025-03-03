@@ -1200,6 +1200,7 @@ Surv_Pred = function(surv_db,
 #' @param mort_db A mort dataframe as described in \bold{Details}.
 #' @param starting_fish_count Value representing the starting number of fish for every tank. Alternatively, a dataframe containing the columns "Trt.ID", "Tank.ID", and "starting_fish_count" to allow for different fish starting numbers per tank.
 #' @param last_tte Value representing the time-to-event the fish survived to, assigned to every row of survivor data generated.
+#' @param add_factor A string or character vector representing the name(s) of column(s) in \code{mort_db} to be carried over to the generated survival data for further analysis (e.g. as facet factor in \code{safuncs::Surv_Plots()}). Defaults to NULL.
 #' @param tank_without_mort A vector of strings specifying the tanks absent from \code{mort_db}; used to generate survivor data for those tanks. Argument ignored if \code{starting_fish_count} is a dataframe.
 #' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep their order the same. Argument ignored if \code{starting_fish_count} is a dataframe.
 #' @param output_prism Whether to generate and save a prism ready survival csv. Defaults to FALSE.
@@ -1222,10 +1223,10 @@ Surv_Pred = function(surv_db,
 #' # entries (rows) for survivors in the output - a "complete" dataframe for further
 #' # survival analysis and data visualization.
 #' Surv_Data_Output = Surv_Gen(mort_db = mort_db_ex,
-#'                    starting_fish_count = 100,
-#'                    last_tte = 54,
-#'                    tank_without_mort = c("C99", "C100"),
-#'                    trt_without_mort = c("A", "B"))
+#'                             starting_fish_count = 100,
+#'                             last_tte = 54,
+#'                             tank_without_mort = c("C99", "C100"),
+#'                             trt_without_mort = c("A", "B"))
 #'
 #' # Below, the bottom 5 rows of the output is displayed to show the rows of survivor
 #' # data generated.
@@ -1250,6 +1251,7 @@ Surv_Pred = function(surv_db,
 Surv_Gen = function(mort_db,
                     starting_fish_count,
                     last_tte,
+                    add_factor = NULL,
                     tank_without_mort = NULL,
                     trt_without_mort = NULL,
                     output_prism = FALSE,
@@ -1259,9 +1261,11 @@ Surv_Gen = function(mort_db,
   mort_db[mort_db == "#N/A"] = NA
   mort_db = na.omit(mort_db)
 
+  groups = append(c("Trt.ID", "Tank.ID"), add_factor)
+
   #Count the number of rows in mort_db, for each combination of treatment and tank ID
   DB_Mort_Gensum = data.frame(mort_db %>%
-                                dplyr::group_by(Trt.ID, Tank.ID) %>%
+                                dplyr::group_by(!!!syms(groups)) %>%
                                 dplyr::summarise(Num_dead = dplyr::n(), .groups = "keep"))
 
   #Include tanks without morts in the count database
@@ -1277,14 +1281,15 @@ Surv_Gen = function(mort_db,
     DB_Mort_Gensum = base::merge(DB_Mort_Gensum, starting_fish_count, all.y = TRUE)
     DB_Mort_Gensum$Num_dead[is.na(DB_Mort_Gensum$Num_dead)] = 0
     DB_Mort_Gensum$Num_alive = DB_Mort_Gensum$starting_fish_count - DB_Mort_Gensum$Num_dead
-    DB_Mort_Gensum = DB_Mort_Gensum[, -3]
+    DB_Mort_Gensum = DB_Mort_Gensum[, -c(which(colnames(DB_Mort_Gensum) %in% "starting_fish_count"))]
   } else {DB_Mort_Gensum$Num_alive = starting_fish_count - DB_Mort_Gensum$Num_dead}
 
   #Generate rows of data representing survivors
   DB_Mort_Genalive = data.frame(lapply(DB_Mort_Gensum, rep, DB_Mort_Gensum$Num_alive))
   DB_Mort_Genalive$Status = 0
   DB_Mort_Genalive$TTE = last_tte
-  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[, -c(3:4)])
+  DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[, -c(which(colnames(DB_Mort_Gensum)
+                                                                          %in% c("Num_alive", "Num_dead")))])
 
   #Create prism output
   if(output_prism == TRUE){
@@ -1309,12 +1314,12 @@ Surv_Gen = function(mort_db,
                        prism_db[, -1])
     }
 
-    prism_db = data.frame(prism_db %>% dplyr::arrange(Trt.ID, Tank.ID))[, -which(colnames(prism_db) == "Trt.ID")]
+    prism_db = data.frame(prism_db %>% dplyr::arrange(Trt.ID, Tank.ID))
     write.csv(prism_db, paste("Surv_Gen Prism - last TTE ", last_tte, ".csv", sep = ""))
   }
 
-  print(paste("Your total number of tanks is:", length(levels(factor(DB_Mort_Gencomb$Tank.ID)))))
-  print(paste("Your total number of treatment groups is:", length(levels(factor(DB_Mort_Gencomb$Trt.ID)))))
+  print(paste("Your total number of tanks is:", length(unique(factor(DB_Mort_Gencomb$Tank.ID)))))
+  print(paste("Your total number of treatment groups is:", length(unique(factor(DB_Mort_Gencomb$Trt.ID)))))
   print(paste("Your total number of fish in the output data is:", nrow(DB_Mort_Gencomb)))
   return(DB_Mort_Gencomb)
 }
@@ -1339,6 +1344,7 @@ Surv_Gen = function(mort_db,
 #' @md
 #'
 #' @param surv_db A survival dataframe as described in \bold{Details}.
+#' @param add_factor A string representing the name of a column in \code{surv_db} to use as an additional factor in plot creation. Will generate plot for every interaction of the additional factor and "Trt.ID".
 #' @param xlim A vector specifying the plots x-axis lower and upper limits, respectively.
 #' @param xbreaks A number specifying the interval for every major tick in the x-axis.
 #' @param ylim A vector specifying the Survival Plot y-axis lower and upper limits, respectively. Defaults to c(0, 1) which indicates 0 to 100% Survival Probability, respectively.
@@ -1381,17 +1387,33 @@ Surv_Gen = function(mort_db,
 #'            dailybin = FALSE,
 #'            theme = "publication")
 #'
-#' # To create tank-specific plots, set the argument plot_bytank to TRUE.
+#' # If we want a plot for each tank, we can specify "Tank.ID" as an additional factor:
+#' Tank_Plot = Surv_Plots(surv_db = surv_dat,
+#'                        add_factor = "Tank.ID",
+#'                        plot_prefix = "QCATC777",
+#'                        xlab = "TTE",
+#'                        plot = "surv",
+#'                        dailybin = FALSE,
+#'                        theme = "publication")
+#' Tank_Plot
+#'
+#' # The plot can be modified like any ggplot2 object, for example, faceting by treatment:
+#' Tank_Plot + ggplot2::facet_wrap(~ Trt.ID)
+#'
+#' # Tank specific hazard curves can also be created. For accurate estimation, the
+#' # parameter phi often has to be specified in low sample size or single tank cases. A
+#' # phi of 1-2 is recommended based on estimates from past data with larger sample sizes.
 #' Surv_Plots(surv_db = surv_dat,
+#'            add_factor = "Tank.ID",
 #'            plot_prefix = "QCATC777",
+#'            phi = 1.5,
 #'            xlab = "TTE",
-#'            plot = "both",
+#'            x_breaks = 10,
+#'            plot = "haz",
 #'            dailybin = FALSE,
-#'            phi = 1.5, #often needed for accurate estimation in single tank/group cases or low sample sizes
-#'            plot_bytank = TRUE,
-#'            theme = "publication",
-#'            plot_dim = c(6, 6))
+#'            theme = "publication") + ggplot2::facet_wrap(~ Trt.ID)
 Surv_Plots = function(surv_db,
+                      add_factor = NULL,
                       xlim = NULL,
                       x_breaks = NULL,
                       ylim = c(0, 1),
@@ -1409,60 +1431,64 @@ Surv_Plots = function(surv_db,
                       plot_prefix = "ONDA_XX",
                       plot_dim = c(6, 4)) {
 
+  if(sink.number() > 0) {stop(paste("You probably canceled mid-way the process of estimating the hazard curve. Please undo the existing sink of", sink.number(),"(which 'hides' R console output) by spamming 'sink()' in the console until a warning appears."))}
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
   if(!is.null(trt_order)){surv_db$Trt.ID = factor(surv_db$Trt.ID, levels = trt_order)}
-
-  if(is.null(x_breaks)) {x_breaks <- round((xlim[2] - xlim[1]) / 13)}
+  if(is.null(x_breaks)) {x_breaks <- max(1, round((xlim[2] - xlim[1]) / 10))}
 
   if(plot == "surv" | plot == "both") {
 
-    if(plot_bytank == TRUE) {
-      surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID + Tank.ID, data = surv_db)
+    #Create survfit object
+    surv_obj = survminer::surv_fit(as.formula(paste(c("survival::Surv(TTE, Status) ~ Trt.ID", add_factor), collapse = " + ")),
+                                   data = surv_db)
+
+    #Dealing with one Trt.ID scenario
+    if(length(levels(as.factor(surv_db$Trt.ID))) == 1) {
+      surv_obj$strata = length(surv_obj$surv)
+    }
+
+    #Add strata names
+    strn = attributes(surv_obj$strata)$names
+    if(is.null(add_factor)){
+      strn = sub(".*=", "", strn)
     } else {
-      surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
-
-      if(length(levels(as.factor(surv_db$Trt.ID))) > 1) {
-        attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
-      } else {
-        surv_obj$strata = length(surv_obj$surv)
-        attributes(surv_obj$strata)$names <- levels(as.factor(surv_db$Trt.ID))
-      }
+      strn = gsub(".*=(.*),.*=(.*)", "\\1, \\2", strn)
     }
+    strn = sub("\\s+$", "", strn)
 
-    surv_dat = data.frame(Trt.ID = summary(surv_obj)$strata,
-                          Survprob = summary(surv_obj)$surv,
-                          Time = summary(surv_obj)$time)
-
-    if(plot_bytank == TRUE){
-      surv_dat = tidyr::separate(data = surv_dat, col = "Trt.ID", sep = ",", into = c("Trt.ID", "Tank.ID"))
-      surv_dat$Tank.ID = sub("^.*=", "", surv_dat$Tank.ID)
-    }
-    surv_dat$Trt.ID = sub("^.*=", "", surv_dat$Trt.ID)
-
+    #Create survival plot
     surv_plot = survminer::ggsurvplot(surv_obj,
                                       conf.int = FALSE,
                                       ggtheme = theme(plot.background = element_rect(fill = "white")),
-                                      facet.by = if(plot_bytank == TRUE) {"Trt.ID"} else {NULL},
+                                      surv.scale = "percent",
                                       xlim = xlim,
                                       ylim = ylim,
-                                      surv.scale = "percent",
-                                      short.panel.labs = TRUE)
+                                      short.panel.labs = TRUE,
+                                      short.legend.labs = TRUE)$plot
+    if(is.null(colours)) {color_vec <- unique(layer_data(surv_plot)[,1])} else {color_vec = colours}
+    surv_plot$scales$scales = list()
+    surv_plot = surv_plot +
+      guides(color = guide_legend(paste(c("Trt.ID", add_factor), collapse = ", "))) +
+      theme(legend.position = "right") +
+      scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks), name = xlab, limits = xlim, oob = scales::squish) +
+      scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10) +
+      scale_color_manual(labels = strn, values = color_vec)
 
-    if(plot_bytank == TRUE){
-      surv_plot$scales$scales = list()
-      Survival_Plot = surv_plot + guides(color = guide_legend("Tank.ID")) + theme(legend.position = "right") +
-        scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks*2), name = xlab, limits = xlim) +
-        scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10)
-    } else {
-      surv_plot$plot$scales$scales = list()
-      Survival_Plot = surv_plot$plot + guides(color = guide_legend("Trt.ID")) + theme(legend.position = "right") +
-        scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks), name = xlab, limits = xlim) +
-        scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10)
+    #Create survdat
+    surv_dat = data.frame(Trt.ID = surv_plot$data$strata,
+                          Survprob = surv_plot$data$surv,
+                          Time = surv_plot$data$time)
+
+    #Address names
+    if(!is.null(add_factor)){
+      surv_dat$Trt.ID = gsub(".*=(.*),.*=(.*)", "\\1, \\2", surv_dat$Trt.ID)
+      surv_dat = tidyr::separate(data = surv_dat, col = "Trt.ID", sep = ", ", into = c("Trt.ID", add_factor))
     }
 
+    #Add theme
+    Survival_Plot = surv_plot
     if(theme == "prism") {Survival_Plot <- Survival_Plot + ggprism::theme_prism()}
     if(theme == "publication") {Survival_Plot <- Survival_Plot + safuncs::theme_Publication()}
-    if(!is.null(colours)) {Survival_Plot <- Survival_Plot + scale_color_manual(values = colours)}
 
     #Save Plots
     if(plot_save == TRUE){
@@ -1473,71 +1499,61 @@ Surv_Plots = function(surv_db,
     }
   }
 
+  #Dealing with hazard curve creation
   if(dailybin == TRUE) {dbin <- max(surv_db$TTE)}
   if(dailybin == FALSE) {dbin <- NULL}
 
   #create Haz_list
   if(plot == "haz" | plot == "both") {
     Haz_list = list()
-    if(plot_bytank == TRUE) {
-      surv_db$group = interaction(surv_db$Trt.ID, surv_db$Tank.ID, lex.order = TRUE, sep = ",")
-      Haz_Group_Vec = levels(factor(surv_db$group))
+
+    if(!is.null(add_factor)) {
+      surv_db$group = factor(interaction(surv_db$Trt.ID, surv_db[, add_factor], sep = ", "), levels = strn)
     } else {
-      Haz_Group_Vec = levels(as.factor(surv_db$Trt.ID))
+      surv_db$group = factor(surv_db$Trt.ID)
     }
+    Haz_Group_Vec = unique(surv_db$group)
 
+    #Create haz curve for each group
     for(Haz_Group in Haz_Group_Vec) {
-      if(plot_bytank == TRUE) {
-        surv_db_group = surv_db[surv_db$group == Haz_Group,]
-        surv_db_group$group = droplevels(surv_db_group$group)
-      } else {
-        surv_db_group = surv_db[surv_db$Trt.ID == Haz_Group,]
-      }
 
+      #Filter data for a group
+      surv_db_group = droplevels(surv_db[surv_db$group == Haz_Group,])
+
+      #Address no mort situations
       if(sum(surv_db_group$Status) == 0){
         Haz_list[[Haz_Group]] = data.frame(Hazard = 0,
                                            Time = rep(0, max(surv_db$TTE), 1))
-      } else {
+      } else { #Create haz curves
         sink(tempfile())
-        if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {
-          Haz_bs = bshazard::bshazard(nbin = dbin,
-                                      data = surv_db_group,
-                                      survival::Surv(TTE, Status) ~ Tank.ID,
-                                      verbose = FALSE,
-                                      lambda = lambda,
-                                      phi = phi)
-        } else {
-          Haz_bs = bshazard::bshazard(nbin = dbin,
-                                      data = surv_db_group,
-                                      survival::Surv(TTE, Status) ~ 1,
-                                      verbose = FALSE,
-                                      lambda = lambda,
-                                      phi = phi)
-        }
+        if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {iv <- "Tank.ID"} else {iv <- 1}
+        Haz_bs = bshazard::bshazard(nbin = dbin,
+                                    data = surv_db_group,
+                                    formula = as.formula(paste("survival::Surv(TTE, Status) ~", iv)),
+                                    verbose = FALSE,
+                                    lambda = lambda,
+                                    phi = phi)
         sink()
         Haz_list[[Haz_Group]] = data.frame(Hazard = Haz_bs$hazard,
                                            Time = Haz_bs$time)
       }
     }
 
-    haz_db = dplyr::bind_rows(Haz_list, .id = "Trt.ID")
-    if(plot_bytank == TRUE){
-      haz_db = tidyr::separate(data = haz_db, col = "Trt.ID", into = c("Trt.ID", "Tank.ID"), sep = ",")
+    #Create hazard database
+    haz_db = dplyr::bind_rows(Haz_list, .id = paste(c("Trt.ID", add_factor), collapse = ", "))
+    if(!is.null(add_factor)){
+      haz_db = tidyr::separate(data = haz_db, col = 1, into = c("Trt.ID", add_factor), sep = ", ", remove = FALSE)
     }
     if(!is.null(trt_order)){haz_db$Trt.ID <- factor(haz_db$Trt.ID, levels = trt_order)}
 
-    Hazard_Plot = ggplot(data = haz_db, aes(x = Time, y = Hazard, color = Trt.ID)) +
+    #Create hazard plot
+    Hazard_Plot = ggplot(data = haz_db,
+                         aes(x = Time, y = Hazard, color = .data[[paste(c("Trt.ID", add_factor), collapse = ", ")]])) +
       geom_line(linewidth = 1) +
       geom_point() +
-      xlab(xlab) +
-      scale_x_continuous(breaks = seq(0, xlim[2] + 100, ifelse(plot_bytank == FALSE, x_breaks, x_breaks * 2)),
-                         limits = xlim) +
+      scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks),
+                         limits = xlim, name = xlab) +
       scale_y_continuous(n.breaks = 6, name = "Hazard Rate")
-
-    if(plot_bytank == TRUE) {
-      Hazard_Plot$mapping = aes(x = Time, y = Hazard, color = Tank.ID)
-      Hazard_Plot = Hazard_Plot + facet_wrap(~ Trt.ID) + guides(color = guide_legend("Tank.ID"))
-    }
 
     if(!is.null(colours)) {Hazard_Plot <- Hazard_Plot + scale_color_manual(values = colours)}
     if(theme == "prism") {Hazard_Plot <- Hazard_Plot + ggprism::theme_prism()}
@@ -1552,10 +1568,12 @@ Surv_Plots = function(surv_db,
     }
   }
 
+  #Print outputs
   if(data_out == TRUE) {
     if(plot == "surv") {return(list(Survival_Plot = Survival_Plot, Survival_DB = surv_dat))}
     if(plot == "haz") {return(list(Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
-    if(plot == "both") {return(list(Survival_Plot = Survival_Plot, Survival_DB = surv_dat, Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
+    if(plot == "both") {return(list(Survival_Plot = Survival_Plot, Survival_DB = surv_dat,
+                                    Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
   } else {
     if(plot == "surv") {return(Survival_Plot = Survival_Plot)}
     if(plot == "haz") {return(Hazard_Plot = Hazard_Plot)}
@@ -1654,9 +1672,9 @@ Label_Gen = function(input_list,
 
 ##################################################### Function 10 - Surv_Power() ####################################################
 
-#' Calculates Power for Survival Experiments
+#' Calculate Power for Survival Experiments
 #'
-#' @description Calculates the power of global and/or pairwise hypothesis tests for survival studies with support over a range of experimental designs. This versatility is enabled by the simulation-based approach of the power calculation, using the modular \code{Surv_Simul()} to simulate survival data of various experimental designs. Power calculations can be made to account for inter-tank variation using a mixed cox proportional hazards model (set argument \code{model = "coxph_glmm"}). Additionally, power calculations can account for the multiplicity of pairwise comparisons using \code{pairwise_corr}. Users can compare power across different experimental designs by specifying each as a list element in \code{Surv_Simul()}. A brief tutorial is written in \bold{Examples} to guide the user on how to use \code{Surv_Power()} to calculate power under various scenarios.
+#' @description Calculate power for global and/or pairwise hypothesis tests of survival data with support over a range of data structures from different experimental designs. Power calculations can be made to account for inter-tank variation using a mixed cox proportional hazards model (set argument \code{model = "coxph_glmm"}). Additionally, power calculations can account for the multiplicity of pairwise comparisons using \code{pairwise_corr}. Users can compare power across different experimental designs by specifying each as a list element in \code{Surv_Simul()}. A brief tutorial is written in \bold{Examples} to guide the user on how to use \code{Surv_Power()} to calculate power under various scenarios.
 #'
 #'
 #' @param simul_db An output from \code{Surv_Simul()} which includes the survival dataframe simulated with the desired experimental design parameters.
@@ -3463,7 +3481,7 @@ MultiVar = function(multivar_db,
 #'
 #' @param x A tibble / dataframe object. Initially designed for the output of \code{readxl::read_xlsx()}.
 #'
-#' @return A dataframe where the previous first rows are now column names
+#' @return Returns a dataframe where the previous first rows are now column names
 #' @export
 xlsx_row2coln = function(x) {
   x = data.frame(x)
@@ -3482,7 +3500,7 @@ xlsx_row2coln = function(x) {
 #' @param x A dataframe.
 #' @param coli A number indicating the index of the column to base the trimming on.
 #'
-#' @return A dataframe object without the "extra" NA values on the selected rows.
+#' @return Returns a dataframe object without the "extra" NA values on the selected rows.
 #' @export
 xlsx_trimrow = function(x, coli = 1) {
   colsel = x[, coli]

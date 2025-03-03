@@ -2,7 +2,7 @@
 % Please edit documentation in R/safuncs.R
 \name{Surv_Power}
 \alias{Surv_Power}
-\title{Calculates Power for Survival Experiments}
+\title{Calculate Power for Survival Experiments}
 \usage{
 Surv_Power(
   simul_db = simul_db_ex,
@@ -71,7 +71,7 @@ Outputs a list containing any of the following four items depending on input arg
 }
 }
 \description{
-Calculates the power of global and/or pairwise hypothesis tests for survival studies with support over a range of experimental designs. This versatility is enabled by the simulation-based approach of the power calculation, using the modular \code{Surv_Simul()} to simulate survival data of various experimental designs. Power calculations can be made to account for inter-tank variation using a mixed cox proportional hazards model (set argument \code{model = "coxph_glmm"}). Additionally, power calculations can account for the multiplicity of pairwise comparisons using \code{pairwise_corr}. Users can compare power across different experimental designs by specifying each as a list element in \code{Surv_Simul()}. A brief tutorial is written in \bold{Examples} to guide the user on how to use \code{Surv_Power()} to calculate power under various scenarios.
+Calculate power for global and/or pairwise hypothesis tests of survival data with support over a range of data structures from different experimental designs. Power calculations can be made to account for inter-tank variation using a mixed cox proportional hazards model (set argument \code{model = "coxph_glmm"}). Additionally, power calculations can account for the multiplicity of pairwise comparisons using \code{pairwise_corr}. Users can compare power across different experimental designs by specifying each as a list element in \code{Surv_Simul()}. A brief tutorial is written in \bold{Examples} to guide the user on how to use \code{Surv_Power()} to calculate power under various scenarios.
 }
 \examples{
 # Below is a tutorial on how to calculate power using Surv_Power(). The function

@@ -11,7 +11,7 @@ reference:
   desc: "Functions for simulating count data and count power analysis"
   contents:
   - starts_with("Con_")
-- title: "Data Transformation"
+- title: "Transform Data"
   desc: "Functions to aid in data transformations"
   contents:
   - xlsx_row2coln

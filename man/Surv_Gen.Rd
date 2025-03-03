@@ -8,6 +8,7 @@ Surv_Gen(
   mort_db,
   starting_fish_count,
   last_tte,
+  add_factor = NULL,
   tank_without_mort = NULL,
   trt_without_mort = NULL,
   output_prism = FALSE,
@@ -20,6 +21,8 @@ Surv_Gen(
 \item{starting_fish_count}{Value representing the starting number of fish for every tank. Alternatively, a dataframe containing the columns "Trt.ID", "Tank.ID", and "starting_fish_count" to allow for different fish starting numbers per tank.}
 
 \item{last_tte}{Value representing the time-to-event the fish survived to, assigned to every row of survivor data generated.}
+
+\item{add_factor}{A string or character vector representing the name(s) of column(s) in \code{mort_db} to be carried over to the generated survival data for further analysis (e.g. as facet factor in \code{safuncs::Surv_Plots()}). Defaults to NULL.}
 
 \item{tank_without_mort}{A vector of strings specifying the tanks absent from \code{mort_db}; used to generate survivor data for those tanks. Argument ignored if \code{starting_fish_count} is a dataframe.}
 
@@ -56,10 +59,10 @@ data(mort_db_ex)
 # entries (rows) for survivors in the output - a "complete" dataframe for further
 # survival analysis and data visualization.
 Surv_Data_Output = Surv_Gen(mort_db = mort_db_ex,
-                   starting_fish_count = 100,
-                   last_tte = 54,
-                   tank_without_mort = c("C99", "C100"),
-                   trt_without_mort = c("A", "B"))
+                            starting_fish_count = 100,
+                            last_tte = 54,
+                            tank_without_mort = c("C99", "C100"),
+                            trt_without_mort = c("A", "B"))
 
 # Below, the bottom 5 rows of the output is displayed to show the rows of survivor
 # data generated.

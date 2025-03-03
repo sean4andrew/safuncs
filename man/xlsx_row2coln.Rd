@@ -10,7 +10,7 @@ xlsx_row2coln(x)
 \item{x}{A tibble / dataframe object. Initially designed for the output of \code{readxl::read_xlsx()}.}
 }
 \value{
-A dataframe where the previous first rows are now column names
+Returns a dataframe where the previous first rows are now column names
 }
 \description{
 Transform first row of the data into column names and subsequently remove that row.
