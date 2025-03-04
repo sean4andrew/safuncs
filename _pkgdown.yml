@@ -23,6 +23,7 @@ reference:
   - GG_Colour_Hue
   - Label_Gen
   - MultiVar
+  - silencer
 - title: "Data"
   contents:
   - ends_with("_db_ex")

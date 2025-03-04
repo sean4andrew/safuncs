@@ -3512,12 +3512,13 @@ xlsx_trimrow = function(x, coli = 1) {
 #'
 #' @description Hide output from R console by applying \code{sink(tempfile())}
 #'
-#' @param x
+#' @param x Code which output is to be silenced
 #'
-#' @return Object of interest
+#' @return Code output without outputs taken by \code{sink()}, e.g. \code{cat()}.
 #' @export
 #'
-#' @examples Placeholder
+#' @examples
+#' silencer(a <- cat("test"))
 #'
 silencer = function(x){
   sink(tempfile())

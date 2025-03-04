@@ -7,15 +7,15 @@
 silencer(x)
 }
 \arguments{
-\item{x}{}
+\item{x}{Code which output is to be silenced}
 }
 \value{
-Object of interest
+Code output without outputs taken by \code{sink()}, e.g. \code{cat()}.
 }
 \description{
 Hide output from R console by applying \code{sink(tempfile())}
 }
 \examples{
-Placeholder
+silencer(a <- cat("test"))
 
 }
