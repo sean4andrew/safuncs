@@ -198,9 +198,11 @@
 <span class="r-in"><span><span class="va">Tank_Plot</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">Trt.ID</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Surv_Plots-4.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Tank specific hazard curves can also be created. For accurate estimation, the</span></span></span>
-<span class="r-in"><span><span class="co"># parameter phi often has to be specified in low sample size or single tank cases. A</span></span></span>
-<span class="r-in"><span><span class="co"># phi of 1-2 is recommended based on estimates from past data with larger sample sizes.</span></span></span>
+<span class="r-in"><span><span class="co"># Tank specific hazard curves can also be created. The paramater phi often has to be</span></span></span>
+<span class="r-in"><span><span class="co"># specified for accurate estimation of the hazard curve of low sample size or single</span></span></span>
+<span class="r-in"><span><span class="co"># tank data. A phi between 1 to 2 is recommended based on estimates from past data</span></span></span>
+<span class="r-in"><span><span class="co"># with larger sample sizes. More info on estimation parameters can be found in the</span></span></span>
+<span class="r-in"><span><span class="co"># Details and Arguments section of the Surv_Plot() documentation.</span></span></span>
 <span class="r-in"><span><span class="fu">Surv_Plots</span><span class="op">(</span>surv_db <span class="op">=</span> <span class="va">surv_dat</span>,</span></span>
 <span class="r-in"><span>           add_factor <span class="op">=</span> <span class="st">"Tank.ID"</span>,</span></span>
 <span class="r-in"><span>           plot_prefix <span class="op">=</span> <span class="st">"QCATC777"</span>,</span></span>
