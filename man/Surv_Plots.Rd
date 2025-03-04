@@ -9,8 +9,8 @@ Surv_Plots(
   add_factor = NULL,
   xlim = NULL,
   x_breaks = NULL,
-  ylim = c(0, 1),
   xlab = "Days Post Challenge",
+  ylim = c(0, 1),
   lambda = NULL,
   phi = NULL,
   dailybin = TRUE,
@@ -32,9 +32,11 @@ Surv_Plots(
 
 \item{xlim}{A vector specifying the plots x-axis lower and upper limits, respectively.}
 
-\item{ylim}{A vector specifying the Survival Plot y-axis lower and upper limits, respectively. Defaults to c(0, 1) which indicates 0 to 100\% Survival Probability, respectively.}
+\item{x_breaks}{A number specifying the interval for every major tick in the x-axis.}
 
 \item{xlab}{A string specifying the plot x-axis label. Defaults to "Days Post Challenge".}
+
+\item{ylim}{A vector specifying the Survival Plot y-axis lower and upper limits, respectively. Defaults to c(0, 1) which indicates 0 to 100\% Survival Probability, respectively.}
 
 \item{lambda}{Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard::bshazard()} uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.}
 
@@ -59,8 +61,6 @@ Surv_Plots(
 \item{plot_prefix}{A string specifying the prefix for the filename of the saved plots. Defaults to "ONDA_XX".}
 
 \item{plot_dim}{Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.}
-
-\item{xbreaks}{A number specifying the interval for every major tick in the x-axis.}
 }
 \value{
 Returns a list containing the Kaplan-Meier Survival Curve and the Hazard Curve if {\code{plot = "both"}}. If only one plot is to be calculated and shown, set either \code{plot = "haz"} or \code{plot = "surv"}.
@@ -68,7 +68,7 @@ Returns a list containing the Kaplan-Meier Survival Curve and the Hazard Curve i
 If \code{data_out = TRUE}, returns dataframes associated with the survival plots.
 }
 \description{
-Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Curves for each tank can also be generated using the argument \code{plot_bytank = TRUE}. Plots saved by automatically to working directory.
+Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different groups. Plots are saved by automatically to working directory as .tiff and .pptx.
 }
 \details{
 The survival dataset should be a dataframe containing at least 4 different columns:

@@ -1349,7 +1349,7 @@ Surv_Gen = function(mort_db,
 
 #' Generate Survival Plots
 #'
-#' @description Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different treatment groups. Curves for each tank can also be generated using the argument \code{plot_bytank = TRUE}. Plots saved by automatically to working directory.
+#' @description Produces a Kaplan-Meier Survival Plot and/or Hazard Time Plot from survival data. Each plot contains multiple curves for the different groups. Plots are saved by automatically to working directory as .tiff and .pptx.
 #'
 #' @details The survival dataset should be a dataframe containing at least 4 different columns:
 #' * "Trt.ID" = Labels for treatment groups in the study.
@@ -1367,9 +1367,9 @@ Surv_Gen = function(mort_db,
 #' @param surv_db A survival dataframe as described in \bold{Details}.
 #' @param add_factor A string representing the name of a column in \code{surv_db} to use as an additional factor in plot creation. Will generate plot for every interaction of the additional factor and "Trt.ID".
 #' @param xlim A vector specifying the plots x-axis lower and upper limits, respectively.
-#' @param xbreaks A number specifying the interval for every major tick in the x-axis.
-#' @param ylim A vector specifying the Survival Plot y-axis lower and upper limits, respectively. Defaults to c(0, 1) which indicates 0 to 100% Survival Probability, respectively.
+#' @param x_breaks A number specifying the interval for every major tick in the x-axis.
 #' @param xlab A string specifying the plot x-axis label. Defaults to "Days Post Challenge".
+#' @param ylim A vector specifying the Survival Plot y-axis lower and upper limits, respectively. Defaults to c(0, 1) which indicates 0 to 100% Survival Probability, respectively.
 #' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard::bshazard()} uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
 #' @param phi Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate phi; NULL specification is recommended for large sample size situations. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (QCATC997; phi ~ 0.8-1.4) where there are large sample sizes with tank-replication. The phi value of 1 indicates the set of counts (deaths) over time have a Poisson distribution, following the different hazard rates along the curve and are not overdispersed (phi > 1).
 #' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE for large sample sizes (often with tank replication), although at large sample sizes either TRUE or FALSE produces similar results usually. Defaults to TRUE.
@@ -1439,8 +1439,8 @@ Surv_Plots = function(surv_db,
                       add_factor = NULL,
                       xlim = NULL,
                       x_breaks = NULL,
-                      ylim = c(0, 1),
                       xlab = "Days Post Challenge",
+                      ylim = c(0, 1),
                       lambda = NULL,
                       phi = NULL,
                       dailybin = TRUE,
@@ -1488,7 +1488,7 @@ Surv_Plots = function(surv_db,
                                       ylim = ylim,
                                       short.panel.labs = TRUE,
                                       short.legend.labs = TRUE)$plot
-    if(is.null(colours)) {color_vec <- unique(layer_data(surv_plot)[,1])} else {color_vec = colours}
+    if(is.null(colours)) {color_vec <- unique(layer_data(surv_plot)[,1])} else {color_vec <- colours}
     surv_plot$scales$scales = list()
     surv_plot = surv_plot +
       guides(color = guide_legend(paste(c("Trt.ID", add_factor), collapse = ", "))) +
