@@ -114,9 +114,11 @@ Tank_Plot
 # The plot can be modified like any ggplot2 object, for example, faceting by treatment:
 Tank_Plot + ggplot2::facet_wrap(~ Trt.ID)
 
-# Tank specific hazard curves can also be created. For accurate estimation, the
-# parameter phi often has to be specified in low sample size or single tank cases. A
-# phi of 1-2 is recommended based on estimates from past data with larger sample sizes.
+# Tank specific hazard curves can also be created. The paramater phi often has to be
+# specified for accurate estimation of the hazard curve of low sample size or single
+# tank data. A phi between 1 to 2 is recommended based on estimates from past data
+# with larger sample sizes. More info on estimation parameters can be found in the
+# Details and Arguments section of the Surv_Plot() documentation.
 Surv_Plots(surv_db = surv_dat,
            add_factor = "Tank.ID",
            plot_prefix = "QCATC777",

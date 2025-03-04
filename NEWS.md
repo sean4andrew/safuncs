@@ -6,6 +6,7 @@
 * Completed `Surv_Pred()` documentation.
 * Added an argument to `Surv_Gen()` and `Surv_Plot()` to account for an additional factor.
 * Added data transformation assisting functions `xlsx_row2coln()` and `xlsx_trimrow()`.
+* Added miscellaneous functions `silencer()`
 
 # safuncs 2.2.0
 

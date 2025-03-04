@@ -2,20 +2,16 @@
 % Please edit documentation in R/safuncs.R
 \name{silencer}
 \alias{silencer}
-\title{Silence Output}
+\title{Silence Code Output}
 \usage{
 silencer(x)
 }
 \arguments{
-\item{x}{Code which output is to be silenced}
+\item{x}{Code which output is to be directed to the sink.}
 }
 \value{
-Code output without outputs taken by \code{sink()}, e.g. \code{cat()}.
+Code output without the directed outputs, e.g. output from \code{cat()}.
 }
 \description{
-Hide output from R console by applying \code{sink(tempfile())}
-}
-\examples{
-silencer(a <- cat("test"))
-
+Hide output from R console by applying \code{sink(tempfile())} and subsequently \code{sink()}.
 }
