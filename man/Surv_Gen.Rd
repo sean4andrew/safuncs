@@ -25,7 +25,7 @@ Surv_Gen(
 
 \item{add_factor}{A string or character vector representing the name(s) of column(s) in \code{mort_db} to be carried over to the generated survival data for further analysis (e.g. as facet factor in \code{safuncs::Surv_Plots()}). Defaults to NULL.}
 
-\item{add_sampled}{A dataframe containing the column names "sampled_per_tank" and "sampled_TTE" to indicate the amounts and times sampled. Each row of the dataframe is correlated (i.e. a specific time for specific sampling per tank). Defaults to NULL.}
+\item{add_sampled}{A dataframe containing the column names "sampled_per_tank" and "sampled_tte" to indicate the amounts and times sampled. Each row of the dataframe is correlated (i.e. a specific time for specific sampling per tank). Defaults to NULL.}
 
 \item{tank_without_mort}{A vector of strings specifying the tanks absent from \code{mort_db}; used to generate survivor data for those tanks. Argument ignored if \code{starting_fish_count} is a dataframe.}
 
@@ -87,6 +87,14 @@ filtered_mort_db = mort_db_ex[mort_db_ex$Tank.ID \%in\% c("C1", "C6", "C5", "C8"
 Surv_Data_Output = Surv_Gen(mort_db = filtered_mort_db,
                             starting_fish_count = count_db,
                             last_tte = 54)
+
+# Surv_Gen() is also able to generate data for sampled fish (Status = 0) at specified
+# TTEs, using the argument add_sampled:
+Surv_Data_Output = Surv_Gen(mort_db = filtered_mort_db,
+                            starting_fish_count = count_db,
+                            last_tte = 54,
+                            add_sampled = data.frame(sampled_per_tank = 5,
+                                                     sampled_tte = 30))
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Gen.html}{Link} for executed \bold{Examples} which includes any figure outputs.

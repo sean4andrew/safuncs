@@ -1201,7 +1201,7 @@ Surv_Pred = function(surv_db,
 #' @param starting_fish_count Value representing the starting number of fish for every tank. Alternatively, a dataframe containing the columns "Trt.ID", "Tank.ID", and "starting_fish_count" to allow for different fish starting numbers per tank.
 #' @param last_tte Value representing the time-to-event the fish survived to, assigned to every row of survivor data generated.
 #' @param add_factor A string or character vector representing the name(s) of column(s) in \code{mort_db} to be carried over to the generated survival data for further analysis (e.g. as facet factor in \code{safuncs::Surv_Plots()}). Defaults to NULL.
-#' @param add_sampled A dataframe containing the column names "sampled_per_tank" and "sampled_TTE" to indicate the amounts and times sampled. Each row of the dataframe is correlated (i.e. a specific time for specific sampling per tank). Defaults to NULL.
+#' @param add_sampled A dataframe containing the column names "sampled_per_tank" and "sampled_tte" to indicate the amounts and times sampled. Each row of the dataframe is correlated (i.e. a specific time for specific sampling per tank). Defaults to NULL.
 #' @param tank_without_mort A vector of strings specifying the tanks absent from \code{mort_db}; used to generate survivor data for those tanks. Argument ignored if \code{starting_fish_count} is a dataframe.
 #' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep their order the same. Argument ignored if \code{starting_fish_count} is a dataframe.
 #' @param output_prism Whether to generate and save a prism ready survival csv. Defaults to FALSE.
@@ -1249,6 +1249,14 @@ Surv_Pred = function(surv_db,
 #' Surv_Data_Output = Surv_Gen(mort_db = filtered_mort_db,
 #'                             starting_fish_count = count_db,
 #'                             last_tte = 54)
+#'
+#' # Surv_Gen() is also able to generate data for sampled fish (Status = 0) at specified
+#' # TTEs, using the argument add_sampled:
+#' Surv_Data_Output = Surv_Gen(mort_db = filtered_mort_db,
+#'                             starting_fish_count = count_db,
+#'                             last_tte = 54,
+#'                             add_sampled = data.frame(sampled_per_tank = 5,
+#'                                                      sampled_tte = 30))
 Surv_Gen = function(mort_db,
                     starting_fish_count,
                     last_tte,
@@ -1299,7 +1307,7 @@ Surv_Gen = function(mort_db,
       for(tanki in unique(DB_Mort_Gencomb$Tank.ID)) {
         rowsel = which(DB_Mort_Gencomb$Tank.ID == tanki & DB_Mort_Gencomb$TTE == last_tte & DB_Mort_Gencomb$Status == 0)
         rowsel = rowsel[1:add_sampled$sampled_per_tank[ttei]]
-        DB_Mort_Gencomb$TTE[rowsel] = add_sampled$sampled_TTE[[ttei]]
+        DB_Mort_Gencomb$TTE[rowsel] = add_sampled$sampled_tte[[ttei]]
       }
     }
   }
@@ -1523,7 +1531,7 @@ Surv_Plots = function(surv_db,
     Haz_list = list()
 
     if(!is.null(add_factor)) {
-      surv_db$group = factor(interaction(surv_db$Trt.ID, surv_db[, add_factor], sep = ", "), levels = strn)
+      surv_db$group = factor(interaction(surv_db$Trt.ID, surv_db[, add_factor], sep = ", "))
     } else {
       surv_db$group = factor(surv_db$Trt.ID)
     }
