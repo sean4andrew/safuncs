@@ -44,6 +44,7 @@
 <span>  <span class="va">starting_fish_count</span>,</span>
 <span>  <span class="va">last_tte</span>,</span>
 <span>  add_factor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  add_sampled <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  tank_without_mort <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  trt_without_mort <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_prism <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -69,6 +70,10 @@
 
 <dt id="arg-add-factor">add_factor<a class="anchor" aria-label="anchor" href="#arg-add-factor"></a></dt>
 <dd><p>A string or character vector representing the name(s) of column(s) in <code>mort_db</code> to be carried over to the generated survival data for further analysis (e.g. as facet factor in <code><a href="Surv_Plots.html">safuncs::Surv_Plots()</a></code>). Defaults to NULL.</p></dd>
+
+
+<dt id="arg-add-sampled">add_sampled<a class="anchor" aria-label="anchor" href="#arg-add-sampled"></a></dt>
+<dd><p>A dataframe containing the column names "sampled_per_tank" and "sampled_TTE" to indicate the amounts and times sampled. Each row of the dataframe is correlated (i.e. a specific time for specific sampling per tank). Defaults to NULL.</p></dd>
 
 
 <dt id="arg-tank-without-mort">tank_without_mort<a class="anchor" aria-label="anchor" href="#arg-tank-without-mort"></a></dt>
