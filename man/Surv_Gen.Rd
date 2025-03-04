@@ -9,6 +9,7 @@ Surv_Gen(
   starting_fish_count,
   last_tte,
   add_factor = NULL,
+  add_sampled = NULL,
   tank_without_mort = NULL,
   trt_without_mort = NULL,
   output_prism = FALSE,
@@ -23,6 +24,8 @@ Surv_Gen(
 \item{last_tte}{Value representing the time-to-event the fish survived to, assigned to every row of survivor data generated.}
 
 \item{add_factor}{A string or character vector representing the name(s) of column(s) in \code{mort_db} to be carried over to the generated survival data for further analysis (e.g. as facet factor in \code{safuncs::Surv_Plots()}). Defaults to NULL.}
+
+\item{add_sampled}{A dataframe containing the column names "sampled_per_tank" and "sampled_TTE" to indicate the amounts and times sampled. Each row of the dataframe is correlated (i.e. a specific time for specific sampling per tank). Defaults to NULL.}
 
 \item{tank_without_mort}{A vector of strings specifying the tanks absent from \code{mort_db}; used to generate survivor data for those tanks. Argument ignored if \code{starting_fish_count} is a dataframe.}
 

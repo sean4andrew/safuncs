@@ -1201,6 +1201,7 @@ Surv_Pred = function(surv_db,
 #' @param starting_fish_count Value representing the starting number of fish for every tank. Alternatively, a dataframe containing the columns "Trt.ID", "Tank.ID", and "starting_fish_count" to allow for different fish starting numbers per tank.
 #' @param last_tte Value representing the time-to-event the fish survived to, assigned to every row of survivor data generated.
 #' @param add_factor A string or character vector representing the name(s) of column(s) in \code{mort_db} to be carried over to the generated survival data for further analysis (e.g. as facet factor in \code{safuncs::Surv_Plots()}). Defaults to NULL.
+#' @param add_sampled A dataframe containing the column names "sampled_per_tank" and "sampled_TTE" to indicate the amounts and times sampled. Each row of the dataframe is correlated (i.e. a specific time for specific sampling per tank). Defaults to NULL.
 #' @param tank_without_mort A vector of strings specifying the tanks absent from \code{mort_db}; used to generate survivor data for those tanks. Argument ignored if \code{starting_fish_count} is a dataframe.
 #' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep their order the same. Argument ignored if \code{starting_fish_count} is a dataframe.
 #' @param output_prism Whether to generate and save a prism ready survival csv. Defaults to FALSE.
@@ -1252,6 +1253,7 @@ Surv_Gen = function(mort_db,
                     starting_fish_count,
                     last_tte,
                     add_factor = NULL,
+                    add_sampled = NULL,
                     tank_without_mort = NULL,
                     trt_without_mort = NULL,
                     output_prism = FALSE,
@@ -1290,6 +1292,17 @@ Surv_Gen = function(mort_db,
   DB_Mort_Genalive$TTE = last_tte
   DB_Mort_Gencomb = plyr::rbind.fill(mort_db, DB_Mort_Genalive[, -c(which(colnames(DB_Mort_Gensum)
                                                                           %in% c("Num_alive", "Num_dead")))])
+
+  #Transform "survivors" to "sampled" by changing their TTE
+  if(is.data.frame(add_sampled)){
+    for(ttei in 1:nrow(add_sampled)){
+      for(tanki in unique(DB_Mort_Gencomb$Tank.ID)) {
+        rowsel = which(DB_Mort_Gencomb$Tank.ID == tanki & DB_Mort_Gencomb$TTE == last_tte & DB_Mort_Gencomb$Status == 0)
+        rowsel = rowsel[1:add_sampled$sampled_per_tank[ttei]]
+        DB_Mort_Gencomb$TTE[rowsel] = add_sampled$sampled_TTE[[ttei]]
+      }
+    }
+  }
 
   #Create prism output
   if(output_prism == TRUE){
