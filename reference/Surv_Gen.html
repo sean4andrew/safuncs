@@ -43,6 +43,7 @@
 <span>  <span class="va">mort_db</span>,</span>
 <span>  <span class="va">starting_fish_count</span>,</span>
 <span>  <span class="va">last_tte</span>,</span>
+<span>  add_factor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  tank_without_mort <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  trt_without_mort <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_prism <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -64,6 +65,10 @@
 
 <dt id="arg-last-tte">last_tte<a class="anchor" aria-label="anchor" href="#arg-last-tte"></a></dt>
 <dd><p>Value representing the time-to-event the fish survived to, assigned to every row of survivor data generated.</p></dd>
+
+
+<dt id="arg-add-factor">add_factor<a class="anchor" aria-label="anchor" href="#arg-add-factor"></a></dt>
+<dd><p>A string or character vector representing the name(s) of column(s) in <code>mort_db</code> to be carried over to the generated survival data for further analysis (e.g. as facet factor in <code><a href="Surv_Plots.html">safuncs::Surv_Plots()</a></code>). Defaults to NULL.</p></dd>
 
 
 <dt id="arg-tank-without-mort">tank_without_mort<a class="anchor" aria-label="anchor" href="#arg-tank-without-mort"></a></dt>
@@ -109,10 +114,10 @@
 <span class="r-in"><span><span class="co"># entries (rows) for survivors in the output - a "complete" dataframe for further</span></span></span>
 <span class="r-in"><span><span class="co"># survival analysis and data visualization.</span></span></span>
 <span class="r-in"><span><span class="va">Surv_Data_Output</span> <span class="op">=</span> <span class="fu">Surv_Gen</span><span class="op">(</span>mort_db <span class="op">=</span> <span class="va">mort_db_ex</span>,</span></span>
-<span class="r-in"><span>                   starting_fish_count <span class="op">=</span> <span class="fl">100</span>,</span></span>
-<span class="r-in"><span>                   last_tte <span class="op">=</span> <span class="fl">54</span>,</span></span>
-<span class="r-in"><span>                   tank_without_mort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C99"</span>, <span class="st">"C100"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                   trt_without_mort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                            starting_fish_count <span class="op">=</span> <span class="fl">100</span>,</span></span>
+<span class="r-in"><span>                            last_tte <span class="op">=</span> <span class="fl">54</span>,</span></span>
+<span class="r-in"><span>                            tank_without_mort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C99"</span>, <span class="st">"C100"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                            trt_without_mort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of tanks is: 14"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of treatment groups is: 4"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of fish in the output data is: 1400"</span>
