@@ -37,17 +37,18 @@ Surv_Plots = function(surv_db,
     
     #Dealing with one Trt.ID scenario
     if(length(levels(as.factor(surv_db$Trt.ID))) == 1) {
-      surv_obj$strata = length(surv_obj$surv)
-    } 
-    
-    #Add strata names
-    strn = attributes(surv_obj$strata)$names
-    if(is.null(add_factor)){
-      strn = sub(".*=", "", strn)
+      strn = unique(surv_db$Trt.ID)
     } else {
-      strn = gsub(".*=(.*),.*=(.*)", "\\1, \\2", strn)
+      
+      #Add strata names
+      strn = attributes(surv_obj$strata)$names
+      if(is.null(add_factor)){
+        strn = sub(".*=", "", strn)
+      } else {
+        strn = gsub(".*=(.*),.*=(.*)", "\\1, \\2", strn)
+      }
+      strn = sub("\\s+$", "", strn) 
     }
-    strn = sub("\\s+$", "", strn)
 
     #Create survival plot
     surv_plot = survminer::ggsurvplot(surv_obj,
@@ -221,6 +222,252 @@ Surv_Plots(surv_db = surv_dat,
 
 
 
+```{r Surv Pred}
+surv_db
+surv_db_ref
+pred_tte = NULL 
+pred_method = "simple"
+pred_dailybin = TRUE
+pred_phi = 1.5
+pred_lambda = NULL
+plot_save = TRUE
+plot_prefix = "ONDA_XX"
+data_out = TRUE
+
+ #Set 0 offset time
+ ref_TTE0 = surv_db_ref$TTE
+
+ #Default pred_tte
+ if(is.null(pred_tte)) {pred_tte <- max(ref_TTE0)}
+
+ #Initialize dataframes
+ Pred_Stats = data.frame()
+ Pred_Stats_Offset = data.frame()
+
+ #Determine experimental design
+ if(length(unique(surv_db_ref$Trt.ID)) > 1) {
+   stop("surv_db_ref must contain only one Trt.ID.")
+ }
+
+ exp_design = ifelse((length(unique(surv_db$Trt.ID)) == length(unique(surv_db$Tank.ID))) &
+                       (length(unique(surv_db_ref$Trt.ID)) == length(unique(surv_db_ref$Tank.ID))),
+                       "single_tank", "multi-tank")
+
+ #Set parameters for ref_bshaz estimation
+ if(exp_design == "single-tank") {
+   if(pred_dailybin == TRUE) {dbin <- max(surv_db_ref$TTE)} else {dbin <- NULL}
+ } else {
+   pred_phi = NULL
+   pred_lambda = NULL
+   pred_dailybin = FALSE
+   dbin = NULL
+ }
+
+ #Get reference level hazard curve
+ ref_id = levels(as.factor(surv_db_ref$Trt.ID))
+ surv_db_ref$Trt.ID = paste("ref", ref_id)
+
+ sink(tempfile())
+ if(exp_design == "single-tank"){
+   ref_bshaz = bshazard::bshazard(data = surv_db_ref, survival::Surv(TTE, Status) ~ 1,
+                                  verbose = FALSE, phi = pred_phi, lambda = pred_lambda,
+                                  nbin = dbin)
+ } else {
+   ref_bshaz = bshazard::bshazard(data = surv_db_ref, survival::Surv(TTE, Status) ~ Tank.ID,
+                                  verbose = FALSE, phi = pred_phi, lambda = pred_lambda,
+                                  nbin = dbin)
+ }
+ sink()
+
+ #Produce offset times
+ show_offset = TRUE
+ if(show_offset == TRUE) {ref_tte_offset_vec <- c(-1, 0, 1) * 2} else {ref_tte_offset_vec <- 0}
+
+ #Repeat for different offset times
+ for(ref_tte_offset in ref_tte_offset_vec) {
+
+   #Ensure positive TTE
+   surv_db = surv_db[surv_db$TTE > 0, ]
+   surv_db_ref$TTE = ref_TTE0 + ref_tte_offset
+   surv_db_ref = surv_db_ref[surv_db_ref$TTE > 0, ]
+
+   #Print warning message if surv_db_ref end TTE < pred_tte
+   if(max(surv_db_ref$TTE) < pred_tte) {
+     warning(paste(sep = "", "The desired 'pred_tte' (", pred_tte,
+                   ") is greater than the maximum in the reference database (",
+                   max(surv_db_ref$TTE) ,") given the TTE offset of ", ref_tte_offset,
+                   ". For this offset, predictions are for 'pred_tte' ", ref_tte_offset,
+                   " (i.e. TTE = ", max(surv_db_ref$TTE),")."))
+   }
+
+   #Loop for every treatment
+   for(pred_trt in levels(as.factor(surv_db$Trt.ID))) {
+
+     #Combine reference and observed hazard dataframes
+     surv_db_f = surv_db[surv_db$Trt.ID == pred_trt,]
+     comb_db = rbind(surv_db_ref, surv_db_f)
+     comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = paste("ref", ref_id))
+
+     min2_tte = max(min(surv_db_f$TTE), min(surv_db_ref$TTE))
+     max_tte = max(surv_db_f$TTE)
+
+     #Predict End SR and HR using different cuts
+     for(cut_day in min2_tte:max_tte) {
+       comb_db2 = survival::survSplit(comb_db, cut = cut_day, end = "TTE", event = "Status", episode = "Obs")
+       comb_db2 = comb_db2[comb_db2$Obs == 1, ]
+
+       #HR Calculation
+       cox_comp = suppressWarnings(coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID),
+                                                data = comb_db2))
+       pred_HR = exp(coef(cox_comp))
+
+       #SR Calculation
+       ref_bshaz_t = data.frame(hazard = ref_bshaz$hazard[ref_bshaz$time < pred_tte],
+                                time = ref_bshaz$time[ref_bshaz$time < pred_tte])
+
+       #Uses the shape of the reference hazard curve throughout
+       if(pred_method == "simple") {
+         cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time),
+                                 y = c(ref_bshaz_t$hazard) * pred_HR)
+         pred_SR = 100 * exp(-cumhaz)
+       }
+
+       #Uses obseved survival and the reference hazard curve
+       if(pred_method == "adaptive") {
+
+         #Split survival data for calculating cumulative hazard using the reference and the observable hazard curve
+         cut_db = survival::survSplit(surv_db, cut = cut_day + 1, end = "TTE", event = "Status", episode = "Obs")
+         precut_db = cut_db[cut_db$Obs == 1, ]
+
+         #Precut surv using surv_db
+         precut_surv = min(summary(survival::survfit(survival::Surv(TTE, Status) ~ 1,
+                                           data = droplevels(precut_db[precut_db$Trt.ID == pred_trt,])))$surv)
+         cumhaz_precut = -log(precut_surv)
+
+         #Postcut bshaz using surv_db_ref
+         postcut_bshaz = ref_bshaz_t[ref_bshaz_t$time > cut_day,]
+         if(nrow(postcut_bshaz) > 1) {
+           cumhaz_postcut = DescTools::AUC(x = c(postcut_bshaz$time),
+                                           y = c(postcut_bshaz$hazard) * pred_HR)
+         } else {
+           cumhaz_postcut = 0
+         }
+
+         if(is.na(cumhaz_postcut)) {cumhaz_postcut <- 0}
+         pred_SR = 100 * exp(-(cumhaz_precut + cumhaz_postcut))
+       }
+
+       #Rbind to create prediction database
+       if(ref_tte_offset == 0) {
+         Pred_Stats = rbind(Pred_Stats, data.frame(Trt.ID = pred_trt,
+                                                   TTE_Used = cut_day,
+                                                   pred_SR,
+                                                   pred_HR))
+       } else {
+         Pred_Stats_Offset = rbind(Pred_Stats_Offset, data.frame(ref_tte_offset,
+                                                                 Trt.ID = pred_trt,
+                                                                 TTE_Used = cut_day,
+                                                                 pred_SR,
+                                                                 pred_HR))
+       }
+     }
+   }
+ }
+
+ row.names(Pred_Stats) = NULL
+ row.names(Pred_Stats_Offset) = NULL
+
+ #Create plots representing survival and hazard predictions over time
+ x_breaks = round((max(Pred_Stats$TTE_Used) - min(Pred_Stats$TTE_Used)) / 5)
+
+ Pred_SR_Plot = ggplot(data = Pred_Stats, aes(x = TTE_Used, y = pred_SR, color = Trt.ID)) +
+   geom_point() +
+   geom_line() +
+   facet_wrap(~Trt.ID) +
+   scale_y_continuous(name = paste("Predicted SR at a TTE of", pred_tte),
+                      breaks = seq(0, 100, 20), limits = c(0, 100)) +
+   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, x_breaks)) +
+   ggtitle("SR Prediction History")
+
+ Pred_HR_Plot = ggplot(data = Pred_Stats, aes(x = TTE_Used, y = pred_HR, color = Trt.ID)) +
+   geom_point() +
+   geom_line() +
+   facet_wrap(~Trt.ID) +
+   scale_y_continuous(name = paste("Predicted HR at a TTE of", pred_tte), n.breaks = 6) +
+   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, x_breaks)) +
+   ggtitle("HR Prediction History")
+
+ if(show_offset == TRUE){
+   Pred_SR_Plot = Pred_SR_Plot +
+     geom_line(data = Pred_Stats_Offset[Pred_Stats_Offset$ref_tte_offset == ref_tte_offset_vec[1],],
+               linetype = "dashed", show.legend = FALSE) +
+     geom_line(data = Pred_Stats_Offset[Pred_Stats_Offset$ref_tte_offset == ref_tte_offset_vec[3],],
+               linetype = "dashed", show.legend = FALSE)
+
+   Pred_HR_Plot = Pred_HR_Plot +
+     geom_line(data = Pred_Stats_Offset[Pred_Stats_Offset$ref_tte_offset == ref_tte_offset_vec[1],],
+               linetype = "dashed", show.legend = FALSE) +
+     geom_line(data = Pred_Stats_Offset[Pred_Stats_Offset$ref_tte_offset == ref_tte_offset_vec[3],],
+               linetype = "dashed", show.legend = FALSE)
+ }
+
+ #Create Projection Plots
+ surv_db_ref$TTE = ref_TTE0
+ ref_plot_db = layer_data(Surv_Plots(surv_db = surv_db_ref,
+                                     plot = "surv",
+                                     plot_save = FALSE))
+ ref_plot_db2 = layer_data(Surv_Plots(surv_db = surv_db_ref,
+                                      plot = "haz",
+                                      lambda = pred_lambda,
+                                      phi = pred_phi,
+                                      dailybin = pred_dailybin,
+                                      plot_save = FALSE))
+
+ Comp_SR_Plot = Surv_Plots(surv_db = surv_db,
+                           plot = "surv",
+                           xlim = c(0, pred_tte),
+                           plot_save = FALSE) +
+     geom_step(data = ref_plot_db, inherit.aes = FALSE, show.legend = FALSE,
+             aes(x = x, y = y), linewidth = 1) +
+   ggtitle("Survival Rate Comparisons")
+
+ Comp_HR_Plot = Surv_Plots(surv_db = surv_db,
+                           plot = "haz",
+                           xlim = c(0, pred_tte),
+                           lambda = pred_lambda,
+                           phi = pred_phi,
+                           dailybin = pred_dailybin,
+                           plot_save = FALSE) +
+   geom_line(data = ref_plot_db2, inherit.aes = FALSE, show.legend = FALSE, aes(x = x, y = y),
+             linewidth = 1) +
+   ggtitle("Hazard Rate Comparisons")
+
+ #Save plots
+ if(plot_save == TRUE) {
+   ggsave(plot = Pred_SR_Plot, filename = paste(sep = "", plot_prefix, " SR Prediction History.tiff"),
+          dpi = 400, width = 7, height = 4.1)
+   ggsave(plot = Pred_HR_Plot, filename = paste(sep = "", plot_prefix, " HR Prediction History.tiff"),
+          dpi = 400, width = 7, height = 4.1)
+   ggsave(plot = Comp_SR_Plot, dpi = 400, width = 6, height = 4,
+          filename = paste(sep = "", plot_prefix, " Survival Comparisons.tiff"))
+   ggsave(plot = Comp_HR_Plot, dpi = 400, width = 6, height = 4,
+          filename = paste(sep = "", plot_prefix, " Hazard Comparisons.tiff"))
+ }
+
+ #Return Outputs
+ Output_list = list(Comp_SR_Plot = Comp_SR_Plot,
+                    Comp_HR_Plot = Comp_HR_Plot,
+                    Pred_SR_Plot = Pred_SR_Plot,
+                    Pred_HR_Plot = Pred_HR_Plot)
+
+ if(data_out == TRUE) {
+   Output_list = append(Output_list,
+                        list(Pred_TTE = Pred_Stats[Pred_Stats$TTE_Used == max(Pred_Stats$TTE_Used),
+                                                   -which(colnames(Pred_Stats) == "TTE_Used")],
+                             Pred_History = Pred_Stats))
+ }
+ return(Output_list)
+```
 
 
 

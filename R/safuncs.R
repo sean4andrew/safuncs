@@ -1445,17 +1445,18 @@ Surv_Plots = function(surv_db,
 
     #Dealing with one Trt.ID scenario
     if(length(levels(as.factor(surv_db$Trt.ID))) == 1) {
-      surv_obj$strata = length(surv_obj$surv)
-    }
-
-    #Add strata names
-    strn = attributes(surv_obj$strata)$names
-    if(is.null(add_factor)){
-      strn = sub(".*=", "", strn)
+      strn = unique(surv_db$Trt.ID)
     } else {
-      strn = gsub(".*=(.*),.*=(.*)", "\\1, \\2", strn)
+
+      #Add strata names
+      strn = attributes(surv_obj$strata)$names
+      if(is.null(add_factor)){
+        strn = sub(".*=", "", strn)
+      } else {
+        strn = gsub(".*=(.*),.*=(.*)", "\\1, \\2", strn)
+      }
+      strn = sub("\\s+$", "", strn)
     }
-    strn = sub("\\s+$", "", strn)
 
     #Create survival plot
     surv_plot = survminer::ggsurvplot(surv_obj,
