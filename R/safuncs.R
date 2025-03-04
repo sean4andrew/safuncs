@@ -1431,7 +1431,6 @@ Surv_Plots = function(surv_db,
                       plot_prefix = "ONDA_XX",
                       plot_dim = c(6, 4)) {
 
-  if(sink.number() > 0) {stop(paste("You probably canceled mid-way the process of estimating the hazard curve. Please undo the existing sink of", sink.number(),"(which 'hides' R console output) by spamming 'sink()' in the console until a warning appears."))}
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
   if(!is.null(trt_order)){surv_db$Trt.ID = factor(surv_db$Trt.ID, levels = trt_order)}
   if(is.null(x_breaks)) {x_breaks <- max(1, round((xlim[2] - xlim[1]) / 10))}
@@ -1525,15 +1524,13 @@ Surv_Plots = function(surv_db,
         Haz_list[[Haz_Group]] = data.frame(Hazard = 0,
                                            Time = rep(0, max(surv_db$TTE), 1))
       } else { #Create haz curves
-        sink(tempfile())
         if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {iv <- "Tank.ID"} else {iv <- 1}
-        Haz_bs = bshazard::bshazard(nbin = dbin,
-                                    data = surv_db_group,
-                                    formula = as.formula(paste("survival::Surv(TTE, Status) ~", iv)),
-                                    verbose = FALSE,
-                                    lambda = lambda,
-                                    phi = phi)
-        sink()
+        safuncs::silencer(Haz_bs = bshazard::bshazard(nbin = dbin,
+                                                      data = surv_db_group,
+                                                      formula = as.formula(paste("survival::Surv(TTE, Status) ~", iv)),
+                                                      verbose = FALSE,
+                                                      lambda = lambda,
+                                                      phi = phi))
         Haz_list[[Haz_Group]] = data.frame(Hazard = Haz_bs$hazard,
                                            Time = Haz_bs$time)
       }
@@ -3507,6 +3504,27 @@ xlsx_trimrow = function(x, coli = 1) {
   x = x[!is.na(colsel), ]
 
   return(x)
+}
+
+##################################################### Function 14 - silencer #################################################
+
+#' @title Silence Output
+#'
+#' @description Hide output from R console by applying \code{sink(tempfile())}
+#'
+#' @param x
+#'
+#' @return Object of interest
+#' @export
+#'
+#' @examples Placeholder
+#'
+silencer = function(x){
+  sink(tempfile())
+  x2 = x
+  sink()
+
+  return(x2)
 }
 
 ##################################################### Data 1 - mort_db_ex ####################################################
