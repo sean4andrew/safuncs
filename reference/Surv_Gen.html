@@ -73,7 +73,7 @@
 
 
 <dt id="arg-add-sampled">add_sampled<a class="anchor" aria-label="anchor" href="#arg-add-sampled"></a></dt>
-<dd><p>A dataframe containing the column names "sampled_per_tank" and "sampled_TTE" to indicate the amounts and times sampled. Each row of the dataframe is correlated (i.e. a specific time for specific sampling per tank). Defaults to NULL.</p></dd>
+<dd><p>A dataframe containing the column names "sampled_per_tank" and "sampled_tte" to indicate the amounts and times sampled. Each row of the dataframe is correlated (i.e. a specific time for specific sampling per tank). Defaults to NULL.</p></dd>
 
 
 <dt id="arg-tank-without-mort">tank_without_mort<a class="anchor" aria-label="anchor" href="#arg-tank-without-mort"></a></dt>
@@ -153,6 +153,17 @@
 <span class="r-in"><span><span class="va">Surv_Data_Output</span> <span class="op">=</span> <span class="fu">Surv_Gen</span><span class="op">(</span>mort_db <span class="op">=</span> <span class="va">filtered_mort_db</span>,</span></span>
 <span class="r-in"><span>                            starting_fish_count <span class="op">=</span> <span class="va">count_db</span>,</span></span>
 <span class="r-in"><span>                            last_tte <span class="op">=</span> <span class="fl">54</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of tanks is: 4"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of treatment groups is: 2"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of fish in the output data is: 440"</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Surv_Gen() is also able to generate data for sampled fish (Status = 0) at specified</span></span></span>
+<span class="r-in"><span><span class="co"># TTEs, using the argument add_sampled:</span></span></span>
+<span class="r-in"><span><span class="va">Surv_Data_Output</span> <span class="op">=</span> <span class="fu">Surv_Gen</span><span class="op">(</span>mort_db <span class="op">=</span> <span class="va">filtered_mort_db</span>,</span></span>
+<span class="r-in"><span>                            starting_fish_count <span class="op">=</span> <span class="va">count_db</span>,</span></span>
+<span class="r-in"><span>                            last_tte <span class="op">=</span> <span class="fl">54</span>,</span></span>
+<span class="r-in"><span>                            add_sampled <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sampled_per_tank <span class="op">=</span> <span class="fl">5</span>,</span></span>
+<span class="r-in"><span>                                                     sampled_tte <span class="op">=</span> <span class="fl">30</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of tanks is: 4"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of treatment groups is: 2"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Your total number of fish in the output data is: 440"</span>
