@@ -1525,7 +1525,7 @@ Surv_Plots = function(surv_db,
                                            Time = rep(0, max(surv_db$TTE), 1))
       } else { #Create haz curves
         if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {iv <- "Tank.ID"} else {iv <- 1}
-        safuncs::silencer(Haz_bs = bshazard::bshazard(nbin = dbin,
+        safuncs::silencer(Haz_bs <- bshazard::bshazard(nbin = dbin,
                                                       data = surv_db_group,
                                                       formula = as.formula(paste("survival::Surv(TTE, Status) ~", iv)),
                                                       verbose = FALSE,
