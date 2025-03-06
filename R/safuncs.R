@@ -1378,7 +1378,6 @@ Surv_Gen = function(mort_db,
 #' @param theme A string specifying the graphics theme for the plots. Theme "ggplot2", "prism", and "publication", currently available. Defaults to "ggplot2".
 #' @param trt_order Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.
 #' @param data_out Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.
-#' @param plot_bytank Whether to analyze and plot the data by tanks. Defaults to FALSE.
 #' @param plot_save Whether to save plots in the working directory.
 #' @param plot_prefix A string specifying the prefix for the filename of the saved plots. Defaults to "ONDA_XX".
 #' @param plot_dim Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.

@@ -54,8 +54,6 @@ Surv_Plots(
 
 \item{data_out}{Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.}
 
-\item{plot_bytank}{Whether to analyze and plot the data by tanks. Defaults to FALSE.}
-
 \item{plot_save}{Whether to save plots in the working directory.}
 
 \item{plot_prefix}{A string specifying the prefix for the filename of the saved plots. Defaults to "ONDA_XX".}
