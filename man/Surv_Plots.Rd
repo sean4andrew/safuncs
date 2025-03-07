@@ -19,7 +19,6 @@ Surv_Plots(
   theme = "ggplot",
   trt_order = NULL,
   data_out = FALSE,
-  plot_bytank = FALSE,
   plot_save = TRUE,
   plot_prefix = "ONDA_XX",
   plot_dim = c(6, 4)

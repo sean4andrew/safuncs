@@ -5,6 +5,163 @@ date: "`r Sys.Date()`"
 ---
 
 ```{r}
+#Read data
+setwd("C:/Users/sean4/Downloads")
+sc_db1111 = read.csv(file = "QCATC1111 Scores S5.csv")
+
+#Compare groups (Trt&Tank)
+sc_db1111$group = interaction(sc_db1111$Trt.ID, sc_db1111$Tank.ID, drop = TRUE, lex.order = TRUE, sep = "&")
+table(sc_db1111$group, sc_db1111$Skin.Max)
+table(sc_db1111$group, sc_db1111$Gill)
+
+#Create relevant contingency table
+select_tab = table(sc_db1111$Trt.ID, sc_db1111$Skin.Max)[c(2, 6), ]
+select_tab
+
+#Create probability matrix
+prob_mat = select_tab / sum(select_tab)
+
+#Set simulation parameters based on the probability matrix
+simul_param = Con_Simul(probs = prob_mat, 
+                        margin_fixed_Trt. = TRUE)
+
+#Simulate future data and calculate power (% positives)
+Con_Simul_PR(simul_param, 
+             sample_sizes = c(60, 90, 120), 
+             add_fisher_exact = TRUE)$plot + ggplot2::scale_x_continuous(breaks = seq(60, 120, 30))
+```
+```{r}
+Con_Simul_Object = simul_param
+add_fisher_exact = TRUE
+add_ord = TRUE
+sample_sizes = c(50, 100, 150)
+n_sim = 1000
+FPR = TRUE
+
+ Params = Con_Simul_Object$params
+  PR_DB = data.frame()
+  if(is.null(sample_sizes)) {sample_sizes <- Params[1]}
+
+  for(tot_count in as.vector(sample_sizes)) {
+
+    P_Chisq1_Eff = c()
+    P_Chisq1_Null = c()
+    P_Ord_Eff = c()
+    P_Ord_Null = c()
+    P_Fish_Eff = c()
+    P_Fish_Null = c()
+
+    for(iter in 1:n_sim) {
+      Sim_Tab_Eff = Con_Simul(total_count = tot_count,
+                               n_lesion = Params[2],
+                               n_Trt. = Params[3],
+                               margin_fixed_Trt. = Params[4],
+                               probs = Con_Simul_Object$probs,
+                               verbose = FALSE)
+
+      P_Chisq1_Eff = append(P_Chisq1_Eff, suppressWarnings(chisq.test(x = Sim_Tab_Eff)$p.value))
+      if(add_ord == TRUE) {
+        DB_Ord_Eff = as.data.frame(as.table(Sim_Tab_Eff))
+        DB_Ord_Eff = data.frame(lapply(DB_Ord_Eff, rep, DB_Ord_Eff$Freq))
+        DB_Ord_Eff$Lesion_Category = factor(DB_Ord_Eff$Lesion_Category, ordered = TRUE)
+        Ord_Eff = ordinal::clm(data = DB_Ord_Eff, Lesion_Category ~ Trt.)
+        Ord_Eff0 = ordinal::clm(data = DB_Ord_Eff, Lesion_Category ~ 1)
+        P_Ord_Eff = append(P_Ord_Eff, anova(Ord_Eff, Ord_Eff0)$'Pr(>Chisq)'[2])
+      }
+      if(add_fisher_exact == TRUE) {
+        P_Fish_Eff <- append(P_Fish_Eff, fisher.test(x = Sim_Tab_Eff, simulate.p.value = TRUE)$p.value)
+      }
+    }
+
+    if(FPR == TRUE) {
+      probs_null_mat = matrix(nrow = nrow(Con_Simul_Object$probs),
+                              ncol = ncol(Con_Simul_Object$probs),
+                              data = rep(Con_Simul_Object$probs[1,],
+                                         each = nrow(Con_Simul_Object$probs)))
+      probs_null_mat = probs_null_mat * rowSums(Con_Simul_Object$probs)
+      probs_null_mat = probs_null_mat / sum(probs_null_mat)
+
+      for(iter in 1:n_sim) {
+
+        Sim_Tab_Null = Con_Simul(total_count = tot_count,
+                                  n_lesion = Params[2],
+                                  n_Trt. = Params[3],
+                                  margin_fixed_Trt. = Params[4],
+                                  probs = probs_null_mat,
+                                  verbose = FALSE)
+
+
+        P_Chisq1_Null = append(P_Chisq1_Null, suppressWarnings(chisq.test(x = Sim_Tab_Null)$p.value))
+        if(add_ord == TRUE) {
+          DB_Ord_Null = as.data.frame(as.table(Sim_Tab_Null))
+          DB_Ord_Null = data.frame(lapply(DB_Ord_Null, rep, DB_Ord_Null$Freq))
+          DB_Ord_Null$Lesion_Category = factor(DB_Ord_Null$Lesion_Category, ordered = TRUE)
+          Ord_Null = ordinal::clm(data = DB_Ord_Null, Lesion_Category ~ Trt.)
+          Ord_Null0 = ordinal::clm(data = DB_Ord_Null, Lesion_Category ~ 1)
+          P_Ord_Null = append(P_Ord_Null, anova(Ord_Eff, Ord_Eff0)$'Pr(>Chisq)'[2])
+        }
+        if(add_fisher_exact == TRUE) {
+          P_Fish_Null <- append(P_Fish_Null, fisher.test(x = Sim_Tab_Null, simulate.p.value = TRUE)$p.value)
+        }
+      }
+    }
+
+    PR_DB = rbind(PR_DB, data.frame(Total_count = tot_count,
+                                    Power_Chisquare = sum(P_Chisq1_Eff < 0.05) / length(P_Chisq1_Eff),
+                                    Power_OrdinalRegression = sum(P_Ord_Eff < 0.05) / length(P_Ord_Eff),
+                                    Power_FishersExact = sum(P_Fish_Eff < 0.05) / length(P_Fish_Eff),
+                                    FPR_Chisquare = sum(P_Chisq1_Null < 0.05) / length(P_Chisq1_Null),
+                                    FPR_OrdinalRegression = sum(P_Ord_Null < 0.05) / length(P_Ord_Null),
+                                    FPR_FishersExact = sum(P_Fish_Null < 0.05) / length(P_Fish_Null)))
+  }
+
+  PR_DB_stacked = data.frame(PR_DB$Total_count,
+                             stack(x = PR_DB, select = c("Power_Chisquare", "Power_OrdinalRegression", "Power_FishersExact",
+                                                         "FPR_Chisquare", "FPR_OrdinalRegression", "FPR_FishersExact")))
+  PR_DB_stacked = na.omit(PR_DB_stacked)
+  split_txt = strsplit(x = as.character(PR_DB_stacked$ind), split = "_")
+  PR_DB_stacked$Statistical_Test = sapply(split_txt, '[', 2)
+  PR_DB_stacked$Class = sapply(split_txt, '[', 1)
+  PR_DB_stacked = PR_DB_stacked[,-3]
+  colnames(PR_DB_stacked) <- c("Total_Count", "Percent_of_Significant_Results", "Statistical_Test", "Class")
+  PR_DB_stacked$Percent_of_Significant_Results = 100 * PR_DB_stacked$Percent_of_Significant_Results
+
+  #remove na columns
+  PR_DB = PR_DB[, colSums(is.na(PR_DB)) < nrow(PR_DB)]
+
+  plot1 = ggplot2::ggplot(data = PR_DB_stacked, ggplot2::aes(x = Total_Count, y = Percent_of_Significant_Results, color = Statistical_Test)) +
+    ggplot2::geom_point() +
+    ggplot2::geom_line() +
+    ggplot2::facet_wrap(~ Class) +
+    ggplot2::xlab("Total Counts in Contingency Table") +
+    ggplot2::ylab("Percent of Significant Results (%)") +
+    ggplot2::scale_y_continuous(breaks = seq(0, 100, 5), limits = c(0, 100)) +
+    ggplot2::labs(color = "Statistical Test")
+
+```
+
+```{r}
+exp1 = data.frame(lapply(sc_db1111, rep, sc_db1111$Skin.1))
+exp2 = data.frame(lapply(sc_db1111, rep, sc_db1111$Skin.2))
+
+exp1$SkinNum = 1
+exp2$SkinNum = 2
+
+exp_comb = data.frame(rbind(exp1, exp2))
+exp_comb$SkinNum = factor(exp_comb$SkinNum, ordered = TRUE)
+
+clm_mod = clm(SkinNum ~ Trt.ID, data = exp_comb[exp_comb$Trt.ID %in% c("A", "B", "F"),])
+joint_tests(clm_mod)
+
+clmm_mod = clmm(SkinNum ~ Trt.ID + (1|Fish.ID), data = exp_comb[exp_comb$Trt.ID %in% c("A", "B", "F"),])
+joint_tests(clmm_mod) #Accounting for fish variation only
+
+clmm_mod2 = clmm(SkinNum ~ Trt.ID + (1|Fish.ID) + (1|Tank.ID), 
+                 data = exp_comb[exp_comb$Trt.ID %in% c("A", "B", "F"),])
+joint_tests(clmm_mod2) #Accounting for tank variation
+```
+
+```{r}
 surv_db = surv_db_ex
 add_factor = "Tank.ID"
 xlim = NULL

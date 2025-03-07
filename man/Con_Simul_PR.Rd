@@ -50,10 +50,15 @@ P-values for the Chi-square test are computed using \code{stats::chisq.test()} w
 # category 2 and 3. I then specify the following probability matrix and feed it into
 # Con_Simul():
 probs_mat = matrix(nrow = 2, ncol = 3, data = c(1/6, 1/3, 1/6, 1/12, 1/6, 1/12))
+probs_mat
+
 sim_tab = Con_Simul(probs_mat)
 
-# Next, I feed the output into Con_Simul_PR():
-Con_Simul_PR(sim_tab, sample_sizes = c(50, 100, 150))
+# Next, I feed the output of Con_Simul() into Con_Simul_PR():
+Con_Simul_PR(sim_tab,
+             sample_sizes = c(50, 100, 150),
+             add_ord = TRUE,
+             add_fisher_exact = TRUE)
 # Results: Power is ~55, 86, and 97\% for the Chi-square test using total counts of
 # 50, 100, and 150, respectively.
 

@@ -69,7 +69,7 @@ Con_Simul = function(probs = "equal",
     Count_Mat = rmultinom(n = 1, size = total_count, p = probs)
   } else {
     row_prob = apply(probs, MARGIN = 1, FUN = sum)
-    Count_Mat = t(apply(probs, MARGIN = 1, FUN = rmultinom, n = 1, size = 750 * row_prob))
+    Count_Mat = t(apply(probs, MARGIN = 1, FUN = rmultinom, n = 1, size = total_count * row_prob))
   }
 
   #Create contingency table
@@ -122,10 +122,15 @@ Con_Simul = function(probs = "equal",
 #' # category 2 and 3. I then specify the following probability matrix and feed it into
 #' # Con_Simul():
 #' probs_mat = matrix(nrow = 2, ncol = 3, data = c(1/6, 1/3, 1/6, 1/12, 1/6, 1/12))
+#' probs_mat
+#'
 #' sim_tab = Con_Simul(probs_mat)
 #'
-#' # Next, I feed the output into Con_Simul_PR():
-#' Con_Simul_PR(sim_tab, sample_sizes = c(50, 100, 150))
+#' # Next, I feed the output of Con_Simul() into Con_Simul_PR():
+#' Con_Simul_PR(sim_tab,
+#'              sample_sizes = c(50, 100, 150),
+#'              add_ord = TRUE,
+#'              add_fisher_exact = TRUE)
 #' # Results: Power is ~55, 86, and 97% for the Chi-square test using total counts of
 #' # 50, 100, and 150, respectively.
 #'
@@ -1448,7 +1453,6 @@ Surv_Plots = function(surv_db,
                       theme = "ggplot",
                       trt_order = NULL,
                       data_out = FALSE,
-                      plot_bytank = FALSE,
                       plot_save = TRUE,
                       plot_prefix = "ONDA_XX",
                       plot_dim = c(6, 4)) {
