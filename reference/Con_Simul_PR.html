@@ -98,18 +98,38 @@
 <span class="r-in"><span><span class="co"># category 2 and 3. I then specify the following probability matrix and feed it into</span></span></span>
 <span class="r-in"><span><span class="co"># Con_Simul():</span></span></span>
 <span class="r-in"><span><span class="va">probs_mat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span>nrow <span class="op">=</span> <span class="fl">2</span>, ncol <span class="op">=</span> <span class="fl">3</span>, data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">6</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">3</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">6</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">12</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">6</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">12</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">probs_mat</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]       [,2]       [,3]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.1666667 0.16666667 0.16666667</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.3333333 0.08333333 0.08333333</span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">sim_tab</span> <span class="op">=</span> <span class="fu"><a href="Con_Simul.html">Con_Simul</a></span><span class="op">(</span><span class="va">probs_mat</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Next, I feed the output into Con_Simul_PR():</span></span></span>
-<span class="r-in"><span><span class="fu">Con_Simul_PR</span><span class="op">(</span><span class="va">sim_tab</span>, sample_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">100</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Next, I feed the output of Con_Simul() into Con_Simul_PR():</span></span></span>
+<span class="r-in"><span><span class="fu">Con_Simul_PR</span><span class="op">(</span><span class="va">sim_tab</span>,</span></span>
+<span class="r-in"><span>             sample_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">100</span>, <span class="fl">150</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>             add_ord <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>             add_fisher_exact <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $pos_rate</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Total_Count Percent_of_Significant_Results Statistical_Test Class</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1           50                           56.8        Chisquare Power</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2          100                           87.5        Chisquare Power</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3          150                           95.7        Chisquare Power</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10          50                            4.1        Chisquare   FPR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11         100                            5.7        Chisquare   FPR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12         150                            4.8        Chisquare   FPR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    Total_Count Percent_of_Significant_Results  Statistical_Test Class</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           50                           54.3         Chisquare Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2          100                           88.0         Chisquare Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3          150                           96.8         Chisquare Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4           50                           59.0 OrdinalRegression Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5          100                           90.1 OrdinalRegression Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6          150                           96.8 OrdinalRegression Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7           50                           52.4      FishersExact Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8          100                           87.1      FishersExact Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9          150                           96.5      FishersExact Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10          50                            6.6         Chisquare   FPR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11         100                            5.1         Chisquare   FPR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12         150                            5.4         Chisquare   FPR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13          50                            6.0 OrdinalRegression   FPR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14         100                            5.0 OrdinalRegression   FPR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15         150                            5.2 OrdinalRegression   FPR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16          50                            6.2      FishersExact   FPR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17         100                            5.2      FishersExact   FPR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18         150                            5.3      FishersExact   FPR</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $eff_mat</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]       [,2]       [,3]</span>
