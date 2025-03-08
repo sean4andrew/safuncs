@@ -8,15 +8,15 @@ Surv_Plots(
   surv_db,
   add_factor = NULL,
   xlim = NULL,
-  x_breaks = NULL,
+  xbreaks = NULL,
   xlab = "Days Post Challenge",
   ylim = c(0, 1),
   lambda = NULL,
   phi = NULL,
   dailybin = TRUE,
   plot = "both",
-  colours = NULL,
   theme = "ggplot",
+  trt_colours = NULL,
   trt_order = NULL,
   data_out = FALSE,
   plot_save = TRUE,
@@ -31,7 +31,7 @@ Surv_Plots(
 
 \item{xlim}{A vector specifying the plots x-axis lower and upper limits, respectively.}
 
-\item{x_breaks}{A number specifying the interval for every major tick in the x-axis.}
+\item{xbreaks}{A number specifying the interval for every major tick in the x-axis.}
 
 \item{xlab}{A string specifying the plot x-axis label. Defaults to "Days Post Challenge".}
 
@@ -45,9 +45,9 @@ Surv_Plots(
 
 \item{plot}{Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".}
 
-\item{colours}{Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.}
-
 \item{theme}{A string specifying the graphics theme for the plots. Theme "ggplot2", "prism", and "publication", currently available. Defaults to "ggplot2".}
+
+\item{trt_colours}{Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.}
 
 \item{trt_order}{Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.}
 
@@ -121,7 +121,7 @@ Surv_Plots(surv_db = surv_dat,
            plot_prefix = "QCATC777",
            phi = 1.5,
            xlab = "TTE",
-           x_breaks = 10,
+           xbreaks = 10,
            plot = "haz",
            dailybin = FALSE,
            theme = "publication") + ggplot2::facet_wrap(~ Trt.ID)
