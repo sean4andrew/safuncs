@@ -43,15 +43,15 @@
 <span>  <span class="va">surv_db</span>,</span>
 <span>  add_factor <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  xlim <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  xbreaks <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  x_breaks <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"Days Post Challenge"</span>,</span>
 <span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  phi <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dailybin <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  plot <span class="op">=</span> <span class="st">"both"</span>,</span>
+<span>  colours <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"ggplot"</span>,</span>
-<span>  trt_colours <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  trt_order <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data_out <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  plot_save <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -76,7 +76,7 @@
 <dd><p>A vector specifying the plots x-axis lower and upper limits, respectively.</p></dd>
 
 
-<dt id="arg-xbreaks">xbreaks<a class="anchor" aria-label="anchor" href="#arg-xbreaks"></a></dt>
+<dt id="arg-x-breaks">x_breaks<a class="anchor" aria-label="anchor" href="#arg-x-breaks"></a></dt>
 <dd><p>A number specifying the interval for every major tick in the x-axis.</p></dd>
 
 
@@ -104,12 +104,12 @@
 <dd><p>Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".</p></dd>
 
 
+<dt id="arg-colours">colours<a class="anchor" aria-label="anchor" href="#arg-colours"></a></dt>
+<dd><p>Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.</p></dd>
+
+
 <dt id="arg-theme">theme<a class="anchor" aria-label="anchor" href="#arg-theme"></a></dt>
 <dd><p>A string specifying the graphics theme for the plots. Theme "ggplot2", "prism", and "publication", currently available. Defaults to "ggplot2".</p></dd>
-
-
-<dt id="arg-trt-colours">trt_colours<a class="anchor" aria-label="anchor" href="#arg-trt-colours"></a></dt>
-<dd><p>Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.</p></dd>
 
 
 <dt id="arg-trt-order">trt_order<a class="anchor" aria-label="anchor" href="#arg-trt-order"></a></dt>
@@ -171,8 +171,6 @@
 <span class="r-in"><span>           plot <span class="op">=</span> <span class="st">"both"</span>,</span></span>
 <span class="r-in"><span>           dailybin <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>           theme <span class="op">=</span> <span class="st">"publication"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Coordinate system already present. Adding new coordinate system, which will</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> replace the existing one.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $Survival_Plot</span>
 <span class="r-plt img"><img src="Surv_Plots-1.png" alt="" width="700" height="433"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -188,8 +186,6 @@
 <span class="r-in"><span>                       plot <span class="op">=</span> <span class="st">"surv"</span>,</span></span>
 <span class="r-in"><span>                       dailybin <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>                       theme <span class="op">=</span> <span class="st">"publication"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Coordinate system already present. Adding new coordinate system, which will</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> replace the existing one.</span>
 <span class="r-in"><span><span class="va">Tank_Plot</span></span></span>
 <span class="r-plt img"><img src="Surv_Plots-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
@@ -207,7 +203,7 @@
 <span class="r-in"><span>           plot_prefix <span class="op">=</span> <span class="st">"QCATC777"</span>,</span></span>
 <span class="r-in"><span>           phi <span class="op">=</span> <span class="fl">1.5</span>,</span></span>
 <span class="r-in"><span>           xlab <span class="op">=</span> <span class="st">"TTE"</span>,</span></span>
-<span class="r-in"><span>           xbreaks <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>           x_breaks <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span>           plot <span class="op">=</span> <span class="st">"haz"</span>,</span></span>
 <span class="r-in"><span>           dailybin <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>           theme <span class="op">=</span> <span class="st">"publication"</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">Trt.ID</span><span class="op">)</span></span></span>
