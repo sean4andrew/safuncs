@@ -1094,7 +1094,7 @@ Surv_Pred = function(surv_db,
  row.names(Pred_Stats_Offset) = NULL
 
  #Create plots representing survival and hazard predictions over time
- x_breaks = round((max(Pred_Stats$TTE_Used) - min(Pred_Stats$TTE_Used)) / 5)
+ xbreaks = round((max(Pred_Stats$TTE_Used) - min(Pred_Stats$TTE_Used)) / 5)
 
  Pred_SR_Plot = ggplot(data = Pred_Stats, aes(x = TTE_Used, y = pred_SR, color = Trt.ID)) +
    geom_point() +
@@ -1102,7 +1102,7 @@ Surv_Pred = function(surv_db,
    facet_wrap(~Trt.ID) +
    scale_y_continuous(name = paste("Predicted SR at a TTE of", pred_tte),
                       breaks = seq(0, 100, 20), limits = c(0, 100)) +
-   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, x_breaks)) +
+   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, xbreaks)) +
    ggtitle("SR Prediction History")
 
  Pred_HR_Plot = ggplot(data = Pred_Stats, aes(x = TTE_Used, y = pred_HR, color = Trt.ID)) +
@@ -1110,7 +1110,7 @@ Surv_Pred = function(surv_db,
    geom_line() +
    facet_wrap(~Trt.ID) +
    scale_y_continuous(name = paste("Predicted HR at a TTE of", pred_tte), n.breaks = 6) +
-   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, x_breaks)) +
+   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, xbreaks)) +
    ggtitle("HR Prediction History")
 
  if(show_offset == TRUE){
@@ -1372,14 +1372,14 @@ Surv_Gen = function(mort_db,
 #' @param surv_db A survival dataframe as described in \bold{Details}.
 #' @param add_factor A string representing the name of a column in \code{surv_db} to use as an additional factor in plot creation. Will generate plot for every interaction of the additional factor and "Trt.ID".
 #' @param xlim A vector specifying the plots x-axis lower and upper limits, respectively.
-#' @param x_breaks A number specifying the interval for every major tick in the x-axis.
+#' @param xbreaks A number specifying the interval for every major tick in the x-axis.
 #' @param xlab A string specifying the plot x-axis label. Defaults to "Days Post Challenge".
 #' @param ylim A vector specifying the Survival Plot y-axis lower and upper limits, respectively. Defaults to c(0, 1) which indicates 0 to 100% Survival Probability, respectively.
 #' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard::bshazard()} uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
 #' @param phi Dispersion parameter for the count model used in hazard curve estimation. Defaults to NULL where \code{bshazard()} uses the provided survival data to estimate phi; NULL specification is recommended for large sample size situations. At low sample sizes, the phi estimate can be unreliable. Choosing a phi value of 1 for low sample sizes is recommended. This value of 1 (or close) seems to be that estimated in past Tenaci data (QCATC997; phi ~ 0.8-1.4) where there are large sample sizes with tank-replication. The phi value of 1 indicates the set of counts (deaths) over time have a Poisson distribution, following the different hazard rates along the curve and are not overdispersed (phi > 1).
 #' @param dailybin Whether to set time bins at daily (1 TTE) intervals. Refer to the \code{bshazard()} documentation for an understanding on the role of bins to hazard curve estimation. Please set to TRUE at low sample sizes and set to FALSE for large sample sizes (often with tank replication), although at large sample sizes either TRUE or FALSE produces similar results usually. Defaults to TRUE.
 #' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
-#' @param colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
+#' @param trt_colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
 #' @param theme A string specifying the graphics theme for the plots. Theme "ggplot2", "prism", and "publication", currently available. Defaults to "ggplot2".
 #' @param trt_order Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.
 #' @param data_out Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.
@@ -1435,21 +1435,21 @@ Surv_Gen = function(mort_db,
 #'            plot_prefix = "QCATC777",
 #'            phi = 1.5,
 #'            xlab = "TTE",
-#'            x_breaks = 10,
+#'            xbreaks = 10,
 #'            plot = "haz",
 #'            dailybin = FALSE,
 #'            theme = "publication") + ggplot2::facet_wrap(~ Trt.ID)
 Surv_Plots = function(surv_db,
                       add_factor = NULL,
                       xlim = NULL,
-                      x_breaks = NULL,
+                      xbreaks = NULL,
                       xlab = "Days Post Challenge",
                       ylim = c(0, 1),
                       lambda = NULL,
                       phi = NULL,
                       dailybin = TRUE,
                       plot = "both",
-                      colours = NULL,
+                      trt_colours = NULL,
                       theme = "ggplot",
                       trt_order = NULL,
                       data_out = FALSE,
@@ -1459,7 +1459,7 @@ Surv_Plots = function(surv_db,
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
   if(!is.null(trt_order)){surv_db$Trt.ID = factor(surv_db$Trt.ID, levels = trt_order)}
-  if(is.null(x_breaks)) {x_breaks <- max(1, round((xlim[2] - xlim[1]) / 10))}
+  if(is.null(xbreaks)) {xbreaks <- max(1, round((xlim[2] - xlim[1]) / 10))}
 
   if(plot == "surv" | plot == "both") {
 
@@ -1491,14 +1491,15 @@ Surv_Plots = function(surv_db,
                                       ylim = ylim,
                                       short.panel.labs = TRUE,
                                       short.legend.labs = TRUE)$plot
-    if(is.null(colours)) {color_vec <- unique(layer_data(surv_plot)[,1])} else {color_vec <- colours}
+    if(is.null(trt_colours)) {color_vec <- unique(layer_data(surv_plot)[,1])} else {color_vec <- trt_colours}
     surv_plot$scales$scales = list()
     surv_plot = surv_plot +
       guides(color = guide_legend(paste(c("Trt.ID", add_factor), collapse = ", "))) +
       theme(legend.position = "right") +
-      scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks), name = xlab, limits = xlim, oob = scales::squish) +
+      scale_x_continuous(breaks = seq(0, xlim[2] + 100, xbreaks), name = xlab, limits = xlim, oob = scales::squish) +
       scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10) +
       scale_color_manual(labels = strn, values = color_vec)
+    if(ylim[2] == 1){surv_plot <- surv_plot + coord_cartesian(clip = "off", ylim = c(0, 0.954))}
 
     #Create survdat
     surv_dat = data.frame(Trt.ID = surv_plot$data$strata,
@@ -1568,18 +1569,22 @@ Surv_Plots = function(surv_db,
     if(!is.null(add_factor)){
       haz_db = tidyr::separate(data = haz_db, col = 1, into = c("Trt.ID", add_factor), sep = ", ", remove = FALSE)
     }
-    if(!is.null(trt_order)){haz_db$Trt.ID <- factor(haz_db$Trt.ID, levels = trt_order)}
+    if(is.null(trt_order)){
+      haz_db$Trt.ID = factor(haz_db$Trt.ID, levels = levels(surv_db$Trt.ID))
+    } else {
+      haz_db$Trt.ID = factor(haz_db$Trt.ID, levels = trt_order)
+    }
 
     #Create hazard plot
     Hazard_Plot = ggplot(data = haz_db,
                          aes(x = Time, y = Hazard, color = .data[[paste(c("Trt.ID", add_factor), collapse = ", ")]])) +
       geom_line(linewidth = 1) +
       geom_point() +
-      scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks),
+      scale_x_continuous(breaks = seq(0, xlim[2] + 100, xbreaks),
                          limits = xlim, name = xlab) +
       scale_y_continuous(n.breaks = 6, name = "Hazard Rate")
 
-    if(!is.null(colours)) {Hazard_Plot <- Hazard_Plot + scale_color_manual(values = colours)}
+    if(!is.null(trt_colours)) {Hazard_Plot <- Hazard_Plot + scale_color_manual(values = trt_colours)}
     if(theme == "prism") {Hazard_Plot <- Hazard_Plot + ggprism::theme_prism()}
     if(theme == "publication") {Hazard_Plot <- Hazard_Plot + safuncs::theme_Publication()}
 
