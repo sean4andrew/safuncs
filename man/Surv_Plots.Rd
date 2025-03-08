@@ -8,7 +8,7 @@ Surv_Plots(
   surv_db,
   add_factor = NULL,
   xlim = NULL,
-  x_breaks = NULL,
+  xbreaks = NULL,
   xlab = "Days Post Challenge",
   ylim = c(0, 1),
   lambda = NULL,
@@ -31,7 +31,7 @@ Surv_Plots(
 
 \item{xlim}{A vector specifying the plots x-axis lower and upper limits, respectively.}
 
-\item{x_breaks}{A number specifying the interval for every major tick in the x-axis.}
+\item{xbreaks}{A number specifying the interval for every major tick in the x-axis.}
 
 \item{xlab}{A string specifying the plot x-axis label. Defaults to "Days Post Challenge".}
 
@@ -121,7 +121,7 @@ Surv_Plots(surv_db = surv_dat,
            plot_prefix = "QCATC777",
            phi = 1.5,
            xlab = "TTE",
-           x_breaks = 10,
+           xbreaks = 10,
            plot = "haz",
            dailybin = FALSE,
            theme = "publication") + ggplot2::facet_wrap(~ Trt.ID)

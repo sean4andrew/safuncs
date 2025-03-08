@@ -1094,7 +1094,7 @@ Surv_Pred = function(surv_db,
  row.names(Pred_Stats_Offset) = NULL
 
  #Create plots representing survival and hazard predictions over time
- x_breaks = round((max(Pred_Stats$TTE_Used) - min(Pred_Stats$TTE_Used)) / 5)
+ xbreaks = round((max(Pred_Stats$TTE_Used) - min(Pred_Stats$TTE_Used)) / 5)
 
  Pred_SR_Plot = ggplot(data = Pred_Stats, aes(x = TTE_Used, y = pred_SR, color = Trt.ID)) +
    geom_point() +
@@ -1102,7 +1102,7 @@ Surv_Pred = function(surv_db,
    facet_wrap(~Trt.ID) +
    scale_y_continuous(name = paste("Predicted SR at a TTE of", pred_tte),
                       breaks = seq(0, 100, 20), limits = c(0, 100)) +
-   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, x_breaks)) +
+   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, xbreaks)) +
    ggtitle("SR Prediction History")
 
  Pred_HR_Plot = ggplot(data = Pred_Stats, aes(x = TTE_Used, y = pred_HR, color = Trt.ID)) +
@@ -1110,7 +1110,7 @@ Surv_Pred = function(surv_db,
    geom_line() +
    facet_wrap(~Trt.ID) +
    scale_y_continuous(name = paste("Predicted HR at a TTE of", pred_tte), n.breaks = 6) +
-   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, x_breaks)) +
+   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, xbreaks)) +
    ggtitle("HR Prediction History")
 
  if(show_offset == TRUE){
@@ -1372,7 +1372,7 @@ Surv_Gen = function(mort_db,
 #' @param surv_db A survival dataframe as described in \bold{Details}.
 #' @param add_factor A string representing the name of a column in \code{surv_db} to use as an additional factor in plot creation. Will generate plot for every interaction of the additional factor and "Trt.ID".
 #' @param xlim A vector specifying the plots x-axis lower and upper limits, respectively.
-#' @param x_breaks A number specifying the interval for every major tick in the x-axis.
+#' @param xbreaks A number specifying the interval for every major tick in the x-axis.
 #' @param xlab A string specifying the plot x-axis label. Defaults to "Days Post Challenge".
 #' @param ylim A vector specifying the Survival Plot y-axis lower and upper limits, respectively. Defaults to c(0, 1) which indicates 0 to 100% Survival Probability, respectively.
 #' @param lambda Smoothing value for the hazard curve. Higher lambda produces greater smoothing. Defaults to NULL where \code{bshazard::bshazard()} uses the provided survival data to estimate lambda; NULL specification is recommended for large sample size situations which usually occurs on our full-scale studies with many mortalities and tank-replication. At low sample sizes, the lambda estimate can be unreliable. Choosing a lambda of 10 (or anywhere between 1-100) probably produces the most accurate hazard curve for these situations. In place of choosing lambda, choosing \code{phi} is recommended; see below.
@@ -1435,14 +1435,14 @@ Surv_Gen = function(mort_db,
 #'            plot_prefix = "QCATC777",
 #'            phi = 1.5,
 #'            xlab = "TTE",
-#'            x_breaks = 10,
+#'            xbreaks = 10,
 #'            plot = "haz",
 #'            dailybin = FALSE,
 #'            theme = "publication") + ggplot2::facet_wrap(~ Trt.ID)
 Surv_Plots = function(surv_db,
                       add_factor = NULL,
                       xlim = NULL,
-                      x_breaks = NULL,
+                      xbreaks = NULL,
                       xlab = "Days Post Challenge",
                       ylim = c(0, 1),
                       lambda = NULL,
@@ -1459,7 +1459,7 @@ Surv_Plots = function(surv_db,
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
   if(!is.null(trt_order)){surv_db$Trt.ID = factor(surv_db$Trt.ID, levels = trt_order)}
-  if(is.null(x_breaks)) {x_breaks <- max(1, round((xlim[2] - xlim[1]) / 10))}
+  if(is.null(xbreaks)) {xbreaks <- max(1, round((xlim[2] - xlim[1]) / 10))}
 
   if(plot == "surv" | plot == "both") {
 
@@ -1496,7 +1496,7 @@ Surv_Plots = function(surv_db,
     surv_plot = surv_plot +
       guides(color = guide_legend(paste(c("Trt.ID", add_factor), collapse = ", "))) +
       theme(legend.position = "right") +
-      scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks), name = xlab, limits = xlim, oob = scales::squish) +
+      scale_x_continuous(breaks = seq(0, xlim[2] + 100, xbreaks), name = xlab, limits = xlim, oob = scales::squish) +
       scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10) +
       scale_color_manual(labels = strn, values = color_vec)
 
@@ -1575,7 +1575,7 @@ Surv_Plots = function(surv_db,
                          aes(x = Time, y = Hazard, color = .data[[paste(c("Trt.ID", add_factor), collapse = ", ")]])) +
       geom_line(linewidth = 1) +
       geom_point() +
-      scale_x_continuous(breaks = seq(0, xlim[2] + 100, x_breaks),
+      scale_x_continuous(breaks = seq(0, xlim[2] + 100, xbreaks),
                          limits = xlim, name = xlab) +
       scale_y_continuous(n.breaks = 6, name = "Hazard Rate")
 
