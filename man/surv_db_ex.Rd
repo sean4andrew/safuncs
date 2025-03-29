@@ -6,8 +6,8 @@
 \title{Example Survival Data}
 \format{
 A data frame containing 1200 rows and 4 columns:\tabular{lll}{
- \code{Tank.ID} \tab \tab Unique labels for the different tanks in the study \cr
- \code{Trt.ID} \tab \tab Unique labels for the different treatments in the study \cr
+ \code{Tank.ID} \tab \tab Unique labels representing the different tanks in the study \cr
+ \code{Trt.ID} \tab \tab Unique labels representing the different treatments in the study \cr
  \code{TTE} \tab \tab Time to Event. In this dataset, TTE = days post challenge \cr
  \code{Status} \tab \tab Value indicating what happened at TTE. In this dataset, Status = 1 or 0 indicating death or survival, respectively \cr
 }
@@ -17,6 +17,6 @@ data(surv_db_ex)
 View(surv_db_ex)
 }
 \description{
-A complete survival dataset with survivors, based of \code{mort_db_ex}. Ready for proper survival analysis.
+A complete survival dataset with survivors, based of \code{mort_db_ex}. The dataframe can be inputed into \code{Surv_Plots()}.
 }
 \keyword{datasets}

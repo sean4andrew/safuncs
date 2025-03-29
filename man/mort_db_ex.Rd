@@ -17,6 +17,6 @@ data(mort_db_ex)
 View(mort_db_ex)
 }
 \description{
-A subset of columns taken from the online excel mortality file in OneDrive.
+An example mortality dataframe that can be accepted by \code{Surv_Gen()}.
 }
 \keyword{datasets}

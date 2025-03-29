@@ -6,7 +6,7 @@
 \title{Example Hazard Data}
 \format{
 A data frame containing 54 rows and 3 columns:\tabular{lll}{
- \code{Trt.ID} \tab \tab A label for the treatment group used in creating this reference hazard dataframe \cr
+ \code{Trt.ID} \tab \tab Unique labels representing the different treatment groups used in creating this reference hazard dataframe \cr
  \code{Hazard} \tab \tab Hazard values (rates) \cr
  \code{Time} \tab \tab Time / TTE in days post challenge. \cr
 }

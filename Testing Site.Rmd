@@ -5,6 +5,20 @@ date: "`r Sys.Date()`"
 ---
 
 ```{r}
+data(mort_db_ex)
+
+starting_fish_count_ex = data.frame(Trt.ID = rep(LETTERS[1:4], each = 3),
+                                    Tank.ID = c("C2", "C9", "C14", "C6", "C1", "C11", "C3", "C15", "C12", "C4", "C8", "C5"),
+                                    starting_fish_count = 70)
+
+sc_db_ex = read.csv(file = "sc_db_ex.csv")
+
+safuncs::Surv_Gen(mort_db = mort_db_ex,
+         last_tte = 54,
+         starting_fish_count = starting_fish_count_ex)
+```
+
+```{r}
 #Read data
 setwd("C:/Users/sean4/Downloads")
 sc_db1111 = read.csv(file = "QCATC1111 Scores S5.csv")
