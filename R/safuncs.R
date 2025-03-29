@@ -841,7 +841,7 @@ theme_Publication = function(base_size = 14) {
             legend.title = element_text(size = 12),
             plot.margin = margin(10, 10, 10, 10),
             legend.margin = margin(0, 0, 0, 0),
-            strip.background = element_rect(colour = "#f0f0f0", fill = "#f0f0f0"),
+            strip.background = element_rect(colour = "grey92", fill = "grey92"),
             strip.text = element_text(face = "bold")
     ))
 }
@@ -1205,7 +1205,7 @@ Surv_Pred = function(surv_db,
 #' @param mort_db A mort dataframe as described in \bold{Details}.
 #' @param starting_fish_count Value representing the starting number of fish for every tank. Alternatively, a dataframe containing the columns "Trt.ID", "Tank.ID", and "starting_fish_count" to allow for different fish starting numbers per tank.
 #' @param last_tte Value representing the time-to-event the fish survived to, assigned to every row of survivor data generated.
-#' @param add_factor A string or character vector representing the name(s) of column(s) in \code{mort_db} to be carried over to the generated survival data for further analysis (e.g. as facet factor in \code{safuncs::Surv_Plots()}). Defaults to NULL.
+#' @param add_factor A string or character vector representing the name(s) of column(s) in \code{mort_db} to be carried over to the generated survival data for further analysis (e.g. as facet factor in \code{safuncs::Surv_Plots()}). Column must also be present in \code{starting_fish_count} dataframe. Defaults to NULL.
 #' @param add_sampled A dataframe containing the column names "sampled_per_tank" and "sampled_tte" to indicate the amounts and times sampled. Each row of the dataframe is correlated (i.e. a specific time for specific sampling per tank). Defaults to NULL.
 #' @param tank_without_mort A vector of strings specifying the tanks absent from \code{mort_db}; used to generate survivor data for those tanks. Argument ignored if \code{starting_fish_count} is a dataframe.
 #' @param trt_without_mort A vector of strings corresponding to \code{tank_without_mort}. Keep their order the same. Argument ignored if \code{starting_fish_count} is a dataframe.
@@ -1577,7 +1577,7 @@ Surv_Plots = function(surv_db,
       geom_point() +
       scale_x_continuous(breaks = seq(0, xlim[2] + 100, xbreaks),
                          limits = xlim, name = xlab) +
-      scale_y_continuous(n.breaks = 6, name = "Hazard Rate")
+      scale_y_continuous(n.breaks = 6, name = "Hazard")
 
     if(!is.null(colours)) {Hazard_Plot <- Hazard_Plot + scale_color_manual(values = colours)}
     if(theme == "prism") {Hazard_Plot <- Hazard_Plot + ggprism::theme_prism()}
@@ -3551,11 +3551,29 @@ silencer = function(x){
   return(x2)
 }
 
+##################################################### Function 15 - knife #################################################
+
+#' @title Truncate Number
+#'
+#' @description Truncate a decimal by rounding or converting to scientific notation. Originally intended for p-values.
+#'
+#' @param x Vector of numeric values
+#'
+#' @return Truncated values
+#' @export
+knife = function(x) {
+  if(x < 1e-4) {
+    return(format(x, scientific = TRUE, digits = 4))
+  } else {
+    return(round(x, 4))
+}}
+
 ##################################################### Data 1 - mort_db_ex ####################################################
 
 #' Example Mort Data
 #'
-#' @description A subset of columns taken from the online excel mortality file in OneDrive.
+#' @description An example mortality dataframe that can be accepted by \code{Surv_Gen()}.
+#'
 #' @usage
 #' data(mort_db_ex)
 #' View(mort_db_ex)
@@ -3573,14 +3591,15 @@ silencer = function(x){
 
 #' Example Survival Data
 #'
-#' @description A complete survival dataset with survivors, based of \code{mort_db_ex}. Ready for proper survival analysis.
+#' @description A complete survival dataset with survivors, based of \code{mort_db_ex}. The dataframe can be inputed into \code{Surv_Plots()}.
+#'
 #' @usage
 #' data(surv_db_ex)
 #' View(surv_db_ex)
 #'
 #' @format A data frame containing 1200 rows and 4 columns:\tabular{lll}{
-#'  \code{Tank.ID} \tab \tab Unique labels for the different tanks in the study \cr
-#'  \code{Trt.ID} \tab \tab Unique labels for the different treatments in the study \cr
+#'  \code{Tank.ID} \tab \tab Unique labels representing the different tanks in the study \cr
+#'  \code{Trt.ID} \tab \tab Unique labels representing the different treatments in the study \cr
 #'  \code{TTE} \tab \tab Time to Event. In this dataset, TTE = days post challenge \cr
 #'  \code{Status} \tab \tab Value indicating what happened at TTE. In this dataset, Status = 1 or 0 indicating death or survival, respectively \cr
 #' }
@@ -3592,12 +3611,13 @@ silencer = function(x){
 #' Example Hazard Data
 #'
 #' @description A reference hazard dataframe created using \code{Surv_Plots(..., dailybin = TRUE, data_out = TRUE)$Hazard_DB} which uses \code{bshazard::bshazard()} inside. Contains hazard rates over time.
+#'
 #' @usage
 #' data(haz_db_ex)
 #' View(haz_db_ex)
 #'
 #' @format A data frame containing 54 rows and 3 columns:\tabular{lll}{
-#'  \code{Trt.ID} \tab \tab A label for the treatment group used in creating this reference hazard dataframe \cr
+#'  \code{Trt.ID} \tab \tab Unique labels representing the different treatment groups used in creating this reference hazard dataframe \cr
 #'  \code{Hazard} \tab \tab Hazard values (rates) \cr
 #'  \code{Time} \tab \tab Time / TTE in days post challenge. \cr
 #' }
@@ -3608,7 +3628,7 @@ silencer = function(x){
 
 #' Example Multivariate Data
 #'
-#' @description An example dataset representing the mucus chemistry of fish exposed to different treatments. Mucus chemistry is described by several variables from columns 2 to 8. In column 9, a fake factor "Fruits" was added for use as an example second factor. In column 4, row 10, the available value was replaced by NA to use as an example missing value.
+#' @description An example dataset representing the mucus chemistry of fish exposed to different treatments. The dataframe can be inputed into \code{MultiVar()}. Mucus chemistry is described by several variables from columns 2 to 8. In column 9, a fake factor "Fruits" was added for use as an example second factor. In column 4, row 10, the available value was replaced by NA to use as an example missing value.
 #'
 #' @usage
 #' data(multivar_db_ex)
@@ -3642,7 +3662,7 @@ silencer = function(x){
 #'
 "onda_cols1"
 
-###################################################### Data 6 - onda_cols1 ###########################################################
+###################################################### Data 7 - onda_cols2 ###########################################################
 
 #' Secondary ONDA Color Vector
 #'
@@ -3653,3 +3673,40 @@ silencer = function(x){
 #' print(onda_cols1)
 #'
 "onda_cols2"
+
+################################################# Data 8 - starting_fish_count_ex ####################################################
+
+#' Example Starting Count Data
+#'
+#' @description A dataframe of starting fish counts that can be accepted by \code{Surv_Gen()}.
+#'
+#' @usage
+#' data(starting_fish_count_ex)
+#' View(starting_fish_count_ex)
+#'
+#' @format A data frame containing 4 treatments, 12 tanks, and starting fish counts for each tank laid out in three columns named "Trt.ID", "Tank.ID", and "starting_fish_count"
+#'
+"starting_fish_count_ex"
+
+######################################################## Data 9 - sc_db_ex ########################################################
+
+#' Example Lesion Scores Data
+#'
+#' @description A dataframe of lesion scores that can be accepted by the template script for scores analyses. Except for \emph{Tank.ID}, the columns described below are necessary.
+#' @usage
+#' data(sc_db_ex)
+#' View(sc_db_ex)
+#'
+#' @format A data frame containing 1012 rows (each representing one fish) and 9 columns: \tabular{lll}{
+#'  \code{Timepoint} \tab \tab Unique label representing the timepoint associated with a row of data (i.e. one fish) \cr
+#'  \code{Trt.ID} \tab \tab Unique label representing the treatment group associated with a row of data \cr
+#'  \code{Tank.ID} \tab \tab Unique label representing each different tank \cr
+#'  \code{Mouth} \tab \tab Category (must be 0-4) of severity for the fish based on its mouth lesion(s) \cr
+#'  \code{Gill} \tab \tab Category (must be 0-2) of severity for the fish based on its gill lesion(s) \cr
+#'  \code{Skin1} \tab \tab Count of skin lesions Category 1 \cr
+#'  \code{Skin2} \tab \tab Count of skin lesions Category 2 \cr
+#'  \code{Skin3} \tab \tab Count of skin lesions Category 3 \cr
+#'  \code{Skin3R} \tab \tab Count of skin lesions Category 3R \cr
+#' }
+#'
+"sc_db_ex"
