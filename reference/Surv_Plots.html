@@ -41,18 +41,17 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Surv_Plots</span><span class="op">(</span></span>
 <span>  <span class="va">surv_db</span>,</span>
-<span>  add_factor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  factor <span class="op">=</span> <span class="st">"Trt.ID"</span>,</span>
 <span>  xlim <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  xbreaks <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"Days Post Challenge"</span>,</span>
-<span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.03</span><span class="op">)</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  phi <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dailybin <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  plot <span class="op">=</span> <span class="st">"both"</span>,</span>
 <span>  colours <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  theme <span class="op">=</span> <span class="st">"ggplot"</span>,</span>
-<span>  trt_order <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  data_out <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  plot_save <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  plot_prefix <span class="op">=</span> <span class="st">"ONDA_XX"</span>,</span>
@@ -66,10 +65,6 @@
 
 <dl><dt id="arg-surv-db">surv_db<a class="anchor" aria-label="anchor" href="#arg-surv-db"></a></dt>
 <dd><p>A survival dataframe as described in <b>Details</b>.</p></dd>
-
-
-<dt id="arg-add-factor">add_factor<a class="anchor" aria-label="anchor" href="#arg-add-factor"></a></dt>
-<dd><p>A string representing the name of a column in <code>surv_db</code> to use as an additional factor in plot creation. Will generate plot for every interaction of the additional factor and "Trt.ID".</p></dd>
 
 
 <dt id="arg-xlim">xlim<a class="anchor" aria-label="anchor" href="#arg-xlim"></a></dt>
@@ -112,10 +107,6 @@
 <dd><p>A string specifying the graphics theme for the plots. Theme "ggplot2", "prism", and "publication", currently available. Defaults to "ggplot2".</p></dd>
 
 
-<dt id="arg-trt-order">trt_order<a class="anchor" aria-label="anchor" href="#arg-trt-order"></a></dt>
-<dd><p>Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.</p></dd>
-
-
 <dt id="arg-data-out">data_out<a class="anchor" aria-label="anchor" href="#arg-data-out"></a></dt>
 <dd><p>Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.</p></dd>
 
@@ -130,6 +121,14 @@
 
 <dt id="arg-plot-dim">plot_dim<a class="anchor" aria-label="anchor" href="#arg-plot-dim"></a></dt>
 <dd><p>Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.</p></dd>
+
+
+<dt id="arg-add-factor">add_factor<a class="anchor" aria-label="anchor" href="#arg-add-factor"></a></dt>
+<dd><p>A string representing the name of a column in <code>surv_db</code> to use as an additional factor in plot creation. Will generate plot for every interaction of the additional factor and "Trt.ID".</p></dd>
+
+
+<dt id="arg-trt-order">trt_order<a class="anchor" aria-label="anchor" href="#arg-trt-order"></a></dt>
+<dd><p>Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -154,9 +153,7 @@
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Starting from an example mortality database, we first generate the complete survivor</span></span></span>
-<span class="r-in"><span><span class="co"># data using Surv_Gen()</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mort_db_ex</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mort_db_ex</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">surv_dat</span> <span class="op">=</span> <span class="fu"><a href="Surv_Gen.html">Surv_Gen</a></span><span class="op">(</span>mort_db <span class="op">=</span> <span class="va">mort_db_ex</span>,</span></span>
 <span class="r-in"><span>                    starting_fish_count <span class="op">=</span> <span class="fl">100</span>,</span></span>
 <span class="r-in"><span>                    last_tte <span class="op">=</span> <span class="fl">54</span><span class="op">)</span></span></span>
@@ -178,19 +175,24 @@
 <span class="r-plt img"><img src="Surv_Plots-2.png" alt="" width="700" height="433"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># If we want a plot for each tank, we can specify "Tank.ID" as an additional factor:</span></span></span>
-<span class="r-in"><span><span class="va">Tank_Plot</span> <span class="op">=</span> <span class="fu">Surv_Plots</span><span class="op">(</span>surv_db <span class="op">=</span> <span class="va">surv_dat</span>,</span></span>
-<span class="r-in"><span>                       add_factor <span class="op">=</span> <span class="st">"Tank.ID"</span>,</span></span>
-<span class="r-in"><span>                       plot_prefix <span class="op">=</span> <span class="st">"QCATC777"</span>,</span></span>
-<span class="r-in"><span>                       xlab <span class="op">=</span> <span class="st">"TTE"</span>,</span></span>
-<span class="r-in"><span>                       plot <span class="op">=</span> <span class="st">"surv"</span>,</span></span>
-<span class="r-in"><span>                       dailybin <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>                       theme <span class="op">=</span> <span class="st">"publication"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">Tank_Plot</span></span></span>
+<span class="r-in"><span><span class="co"># If we want a plot for each tank, we can specify "Tank.ID" in the factor argument:</span></span></span>
+<span class="r-in"><span><span class="fu">Surv_Plots</span><span class="op">(</span>surv_db <span class="op">=</span> <span class="va">surv_dat</span>,</span></span>
+<span class="r-in"><span>           factor <span class="op">=</span> <span class="st">"Tank.ID * Trt.ID"</span>,</span></span>
+<span class="r-in"><span>           plot_prefix <span class="op">=</span> <span class="st">"QCATC777"</span>,</span></span>
+<span class="r-in"><span>           xlab <span class="op">=</span> <span class="st">"TTE"</span>,</span></span>
+<span class="r-in"><span>           plot <span class="op">=</span> <span class="st">"surv"</span>,</span></span>
+<span class="r-in"><span>           dailybin <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>           theme <span class="op">=</span> <span class="st">"publication"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Surv_Plots-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># The plot can be modified like any ggplot2 object, for example, faceting by treatment:</span></span></span>
-<span class="r-in"><span><span class="va">Tank_Plot</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">Trt.ID</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Plot each tank faceted by Trt.ID by changing "*" into "|" in the factor argument:</span></span></span>
+<span class="r-in"><span><span class="fu">Surv_Plots</span><span class="op">(</span>surv_db <span class="op">=</span> <span class="va">surv_dat</span>,</span></span>
+<span class="r-in"><span>           factor <span class="op">=</span> <span class="st">"Tank.ID | Trt.ID"</span>,</span></span>
+<span class="r-in"><span>           plot_prefix <span class="op">=</span> <span class="st">"QCATC777"</span>,</span></span>
+<span class="r-in"><span>           xlab <span class="op">=</span> <span class="st">"TTE"</span>,</span></span>
+<span class="r-in"><span>           plot <span class="op">=</span> <span class="st">"surv"</span>,</span></span>
+<span class="r-in"><span>           dailybin <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>           theme <span class="op">=</span> <span class="st">"publication"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="Surv_Plots-4.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Tank specific hazard curves can also be created. The paramater phi often has to be</span></span></span>
@@ -199,14 +201,14 @@
 <span class="r-in"><span><span class="co"># with larger sample sizes. More info on estimation parameters can be found in the</span></span></span>
 <span class="r-in"><span><span class="co"># Details and Arguments section of the Surv_Plot() documentation.</span></span></span>
 <span class="r-in"><span><span class="fu">Surv_Plots</span><span class="op">(</span>surv_db <span class="op">=</span> <span class="va">surv_dat</span>,</span></span>
-<span class="r-in"><span>           add_factor <span class="op">=</span> <span class="st">"Tank.ID"</span>,</span></span>
+<span class="r-in"><span>           factor <span class="op">=</span> <span class="st">"Tank.ID | Trt.ID"</span>,</span></span>
 <span class="r-in"><span>           plot_prefix <span class="op">=</span> <span class="st">"QCATC777"</span>,</span></span>
 <span class="r-in"><span>           phi <span class="op">=</span> <span class="fl">1.5</span>,</span></span>
 <span class="r-in"><span>           xlab <span class="op">=</span> <span class="st">"TTE"</span>,</span></span>
 <span class="r-in"><span>           xbreaks <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span>           plot <span class="op">=</span> <span class="st">"haz"</span>,</span></span>
 <span class="r-in"><span>           dailybin <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>           theme <span class="op">=</span> <span class="st">"publication"</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">Trt.ID</span><span class="op">)</span></span></span>
+<span class="r-in"><span>           theme <span class="op">=</span> <span class="st">"publication"</span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Stop time must be &gt; start time, NA created</span>
 <span class="r-plt img"><img src="Surv_Plots-5.png" alt="" width="700" height="433"></span>
 </code></pre></div>
