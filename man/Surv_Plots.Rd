@@ -6,18 +6,17 @@
 \usage{
 Surv_Plots(
   surv_db,
-  add_factor = NULL,
+  factor = "Trt.ID",
   xlim = NULL,
   xbreaks = NULL,
   xlab = "Days Post Challenge",
-  ylim = c(0, 1),
+  ylim = c(0, 1.03),
   lambda = NULL,
   phi = NULL,
   dailybin = TRUE,
   plot = "both",
   colours = NULL,
   theme = "ggplot",
-  trt_order = NULL,
   data_out = FALSE,
   plot_save = TRUE,
   plot_prefix = "ONDA_XX",
@@ -26,8 +25,6 @@ Surv_Plots(
 }
 \arguments{
 \item{surv_db}{A survival dataframe as described in \bold{Details}.}
-
-\item{add_factor}{A string representing the name of a column in \code{surv_db} to use as an additional factor in plot creation. Will generate plot for every interaction of the additional factor and "Trt.ID".}
 
 \item{xlim}{A vector specifying the plots x-axis lower and upper limits, respectively.}
 
@@ -49,8 +46,6 @@ Surv_Plots(
 
 \item{theme}{A string specifying the graphics theme for the plots. Theme "ggplot2", "prism", and "publication", currently available. Defaults to "ggplot2".}
 
-\item{trt_order}{Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.}
-
 \item{data_out}{Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.}
 
 \item{plot_save}{Whether to save plots in the working directory.}
@@ -58,6 +53,10 @@ Surv_Plots(
 \item{plot_prefix}{A string specifying the prefix for the filename of the saved plots. Defaults to "ONDA_XX".}
 
 \item{plot_dim}{Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.}
+
+\item{add_factor}{A string representing the name of a column in \code{surv_db} to use as an additional factor in plot creation. Will generate plot for every interaction of the additional factor and "Trt.ID".}
+
+\item{trt_order}{Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.}
 }
 \value{
 Returns a list containing the Kaplan-Meier Survival Curve and the Hazard Curve if {\code{plot = "both"}}. If only one plot is to be calculated and shown, set either \code{plot = "haz"} or \code{plot = "surv"}.
@@ -83,8 +82,6 @@ For details on the statistical methodology used by \code{bshazard::bshazard()}, 
 General concept: h(t) the hazard function is considered in an count model with the number of deaths as the response variable. I.e, death_count(t) = h(t) * P(t) where P(t) is the number alive as a function of time and h(t) is modeled over time using basis splines. The basis spline curvature\bold{s} is assumed to have a normal distribution with mean 0 (a random effect). Based on this assumption, the author found that the variance of curvatures (i.e. smoothness) is equal to the over-dispersion (phi) of the death counts related (divided) by some smoothness parameter (lambda). Phi and lambda can be estimated from the data or specified by the user. Specification can be helpful in low sample size situations where overdispersion (phi) estimates have been found to be unreliable and clearly wrong (based on my understanding of realistic estimates and what was estimated in past data with adequate, large sample sizes).
 }
 \examples{
-# Starting from an example mortality database, we first generate the complete survivor
-# data using Surv_Gen()
 data(mort_db_ex)
 surv_dat = Surv_Gen(mort_db = mort_db_ex,
                     starting_fish_count = 100,
@@ -98,18 +95,23 @@ Surv_Plots(surv_db = surv_dat,
            dailybin = FALSE,
            theme = "publication")
 
-# If we want a plot for each tank, we can specify "Tank.ID" as an additional factor:
-Tank_Plot = Surv_Plots(surv_db = surv_dat,
-                       add_factor = "Tank.ID",
-                       plot_prefix = "QCATC777",
-                       xlab = "TTE",
-                       plot = "surv",
-                       dailybin = FALSE,
-                       theme = "publication")
-Tank_Plot
+# If we want a plot for each tank, we can specify "Tank.ID" in the factor argument:
+Surv_Plots(surv_db = surv_dat,
+           factor = "Tank.ID * Trt.ID",
+           plot_prefix = "QCATC777",
+           xlab = "TTE",
+           plot = "surv",
+           dailybin = FALSE,
+           theme = "publication")
 
-# The plot can be modified like any ggplot2 object, for example, faceting by treatment:
-Tank_Plot + ggplot2::facet_wrap(~ Trt.ID)
+# Plot each tank faceted by Trt.ID by changing "*" into "|" in the factor argument:
+Surv_Plots(surv_db = surv_dat,
+           factor = "Tank.ID | Trt.ID",
+           plot_prefix = "QCATC777",
+           xlab = "TTE",
+           plot = "surv",
+           dailybin = FALSE,
+           theme = "publication")
 
 # Tank specific hazard curves can also be created. The paramater phi often has to be
 # specified for accurate estimation of the hazard curve of low sample size or single
@@ -117,14 +119,14 @@ Tank_Plot + ggplot2::facet_wrap(~ Trt.ID)
 # with larger sample sizes. More info on estimation parameters can be found in the
 # Details and Arguments section of the Surv_Plot() documentation.
 Surv_Plots(surv_db = surv_dat,
-           add_factor = "Tank.ID",
+           factor = "Tank.ID | Trt.ID",
            plot_prefix = "QCATC777",
            phi = 1.5,
            xlab = "TTE",
            xbreaks = 10,
            plot = "haz",
            dailybin = FALSE,
-           theme = "publication") + ggplot2::facet_wrap(~ Trt.ID)
+           theme = "publication")
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed \bold{Examples} which includes any figure outputs.

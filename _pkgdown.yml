@@ -25,7 +25,7 @@ reference:
   - MultiVar
   - silencer
   - knife
-- title: "Data"
+- title: "Example Data"
   contents:
   - ends_with("_ex")
   - onda_cols1
