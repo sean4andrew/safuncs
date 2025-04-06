@@ -161,37 +161,15 @@ MultiVar(multivar_db = iris,
          plot_out_R = TRUE)$pca$distribution
 
 # If you want to customize the plot beyond the capabilities of MultiVar(), save them
-# as editable forms in .pptx or manipulate them further in R:
-FacetVar_box = MultiVar(multivar_db = iris,
-                       values_cols = 1:4,
-                       factors_cols = 5,
-                       boxplot_x_angle = 45,
-                       plot_out_pptx = TRUE,
-                       plot_out_R = TRUE)$box$none$facetvariables
-
-FacetVar_box + ggthemes::theme_tufte() # Use the thufte theme
-
-ggplot2::ggsave(filename = "FacetVar_box.tiff",
-                width = 5,
-                height = 5,
-                dpi = 600) # Save with desired plot dimensions and resolution
-
-# MultiVar() can also handle missing values which are common in real life data. By
-# default it imputes (creates) missing values based on the correlational properties
-# between dependent variables (essentially). Alternatively, rows with missing values
-# can be omitted using missing_method = "na_omit". Below is a demo showing the use
-# of the imputation method.
-iris[1:25, 1] = NA # replace half of Setosa's Sepal.Length with NA
-
+# as editable forms in .pptx using the argument plot_out_ppt or manipulate them further
+# in R:
 MultiVar(multivar_db = iris,
          values_cols = 1:4,
          factors_cols = 5,
-         missing_method = "imputation",
-         pca_ellipse = "distribution",
-         plot_out_R = TRUE)$pca$distribution
+         boxplot_x_angle = 45,
+         plot_out_R = TRUE)$box$none$facetvariables +
+ ggthemes::theme_tufte() # Use the thufte theme
 
-# The plot is not clearly different than before which indicates the imputed values
-# substitute NAs effectively, without clear bias.
 
 ## TWO FACTOR CASES
 # Real data often have two factors, and MultiVar() produces plots tailored to that.
@@ -205,7 +183,7 @@ data(multivar_db_ex)
 head(multivar_db_ex, n = 5)
 
 MultiVar(multivar_db = multivar_db_ex,
-         values_cols = 2:8,
+         values_cols = 2:5,
          factors_cols = c(1, 9),
          factors_pool = "none",
          factors_facet = "none",
@@ -217,7 +195,7 @@ MultiVar(multivar_db = multivar_db_ex,
 # factor. Below we explore the default parameters which consists of 'factors_pool =
 # c('col1', 'col2')' and its output:
 MultiVar(multivar_db = multivar_db_ex,
-         values_cols = 2:8,
+         values_cols = 2:5,
          factors_cols = c(1, 9),
          factors_pool = c("col1", "col2"),
          plot_out_R = TRUE)$pca$confidence[c("pooled1", "pooled2")]
@@ -229,7 +207,7 @@ MultiVar(multivar_db = multivar_db_ex,
 # Plots with facets can also be created. Below, we facet against levels of the second
 # factor (Fruits) which is considered as a nuisance factor in this case:
 MultiVar(multivar_db = multivar_db_ex,
-         values_cols = 2:8,
+         values_cols = 2:5,
          factors_cols = c(1, 9),
          factors_pool = c("col1", "col2"),
          factors_facet = c("col2"),
