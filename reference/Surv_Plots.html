@@ -67,6 +67,10 @@
 <dd><p>A survival dataframe as described in <b>Details</b>.</p></dd>
 
 
+<dt id="arg-factor">factor<a class="anchor" aria-label="anchor" href="#arg-factor"></a></dt>
+<dd><p>A string representing the formula of factors (column names) which represent the structure of the plot. Accepts single to two factors with interactions, e.g. "Trt.ID * Tank.ID" creates curves for every treatment and tank combination while "Tank.ID | Trt.ID" creates curves for every tank faceted by treatment.</p></dd>
+
+
 <dt id="arg-xlim">xlim<a class="anchor" aria-label="anchor" href="#arg-xlim"></a></dt>
 <dd><p>A vector specifying the plots x-axis lower and upper limits, respectively.</p></dd>
 
@@ -121,10 +125,6 @@
 
 <dt id="arg-plot-dim">plot_dim<a class="anchor" aria-label="anchor" href="#arg-plot-dim"></a></dt>
 <dd><p>Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.</p></dd>
-
-
-<dt id="arg-add-factor">add_factor<a class="anchor" aria-label="anchor" href="#arg-add-factor"></a></dt>
-<dd><p>A string representing the name of a column in <code>surv_db</code> to use as an additional factor in plot creation. Will generate plot for every interaction of the additional factor and "Trt.ID".</p></dd>
 
 
 <dt id="arg-trt-order">trt_order<a class="anchor" aria-label="anchor" href="#arg-trt-order"></a></dt>
