@@ -1,8 +1,0 @@
-"0","Surv_Plots(surv_db = PSal_Surv_DB_Cohab, "
-"0","           plot_prefix = ""RD0035 Cohab"","
-"0","           plot = ""surv"")"
-"2","Warning in survival::Surv(TTE, Status) :"
-"2","
- "
-"2"," Invalid status value, converted to NA
-"

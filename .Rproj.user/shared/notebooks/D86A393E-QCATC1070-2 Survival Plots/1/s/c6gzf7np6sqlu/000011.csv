@@ -1,5 +1,0 @@
-"0","QCATC1070_Mort3 = QCATC1070_Mort2"
-"0","QCATC1070_Mort3$TTE = QCATC1070_Mort2$TTE - 16"
-"0","QCATC1070_Surv_DB2 = Surv_Gen(mort_db = QCATC1070_Mort3, "
-"0","                             today_tte = 18, #today's days post challenge #2"
-"0","                             starting_fish_count = 40) #per tank"

@@ -1,4 +1,0 @@
-"0","Surv_obj_TenTr = survfit(Surv(Time.To.Event, Status) ~ Treatment, data = Surv_DB_Tenaci)"
-"0","#Surv_obj_MoriTr = survfit(Surv(Time.To.Event, Status) ~ Treatment, data = Surv_DB_Moritella)"
-"0",""
-"0","plot(Surv_obj_TenTr, fun = ""cloglog"")"

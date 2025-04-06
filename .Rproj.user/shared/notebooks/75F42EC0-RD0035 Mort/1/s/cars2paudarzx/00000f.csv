@@ -1,7 +1,0 @@
-"0","PSal_Surv_DB_Trojan = Surv_Gen(mort_db = PSal_DB_Trojan, "
-"0","                               today_tte = 16,"
-"0","                               starting_fish_count = PSal_starting_fish_count_Trojan)"
-"0",""
-"0","PSal_Surv_DB_Cohab = Surv_Gen(mort_db = PSal_DB_Cohab, "
-"0","                              today_tte = 16,"
-"0","                              starting_fish_count = PSal_starting_fish_count_Cohab)"

@@ -1,6 +1,0 @@
-"0","library(ggplot2)"
-"0","library(dplyr)"
-"0","library(knitr)"
-"0","library(safuncs2)"
-"2","Error in library(safuncs2) : there is no package called ‘safuncs2’
-"

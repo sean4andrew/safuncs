@@ -1,3 +1,0 @@
-"0","ggplot(data = Haz_DB, aes(x = Time, y = Hazard, color = Treatment)) +"
-"0","  geom_point(size = 2, fill = ""white"") + "
-"0","  geom_line(linewidth = 1)"

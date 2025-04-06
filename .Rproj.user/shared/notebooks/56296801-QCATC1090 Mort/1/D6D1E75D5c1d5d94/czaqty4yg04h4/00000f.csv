@@ -1,5 +1,0 @@
-"0","Ref_Ten_DBControl2 = Ref_Ten_DBControl"
-"0",""
-"0","#Standardize TTE"
-"0","Ref_Ten_DBControl2$TTE = Ref_Ten_DBControl$TTE - 6"
-"0","Ref_Ten_DBControl2 = Ref_Ten_DBControl2[Ref_Ten_DBControl2$TTE > 0, ]"

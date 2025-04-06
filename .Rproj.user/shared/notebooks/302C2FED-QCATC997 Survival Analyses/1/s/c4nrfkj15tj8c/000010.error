@@ -1,1 +1,0 @@
-{"frames":[{"func":"ggsurvplot(Surv_obj_MoriTr, ggtheme = theme_bw())","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error: object 'Surv_obj_MoriTr' not found\n"}

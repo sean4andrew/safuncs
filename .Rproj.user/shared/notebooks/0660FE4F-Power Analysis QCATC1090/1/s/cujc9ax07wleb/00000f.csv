@@ -1,2 +1,0 @@
-"0","coxmod_Ten = coxph(data = Tenaci_Pow, Surv(TTE, Status) ~ Trt.ID) #HR = 0.633, total number of events = 230, power = 93.4"
-"0","coxmod_Mor = coxph(data = Moritella_Pow, Surv(TTE, Status) ~ Trt.ID) #HR = 0.632, total numnber of events = 235, power = 94.0"

@@ -1,5 +1,0 @@
-"0","Mor_Surv_DB = Surv_Gen(mort_db = Mor_DB, "
-"0","                       today_tte = 12,"
-"0","                       starting_fish_count = 90,"
-"0","                       tank_without_mort = c(""D17""),"
-"0","                       trt_without_mort = c(""D""))"
