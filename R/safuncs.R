@@ -1370,7 +1370,7 @@ Surv_Gen = function(mort_db,
 #' @md
 #'
 #' @param surv_db A survival dataframe as described in \bold{Details}.
-#' @param add_factor A string representing the name of a column in \code{surv_db} to use as an additional factor in plot creation. Will generate plot for every interaction of the additional factor and "Trt.ID".
+#' @param factor A string representing the formula of factors (column names) which represent the structure of the plot. Accepts single to two factors with interactions, e.g. "Trt.ID * Tank.ID" creates curves for every treatment and tank combination while "Tank.ID | Trt.ID" creates curves for every tank faceted by treatment.
 #' @param xlim A vector specifying the plots x-axis lower and upper limits, respectively.
 #' @param xbreaks A number specifying the interval for every major tick in the x-axis.
 #' @param xlab A string specifying the plot x-axis label. Defaults to "Days Post Challenge".

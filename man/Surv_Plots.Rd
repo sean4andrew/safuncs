@@ -26,6 +26,8 @@ Surv_Plots(
 \arguments{
 \item{surv_db}{A survival dataframe as described in \bold{Details}.}
 
+\item{factor}{A string representing the formula of factors (column names) which represent the structure of the plot. Accepts single to two factors with interactions, e.g. "Trt.ID * Tank.ID" creates curves for every treatment and tank combination while "Tank.ID | Trt.ID" creates curves for every tank faceted by treatment.}
+
 \item{xlim}{A vector specifying the plots x-axis lower and upper limits, respectively.}
 
 \item{xbreaks}{A number specifying the interval for every major tick in the x-axis.}
@@ -53,8 +55,6 @@ Surv_Plots(
 \item{plot_prefix}{A string specifying the prefix for the filename of the saved plots. Defaults to "ONDA_XX".}
 
 \item{plot_dim}{Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.}
-
-\item{add_factor}{A string representing the name of a column in \code{surv_db} to use as an additional factor in plot creation. Will generate plot for every interaction of the additional factor and "Trt.ID".}
 
 \item{trt_order}{Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.}
 }
