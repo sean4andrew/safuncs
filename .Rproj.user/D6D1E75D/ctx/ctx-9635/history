@@ -1,0 +1,512 @@
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ Tank.ID,
+verbose = FALSE,
+lambda = lambda,
+phi = phi)
+} else {
+Haz_bs = bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ 1,
+verbose = FALSE,
+lambda = lambda,
+phi = phi)
+print(Haz_Group)
+}
+Haz_list[[Haz_Group]] = data.frame(Hazard = Haz_bs$hazard,
+Time = Haz_bs$time)
+}
+}
+for(Haz_Group in Haz_Group_Vec[1:5]) {
+if(plot_bytank == TRUE) {
+surv_db_group = surv_db[surv_db$group == Haz_Group,]
+surv_db_group$group = droplevels(surv_db_group$group)
+} else {
+surv_db_group = surv_db[surv_db$Trt.ID == Haz_Group,]
+}
+if(sum(surv_db_group$Status) == 0){
+Haz_list[[Haz_Group]] = data.frame(Hazard = 0,
+Time = rep(0, max(surv_db$TTE), 1))
+} else {
+if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {
+Haz_bs = bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ Tank.ID,
+verbose = FALSE,
+lambda = lambda,
+phi = phi)
+} else {
+Haz_bs = bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ 1,
+verbose = FALSE,
+lambda = lambda,
+phi = phi)
+print(Haz_Group)
+}
+Haz_list[[Haz_Group]] = data.frame(Hazard = Haz_bs$hazard,
+Time = Haz_bs$time)
+}
+}
+for(Haz_Group in Haz_Group_Vec[1:3]) {
+if(plot_bytank == TRUE) {
+surv_db_group = surv_db[surv_db$group == Haz_Group,]
+surv_db_group$group = droplevels(surv_db_group$group)
+} else {
+surv_db_group = surv_db[surv_db$Trt.ID == Haz_Group,]
+}
+if(sum(surv_db_group$Status) == 0){
+Haz_list[[Haz_Group]] = data.frame(Hazard = 0,
+Time = rep(0, max(surv_db$TTE), 1))
+} else {
+if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {
+Haz_bs = bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ Tank.ID,
+verbose = FALSE,
+lambda = lambda,
+phi = phi)
+} else {
+Haz_bs = bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ 1,
+verbose = FALSE,
+lambda = lambda,
+phi = phi)
+print(Haz_Group)
+}
+Haz_list[[Haz_Group]] = data.frame(Hazard = Haz_bs$hazard,
+Time = Haz_bs$time)
+}
+}
+for(Haz_Group in Haz_Group_Vec[4]) {
+if(plot_bytank == TRUE) {
+surv_db_group = surv_db[surv_db$group == Haz_Group,]
+surv_db_group$group = droplevels(surv_db_group$group)
+} else {
+surv_db_group = surv_db[surv_db$Trt.ID == Haz_Group,]
+}
+if(sum(surv_db_group$Status) == 0){
+Haz_list[[Haz_Group]] = data.frame(Hazard = 0,
+Time = rep(0, max(surv_db$TTE), 1))
+} else {
+if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {
+Haz_bs = bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ Tank.ID,
+verbose = FALSE,
+lambda = lambda,
+phi = phi)
+} else {
+Haz_bs = bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ 1,
+verbose = FALSE,
+lambda = lambda,
+phi = phi)
+print(Haz_Group)
+}
+Haz_list[[Haz_Group]] = data.frame(Hazard = Haz_bs$hazard,
+Time = Haz_bs$time)
+}
+}
+surv_db_group
+survival::Surv(TTE, Status) ~ 1
+survival::Surv(TTE, Status)
+suppressWarnings(bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ 1,
+verbose = FALSE,
+lambda = lambda,
+phi = phi))
+bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ 1,
+verbose = FALSE,
+lambda = lambda,
+phi = phi)
+Surv_Pred(surv_db = pred_DB,
+ref_surv_db = ref_surv_db2,
+pred_tte = 54,
+pred_method = "simple",
+plot_save = TRUE,
+plot_prefix = "ONDA01166")
+Surv_Plots = function(surv_db,
+xlim = NULL,
+ylim = c(0, 1),
+xlab = "Days Post Challenge",
+lambda = NULL,
+phi = NULL,
+dailybin = TRUE,
+plot = "both",
+colours = NULL,
+theme = "ggplot",
+trt_order = NULL,
+data_out = FALSE,
+plot_bytank = FALSE,
+plot_save = TRUE,
+plot_prefix = "ONDA_XX",
+plot_dim = c(6, 4)) {
+if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
+if(!is.null(trt_order)){surv_db$Trt.ID = factor(surv_db$Trt.ID, levels = trt_order)}
+if(plot == "surv" | plot == "both") {
+if(plot_bytank == TRUE) {
+surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID + Tank.ID, data = surv_db)
+} else {
+surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
+}
+surv_dat = data.frame(Trt.ID = summary(surv_obj)$strata,
+Survprob = summary(surv_obj)$surv,
+Time = summary(surv_obj)$time)
+if(plot_bytank == TRUE){
+surv_dat = tidyr::separate(data = surv_dat, col = "Trt.ID", sep = ",", into = c("Trt.ID", "Tank.ID"))
+surv_dat$Tank.ID = sub("^.*=", "", surv_dat$Tank.ID)
+}
+surv_dat$Trt.ID = sub("^.*=", "", surv_dat$Trt.ID)
+surv_plot = survminer::ggsurvplot(surv_obj,
+conf.int = FALSE,
+ggtheme = theme(plot.background = element_rect(fill = "white")),
+facet.by = if(plot_bytank == TRUE) {"Trt.ID"} else {NULL},
+surv.scale = "percent",
+short.panel.labs = TRUE)
+if(plot_bytank == TRUE){
+surv_plot$scales$scales = list()
+Survival_Plot = surv_plot + guides(color = guide_legend("Tank.ID")) + theme(legend.position = "right") +
+scale_x_continuous(n.breaks = 10, name = xlab, limits = xlim) +
+scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10)
+} else {
+surv_plot$plot$scales$scales = list()
+Survival_Plot = surv_plot$plot + guides(color = guide_legend("Trt.ID")) + theme(legend.position = "right") +
+scale_x_continuous(n.breaks = 10, name = xlab, limits = xlim) +
+scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10)
+}
+if(theme == "prism") {Survival_Plot <- Survival_Plot + ggprism::theme_prism()}
+if(!is.null(colours)) {Survival_Plot <- Survival_Plot + scale_color_manual(values = colours)}
+#Save Plots
+if(plot_save == TRUE){
+ggsave(paste(plot_prefix, "Survival-Curve.tiff", sep = "-"), dpi = 300,
+width = plot_dim[1], height = plot_dim[2], plot = Survival_Plot)
+eoffice::topptx(figure = Survival_Plot, width = plot_dim[1], height = plot_dim[2],
+filename = paste(plot_prefix, "Survival-Curve.pptx", sep = "-"))
+}
+}
+if(dailybin == TRUE) {dbin <- max(surv_db$TTE)}
+if(dailybin == FALSE) {dbin <- NULL}
+#create Haz_list
+if(plot == "haz" | plot == "both") {
+Haz_list = list()
+if(plot_bytank == TRUE) {
+surv_db$group = interaction(surv_db$Trt.ID, surv_db$Tank.ID, lex.order = TRUE, sep = ",")
+Haz_Group_Vec = levels(factor(surv_db$group))
+} else {
+Haz_Group_Vec = levels(as.factor(surv_db$Trt.ID))
+}
+for(Haz_Group in Haz_Group_Vec[4]) {
+if(plot_bytank == TRUE) {
+surv_db_group = surv_db[surv_db$group == Haz_Group,]
+surv_db_group$group = droplevels(surv_db_group$group)
+} else {
+surv_db_group = surv_db[surv_db$Trt.ID == Haz_Group,]
+}
+if(sum(surv_db_group$Status) == 0){
+Haz_list[[Haz_Group]] = data.frame(Hazard = 0,
+Time = rep(0, max(surv_db$TTE), 1))
+} else {
+if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {
+Haz_bs = suppressWarnings(bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ Tank.ID,
+verbose = FALSE,
+lambda = lambda,
+phi = phi))
+} else {
+Haz_bs = suppressWarnings(bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ 1,
+verbose = FALSE,
+lambda = lambda,
+phi = phi))
+print(Haz_Group)
+}
+Haz_list[[Haz_Group]] = data.frame(Hazard = Haz_bs$hazard,
+Time = Haz_bs$time)
+}
+}
+haz_db = dplyr::bind_rows(Haz_list, .id = "Trt.ID")
+if(plot_bytank == TRUE){
+haz_db = tidyr::separate(data = haz_db, col = "Trt.ID", into = c("Trt.ID", "Tank.ID"), sep = ",")
+}
+if(!is.null(trt_order)){haz_db$Trt.ID <- factor(haz_db$Trt.ID, levels = trt_order)}
+Hazard_Plot = ggplot(data = haz_db, aes(x = Time, y = Hazard, color = Trt.ID)) +
+geom_line(linewidth = 1) +
+geom_point() +
+xlab(xlab) +
+scale_x_continuous(n.breaks = 10,
+limits = xlim) +
+scale_y_continuous(n.breaks = 6, name = "Hazard Rate")
+if(plot_bytank == TRUE) {
+Hazard_Plot$mapping = aes(x = Time, y = Hazard, color = Tank.ID)
+Hazard_Plot <- Hazard_Plot + facet_wrap(~ Trt.ID)
+}
+if(!is.null(colours)) {Hazard_Plot <- Hazard_Plot + scale_color_manual(values = colours)}
+if(theme == "prism") {Hazard_Plot <- Hazard_Plot + ggprism::theme_prism()}
+#Save plots
+if(plot_save == TRUE) {
+ggsave(paste(plot_prefix, "Hazard-Curve.tiff", sep = "-"), dpi = 300,
+width = plot_dim[1], height = plot_dim[2], plot = Hazard_Plot)
+eoffice::topptx(figure = Hazard_Plot, filename = paste(plot_prefix, "Hazard-Curve.pptx", sep = "-"),
+width = plot_dim[1], height = plot_dim[2])
+}
+}
+if(data_out == TRUE) {
+if(plot == "surv") {return(list(Survival_Plot = Survival_Plot, Survival_DB = surv_dat))}
+if(plot == "haz") {return(list(Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
+if(plot == "both") {return(list(Survival_Plot = Survival_Plot, Survival_DB = surv_dat, Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
+} else {
+if(plot == "surv") {return(Survival_Plot = Survival_Plot)}
+if(plot == "haz") {return(Hazard_Plot = Hazard_Plot)}
+if(plot == "both") {return(list(Survival_Plot = Survival_Plot, Hazard_Plot = Hazard_Plot))}
+}
+}
+Surv_Plots(surv_db = surv_dat,
+plot_prefix = "QCATC777",
+xlim = c(0, 54),
+ylim = c(0, 1),
+xlab = "TTE",
+plot = "both",
+dailybin = FALSE,
+phi = 1.5,
+plot_bytank = TRUE)
+Surv_Plots = function(surv_db,
+xlim = NULL,
+ylim = c(0, 1),
+xlab = "Days Post Challenge",
+lambda = NULL,
+phi = NULL,
+dailybin = TRUE,
+plot = "both",
+colours = NULL,
+theme = "ggplot",
+trt_order = NULL,
+data_out = FALSE,
+plot_bytank = FALSE,
+plot_save = TRUE,
+plot_prefix = "ONDA_XX",
+plot_dim = c(6, 4)) {
+if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE))}
+if(!is.null(trt_order)){surv_db$Trt.ID = factor(surv_db$Trt.ID, levels = trt_order)}
+if(plot == "surv" | plot == "both") {
+if(plot_bytank == TRUE) {
+surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID + Tank.ID, data = surv_db)
+} else {
+surv_obj = survminer::surv_fit(survival::Surv(TTE, Status) ~ Trt.ID, data = surv_db)
+}
+surv_dat = data.frame(Trt.ID = summary(surv_obj)$strata,
+Survprob = summary(surv_obj)$surv,
+Time = summary(surv_obj)$time)
+if(plot_bytank == TRUE){
+surv_dat = tidyr::separate(data = surv_dat, col = "Trt.ID", sep = ",", into = c("Trt.ID", "Tank.ID"))
+surv_dat$Tank.ID = sub("^.*=", "", surv_dat$Tank.ID)
+}
+surv_dat$Trt.ID = sub("^.*=", "", surv_dat$Trt.ID)
+surv_plot = survminer::ggsurvplot(surv_obj,
+conf.int = FALSE,
+ggtheme = theme(plot.background = element_rect(fill = "white")),
+facet.by = if(plot_bytank == TRUE) {"Trt.ID"} else {NULL},
+surv.scale = "percent",
+short.panel.labs = TRUE)
+if(plot_bytank == TRUE){
+surv_plot$scales$scales = list()
+Survival_Plot = surv_plot + guides(color = guide_legend("Tank.ID")) + theme(legend.position = "right") +
+scale_x_continuous(n.breaks = 10, name = xlab, limits = xlim) +
+scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10)
+} else {
+surv_plot$plot$scales$scales = list()
+Survival_Plot = surv_plot$plot + guides(color = guide_legend("Trt.ID")) + theme(legend.position = "right") +
+scale_x_continuous(n.breaks = 10, name = xlab, limits = xlim) +
+scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10)
+}
+if(theme == "prism") {Survival_Plot <- Survival_Plot + ggprism::theme_prism()}
+if(!is.null(colours)) {Survival_Plot <- Survival_Plot + scale_color_manual(values = colours)}
+#Save Plots
+if(plot_save == TRUE){
+ggsave(paste(plot_prefix, "Survival-Curve.tiff", sep = "-"), dpi = 300,
+width = plot_dim[1], height = plot_dim[2], plot = Survival_Plot)
+eoffice::topptx(figure = Survival_Plot, width = plot_dim[1], height = plot_dim[2],
+filename = paste(plot_prefix, "Survival-Curve.pptx", sep = "-"))
+}
+}
+if(dailybin == TRUE) {dbin <- max(surv_db$TTE)}
+if(dailybin == FALSE) {dbin <- NULL}
+#create Haz_list
+if(plot == "haz" | plot == "both") {
+Haz_list = list()
+if(plot_bytank == TRUE) {
+surv_db$group = interaction(surv_db$Trt.ID, surv_db$Tank.ID, lex.order = TRUE, sep = ",")
+Haz_Group_Vec = levels(factor(surv_db$group))
+} else {
+Haz_Group_Vec = levels(as.factor(surv_db$Trt.ID))
+}
+for(Haz_Group in Haz_Group_Vec) {
+if(plot_bytank == TRUE) {
+surv_db_group = surv_db[surv_db$group == Haz_Group,]
+surv_db_group$group = droplevels(surv_db_group$group)
+} else {
+surv_db_group = surv_db[surv_db$Trt.ID == Haz_Group,]
+}
+if(sum(surv_db_group$Status) == 0){
+Haz_list[[Haz_Group]] = data.frame(Hazard = 0,
+Time = rep(0, max(surv_db$TTE), 1))
+} else {
+if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {
+Haz_bs = suppressWarnings(bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ Tank.ID,
+verbose = FALSE,
+lambda = lambda,
+phi = phi))
+} else {
+Haz_bs = suppressWarnings(bshazard::bshazard(nbin = dbin,
+data = surv_db_group,
+survival::Surv(TTE, Status) ~ 1,
+verbose = FALSE,
+lambda = lambda,
+phi = phi))
+}
+Haz_list[[Haz_Group]] = data.frame(Hazard = Haz_bs$hazard,
+Time = Haz_bs$time)
+}
+}
+haz_db = dplyr::bind_rows(Haz_list, .id = "Trt.ID")
+if(plot_bytank == TRUE){
+haz_db = tidyr::separate(data = haz_db, col = "Trt.ID", into = c("Trt.ID", "Tank.ID"), sep = ",")
+}
+if(!is.null(trt_order)){haz_db$Trt.ID <- factor(haz_db$Trt.ID, levels = trt_order)}
+Hazard_Plot = ggplot(data = haz_db, aes(x = Time, y = Hazard, color = Trt.ID)) +
+geom_line(linewidth = 1) +
+geom_point() +
+xlab(xlab) +
+scale_x_continuous(n.breaks = 10,
+limits = xlim) +
+scale_y_continuous(n.breaks = 6, name = "Hazard Rate")
+if(plot_bytank == TRUE) {
+Hazard_Plot$mapping = aes(x = Time, y = Hazard, color = Tank.ID)
+Hazard_Plot <- Hazard_Plot + facet_wrap(~ Trt.ID)
+}
+if(!is.null(colours)) {Hazard_Plot <- Hazard_Plot + scale_color_manual(values = colours)}
+if(theme == "prism") {Hazard_Plot <- Hazard_Plot + ggprism::theme_prism()}
+#Save plots
+if(plot_save == TRUE) {
+ggsave(paste(plot_prefix, "Hazard-Curve.tiff", sep = "-"), dpi = 300,
+width = plot_dim[1], height = plot_dim[2], plot = Hazard_Plot)
+eoffice::topptx(figure = Hazard_Plot, filename = paste(plot_prefix, "Hazard-Curve.pptx", sep = "-"),
+width = plot_dim[1], height = plot_dim[2])
+}
+}
+if(data_out == TRUE) {
+if(plot == "surv") {return(list(Survival_Plot = Survival_Plot, Survival_DB = surv_dat))}
+if(plot == "haz") {return(list(Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
+if(plot == "both") {return(list(Survival_Plot = Survival_Plot, Survival_DB = surv_dat, Hazard_Plot = Hazard_Plot, Hazard_DB = haz_db))}
+} else {
+if(plot == "surv") {return(Survival_Plot = Survival_Plot)}
+if(plot == "haz") {return(Hazard_Plot = Hazard_Plot)}
+if(plot == "both") {return(list(Survival_Plot = Survival_Plot, Hazard_Plot = Hazard_Plot))}
+}
+}
+Surv_Plots(surv_db = surv_dat,
+plot_prefix = "QCATC777",
+xlim = c(0, 54),
+ylim = c(0, 1),
+xlab = "TTE",
+plot = "both",
+dailybin = FALSE,
+phi = 1.5, # often needed in single tank groups for accurate estimation
+plot_bytank = TRUE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE,
+phi = 1.5)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE,
+phi = 1.5)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE,
+phi = 1.5,
+plot_bytank = TRUE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE,
+plot_bytank = TRUE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE,
+phi = 2,
+plot_bytank = TRUE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE,
+phi = 1.5,
+plot_bytank = TRUE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE,
+phi = 3,
+plot_bytank = TRUE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE,
+phi = 1.5,
+plot_bytank = TRUE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE,
+phi = 2,
+plot_bytank = TRUE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE,
+lambda = 100,
+plot_bytank = TRUE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE,
+lambda = 200,
+plot_bytank = TRUE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE)
+library(safuncs)
+library(dplyr)
+library(ggplot2)
+setwd("C:/Users/sean4/Downloads")
+ref_surv_db = read.csv(file = "QCATC997 Mort.csv")
+ref_surv_db2 = ref_surv_db[ref_surv_db$Trt.ID == "E",]
+ref_surv_db2$TTE = ref_surv_db2$TTE - 3
+pred_mort_DB = read.csv(file = "ONDA01166 Mort.csv")
+pred_start_DB = read.csv(file = "ONDA01166 starting_fish_count.csv")
+pred_DB = Surv_Gen(mort_db = pred_mort_DB,
+starting_fish_count = pred_start_DB,
+last_tte = 31)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE)
+library(safuncs)
+library(dplyr)
+library(ggplot2)
+setwd("C:/Users/sean4/Downloads")
+ref_surv_db = read.csv(file = "QCATC997 Mort.csv")
+ref_surv_db2 = ref_surv_db[ref_surv_db$Trt.ID == "E",]
+ref_surv_db2$TTE = ref_surv_db2$TTE - 3
+pred_mort_DB = read.csv(file = "ONDA01166 Mort.csv")
+pred_start_DB = read.csv(file = "ONDA01166 starting_fish_count.csv")
+pred_DB = Surv_Gen(mort_db = pred_mort_DB,
+starting_fish_count = pred_start_DB,
+last_tte = 30)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = TRUE,
+phi = 1.5,
+plot_bytank = TRUE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = TRUE,
+phi = 1,
+plot_bytank = TRUE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = FALSE)
+Surv_Plots(surv_db = pred_DB,
+dailybin = TRUE,
+phi = 0.1,
+plot_bytank = TRUE)

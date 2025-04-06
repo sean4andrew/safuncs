@@ -1,0 +1,5 @@
+"0","# Plot[[1]] and [[2]] shows the results from fish_num_per_tank = 30 and 100,"
+"0","# respectively. Additionally, the simulated data output (...$surv_simul_db) can be"
+"0","# supplied to safuncs::Surv_Power() (under development) to calculate power for"
+"0","# various tests (e.g. log-rank global, pairwise with(out) correction) or tests based"
+"0","# on statistical models with various forms (e.g. with(out) tank-variation))."

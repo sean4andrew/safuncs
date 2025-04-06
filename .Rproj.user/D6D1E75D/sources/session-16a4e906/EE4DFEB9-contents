@@ -1,0 +1,45 @@
+Package: safuncs
+Type: Package
+Title: Functions for the Preparation and Analysis of Biological Data
+Version: 2.3.0
+Author: Sean Andrew
+Maintainer: Sean Andrew <sean4andrew@gmail.com>
+Description: Functions for simulations, power calculations, prediction, plotting and generation of biological data.
+License: file LICENSE
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/sean4andrew/safuncs, https://sean4andrew.github.io/safuncs/
+BugReports: https://github.com/sean4andrew/safuncs/issues
+Depends: 
+    R (>= 3.5)
+RoxygenNote: 7.3.2
+Imports: 
+    bshazard,
+    devtools,
+    coxme,
+    DescTools,
+    dplyr,
+    eoffice,
+    ggplot2,
+    ggprism,
+    magrittr,
+    ordinal,
+    plyr,
+    survival,
+    survminer,
+    scales,
+    grid,
+    pwr,
+    ggthemes,
+    factoextra,
+    missMDA,
+    RVAideMemoire,
+    officer,
+    tidyr,
+    stringr,
+    ggpubr,
+    flextable,
+    emmeans,
+    multcomp,
+    biotools
+Config/Needs/website: rmarkdown

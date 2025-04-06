@@ -3,7 +3,11 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   safuncs: safuncs.html
+<<<<<<< Updated upstream:pkgdown.yml
 last_built: 2025-04-06T19:24Z
+=======
+last_built: 2025-04-06T19:36Z
+>>>>>>> Stashed changes:docs/pkgdown.yml
 urls:
   reference: https://sean4andrew.github.io/safuncs/reference
   article: https://sean4andrew.github.io/safuncs/articles

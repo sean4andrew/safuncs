@@ -1,0 +1,4 @@
+"0","MF_DB = read.csv(file = ""Gene expression Mark Fast.csv"")[-76,] # remove data point #76 - suspected to be the reference/standard"
+"0","MF_DB$Date = factor(MF_DB$Date, levels = c(""05Jun"", ""12Jun"", ""14Aug"", ""20Aug"")) # reorder factor levels"
+"0",""
+"0","head(MF_DB)"

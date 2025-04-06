@@ -1,0 +1,33 @@
+url: https://sean4andrew.github.io/safuncs/
+template:
+  bootstrap: 5
+  bootswatch: litera
+reference:
+- title: "Survival Analysis"
+  desc: "Functions for generating, plotting, and simulating survival data"
+  contents:
+  - starts_with("Surv_")
+- title: "Count Data Analysis"
+  desc: "Functions for simulating count data and count power analysis"
+  contents:
+  - starts_with("Con_")
+- title: "Transform Data"
+  desc: "Functions to aid in data transformations"
+  contents:
+  - xlsx_row2coln
+  - xlsx_trimrow
+- title: "Misc."
+  desc: "Miscellaneous functions"
+  contents:
+  - theme_Publication
+  - GG_Colour_Hue
+  - Label_Gen
+  - MultiVar
+  - silencer
+  - knife
+- title: "Example Data"
+  contents:
+  - ends_with("_ex")
+  - onda_cols1
+  - onda_cols2
+news:
