@@ -13,5 +13,5 @@ silencer(x)
 Code output without the directed outputs, e.g. output from \code{cat()}.
 }
 \description{
-Hide output from R console by applying \code{sink(tempfile())} and subsequently \code{sink()}.
+Hide output from R console by redirecting output using \code{sink(tempfile())} and subsequently \code{sink()}.
 }

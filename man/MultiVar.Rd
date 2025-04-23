@@ -115,7 +115,7 @@ Returns a Word document containing at least the following types of results (in t
 }
 }
 \description{
-Expedite multivariate analysis and gain comprehensive insights to the data through PCA, LDA, and MANOVA. Outputs include tables of statistical results, PCA plots, and Boxplots of each dependent variable. Plots can be customized using \code{pca_} and \code{boxplots_} prefixed arguments. Supports one- or two-factor analyses. In two-factor analyses, additional plots may be created with facets and/or pooling of values across levels of a selected factor, chosen using the arguments \code{factors_pool} and \code{factors_facet}. By default, saves results in a Word document, but allows exports as .pptx, .png, and/or R objects for further edits. A tutorial on how to generate various outputs from \code{MultiVar()} is available under \bold{Examples}.
+Conducts PCA, LDA, and MANOVA. Outputs include tables of statistical results, PCA plots, and Boxplots of each dependent variable. Plots can be customized using \code{pca_} and \code{boxplots_} prefixed arguments. Supports one- or two-factor analyses. In two-factor analyses, additional plots may be created with facets and/or pooling of values across levels of a selected factor, chosen using the arguments \code{factors_pool} and \code{factors_facet}. By default, saves results in a Word document, but allows exports as .pptx, .png, and/or R objects for further edits. A tutorial on how to generate various outputs from \code{MultiVar()} is available under \bold{Examples}.
 }
 \details{
 Several functions published on CRAN are used by \code{MultiVar()} for various types of statistical analyses:

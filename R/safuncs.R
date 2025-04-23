@@ -1568,14 +1568,23 @@ Surv_Plots = function(surv_db,
       if(sum(surv_db_group$Status) == 0){
         Haz_list[[Haz_Group]] = data.frame(Hazard = 0,
                                            Time = rep(0, max(surv_db$TTE), 1))
+
       } else { #Create haz curves
         if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {iv <- "Tank.ID"} else {iv <- 1} #address one tank situations
-        Haz_bs = safuncs::silencer(bshazard::bshazard(nbin = dbin,
-                                                      data = surv_db_group,
-                                                      formula = as.formula(paste("survival::Surv(TTE, Status) ~", iv)),
-                                                      verbose = FALSE,
-                                                      lambda = lambda,
-                                                      phi = phi))
+
+        #The Haz_bs in case bshazard outputs an error
+        Haz_bs = data.frame(hazard = NA, time = NA)
+
+        Haz_bs = tryCatch({
+          safuncs::silencer(
+            bshazard::bshazard(nbin = dbin,
+                               data = surv_db_group,
+                               formula = as.formula(paste("survival::Surv(TTE, Status) ~", iv)),
+                               verbose = FALSE,
+                               lambda = lambda,
+                               phi = phi))
+          }, error = function(e) {message("NOTE: Hazard curve for some groups are not estimated.")})
+
         Haz_list[[Haz_Group]] = data.frame(Hazard = Haz_bs$hazard,
                                            Time = Haz_bs$time)
       }
@@ -1587,10 +1596,10 @@ Surv_Plots = function(surv_db,
 
     #Preserve levels from surv_db
     if(length(factors_vec) == 1){
-      haz_db[, factors_vec] = factor(haz_db[, factors_vec], levels = levels(factor(surv_db[, factors_vec])))
+      haz_db[[factors_vec]] = factor(haz_db[[factors_vec]], levels = levels(factor(surv_db[[factors_vec]])))
     } else {
-      haz_db[, factors_vec[1]] = factor(haz_db[, factors_vec[1]], levels = levels(factor(surv_db[, factors_vec[1]])))
-      haz_db[, factors_vec[2]] = factor(haz_db[, factors_vec[2]], levels = levels(factor(surv_db[, factors_vec[2]])))
+      haz_db[[factors_vec[1]]] = factor(haz_db[[factors_vec[1]]], levels = levels(factor(surv_db[[factors_vec[1]]])))
+      haz_db[[factors_vec[2]]] = factor(haz_db[[factors_vec[2]]], levels = levels(factor(surv_db[[factors_vec[2]]])))
     }
 
     #Create hazard plot
@@ -2247,7 +2256,7 @@ Surv_Power = function(simul_db = simul_db_ex,
 
 #' @title Analyze and Visualize Multivariate Data
 #'
-#' @description Expedite multivariate analysis and gain comprehensive insights to the data through PCA, LDA, and MANOVA. Outputs include tables of statistical results, PCA plots, and Boxplots of each dependent variable. Plots can be customized using \code{pca_} and \code{boxplots_} prefixed arguments. Supports one- or two-factor analyses. In two-factor analyses, additional plots may be created with facets and/or pooling of values across levels of a selected factor, chosen using the arguments \code{factors_pool} and \code{factors_facet}. By default, saves results in a Word document, but allows exports as .pptx, .png, and/or R objects for further edits. A tutorial on how to generate various outputs from \code{MultiVar()} is available under \bold{Examples}.
+#' @description Conducts PCA, LDA, and MANOVA. Outputs include tables of statistical results, PCA plots, and Boxplots of each dependent variable. Plots can be customized using \code{pca_} and \code{boxplots_} prefixed arguments. Supports one- or two-factor analyses. In two-factor analyses, additional plots may be created with facets and/or pooling of values across levels of a selected factor, chosen using the arguments \code{factors_pool} and \code{factors_facet}. By default, saves results in a Word document, but allows exports as .pptx, .png, and/or R objects for further edits. A tutorial on how to generate various outputs from \code{MultiVar()} is available under \bold{Examples}.
 #'
 #' @details Several functions published on CRAN are used by \code{MultiVar()} for various types of statistical analyses:
 #'
@@ -3537,11 +3546,11 @@ xlsx_trimrow = function(x, coli = 1) {
   return(x)
 }
 
-##################################################### Function 14 - silencer #################################################
+##################################################### Function 14 - silencer ###############################################
 
 #' @title Silence Code Output
 #'
-#' @description Hide output from R console by applying \code{sink(tempfile())} and subsequently \code{sink()}.
+#' @description Hide output from R console by redirecting output using \code{sink(tempfile())} and subsequently \code{sink()}.
 #'
 #' @param x Code which output is to be directed to the sink.
 #'
@@ -3549,10 +3558,10 @@ xlsx_trimrow = function(x, coli = 1) {
 #' @export
 silencer = function(x){
   sink(tempfile())
-  x2 = x
-  sink()
-
-  return(x2)
+  on.exit({
+    try(sink(), silent = TRUE)
+  }, add = TRUE)
+  force(x)
 }
 
 ##################################################### Function 15 - knife #################################################
