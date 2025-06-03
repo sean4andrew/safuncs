@@ -1381,7 +1381,7 @@ Surv_Gen = function(mort_db,
 #' @param plot Which plot to output. Use "surv" for the Kaplan-Meier Survival Curve, "haz" for the Hazard Curve, or "both" for both. Defaults to "both".
 #' @param colours Vector of color codes for the different treatment groups in the plot. Defaults to ggplot2 default palette.
 #' @param theme A string specifying the graphics theme for the plots. Theme "ggplot2", "prism", and "publication", currently available. Defaults to "ggplot2".
-#' @param trt_order Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.
+#' @param haz_points Whether to display dots or points for the hazard curve. Defaults to TRUE.
 #' @param data_out Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.
 #' @param plot_save Whether to save plots in the working directory.
 #' @param plot_prefix A string specifying the prefix for the filename of the saved plots. Defaults to "ONDA_XX".
@@ -1455,10 +1455,12 @@ Surv_Plots = function(surv_db,
                       plot = "both",
                       colours = NULL,
                       theme = "ggplot",
+                      haz_points = TRUE,
                       data_out = FALSE,
                       plot_save = TRUE,
                       plot_prefix = "ONDA_XX",
-                      plot_dim = c(6, 4)) {
+                      plot_dim = c(6, 4),
+                      legend_cols = NULL) {
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE) + max(1, round(max(surv_db$TTE) / 50)))}
   if(is.null(xbreaks)) {xbreaks <- max(1, round((xlim[2] - xlim[1]) / 10))}
@@ -1466,6 +1468,10 @@ Surv_Plots = function(surv_db,
   #Address factors
   factors_vec = factor
   facet_by = NULL
+  if(grepl("\\-", factor)) {
+    factors_vec = strsplit(x = factor, split = "\\-") %>% unlist() %>% gsub(pattern = " ", replacement = "")
+    facet_by = factors_vec[2]
+  }
   if(grepl("\\|", factor)) {
     factors_vec = strsplit(x = factor, split = "\\|") %>% unlist() %>% gsub(pattern = " ", replacement = "")
     facet_by = factors_vec[2]
@@ -1480,9 +1486,12 @@ Surv_Plots = function(surv_db,
     surv_obj = survminer::surv_fit(as.formula(paste(c("survival::Surv(TTE, Status) ~", factors_vec), collapse = " + ")),
                                    data = surv_db)
 
-    #Dealing with one Trt.ID scenario
-    if(length(levels(as.factor(surv_db$Trt.ID))) == 1) {
-      strn = unique(surv_db$Trt.ID)
+    #Dealing with one Trt.ID scenario or one factor level scenarios
+    if(length(levels(as.factor(surv_db[[factors_vec[1]]]))) == 1) {
+      strn = unique(surv_db[[factors_vec[1]]])
+      if(length(factors_vec) == 1) {facet_by <- NULL} else {
+        if(length(unique(surv_db[[factors_vec[2]]])) == 1) {facet_by <- NULL} #most recent addition
+      }
     } else {
 
       #Add strata names
@@ -1490,7 +1499,7 @@ Surv_Plots = function(surv_db,
       if(length(factors_vec) == 1){
         strn = sub(".*=", "", strn)
       }
-      if(grepl("\\|", factor)) {
+      if(grepl("\\|", factor) | grepl("\\-", factor)) {
         strn = unique(gsub(".*=(.*),.*=(.*)", "\\1", strn))
       }
       if(grepl("\\*", factor)) {
@@ -1514,9 +1523,10 @@ Surv_Plots = function(surv_db,
     if(is.null(colours)) {color_vec <- unique(layer_data(surv_plot)[,1])} else {color_vec <- colours}
     surv_plot$scales$scales = list()
     surv_plot = surv_plot +
-      guides(color = guide_legend(paste(setdiff(factors_vec, facet_by), collapse = " & "))) +
+      guides(color = guide_legend(paste(setdiff(factors_vec, facet_by), collapse = " & "), ncol = legend_cols)) +
       theme(legend.position = "right") +
-      scale_x_continuous(breaks = seq(0, xlim[2] * 2, xbreaks), name = xlab, limits = xlim, oob = scales::squish,
+      #coord_cartesian(clip = "off") +
+      scale_x_continuous(breaks = seq(0, xlim[2] * 2, xbreaks), name = xlab, limits = xlim, oob = scales::oob_keep,
                          expand = expansion()) +
       scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10, expand = expansion()) +
       scale_color_manual(labels = strn, values = color_vec)
@@ -1531,12 +1541,22 @@ Surv_Plots = function(surv_db,
       surv_dat$Group = gsub(".*=(.*),.*=(.*)", "\\1, \\2", surv_dat$Group)
       surv_dat = tidyr::separate(data = surv_dat, col = "Group", sep = ", ", into = factors_vec)
       surv_dat[, -which(colnames(surv_dat) == "Group")]
+      surv_dat[, 1:2] = lapply(surv_dat[, 1:2], function(col) sub("\\s+$", "", as.character(col)))
     }
 
     #Add theme
+    #Survival_Plot = surv_plot
+    if(theme == "prism") {surv_plot <- surv_plot + ggprism::theme_prism()}
+    if(theme == "publication") {surv_plot <- surv_plot + safuncs::theme_Publication()}
+
+    if(grepl("\\-", factor)) {
+      surv_plot = surv_plot + facet_null() + theme(legend.spacing.y = unit(1, "lines")) +
+        guides(color = guide_legend(order = 1, title = factors_vec[1], ncol = legend_cols),
+               linetype = guide_legend(order = 2 ,title = factors_vec[2], ncol = legend_cols))
+      surv_plot$mapping = modifyList(surv_plot$mapping, aes_string(linetype = facet_by))
+      surv_plot$layers[[1]] = geom_step(mapping = surv_plot$layers[[1]]$mapping)
+    }
     Survival_Plot = surv_plot
-    if(theme == "prism") {Survival_Plot <- Survival_Plot + ggprism::theme_prism()}
-    if(theme == "publication") {Survival_Plot <- Survival_Plot + safuncs::theme_Publication()}
 
     #Save Plots
     if(plot_save == TRUE){
@@ -1570,7 +1590,8 @@ Surv_Plots = function(surv_db,
                                            Time = rep(0, max(surv_db$TTE), 1))
 
       } else { #Create haz curves
-        if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {iv <- "Tank.ID"} else {iv <- 1} #address one tank situations
+        if(length(levels(as.factor(surv_db_group$Tank.ID))) > 1) {iv <- "Tank.ID"} else {iv <- 1} #address one tank cases
+        if(length(levels(as.factor(surv_db_group$Tank.ID))) == nrow(surv_db_group)) {iv <- 1} #address one tank per ind cases
 
         #The Haz_bs in case bshazard outputs an error
         Haz_bs = data.frame(hazard = NA, time = NA)
@@ -1583,7 +1604,7 @@ Surv_Plots = function(surv_db,
                                verbose = FALSE,
                                lambda = lambda,
                                phi = phi))
-          }, error = function(e) {message("NOTE: Hazard curve for some groups are not estimated.")})
+        }, error = function(e) {message("NOTE: Hazard curve for some groups are not estimated.")})
 
         Haz_list[[Haz_Group]] = data.frame(Hazard = Haz_bs$hazard,
                                            Time = Haz_bs$time)
@@ -1607,16 +1628,24 @@ Surv_Plots = function(surv_db,
     Hazard_Plot = ggplot(data = haz_db,
                          aes(x = Time, y = Hazard, color = .data[[paste(factors_leg, collapse = ", ")]])) +
       geom_line(linewidth = 1) +
-      geom_point() +
       scale_x_continuous(breaks = seq(0, xlim[2] + 100, xbreaks),
                          limits = xlim, name = xlab, expand = expansion()) +
       scale_y_continuous(n.breaks = 6, name = "Hazard", expand = expansion(0.01)) +
-      coord_cartesian(clip = "off")
+      coord_cartesian(clip = "off") +
+      guides(color = guide_legend(title = factors_vec[1], ncol = legend_cols))
 
+    if(haz_points == TRUE) {Hazard_Plot <- Hazard_Plot + geom_point()}
     if(!is.null(facet_by)) {Hazard_Plot <- Hazard_Plot + facet_wrap(as.formula(paste("~", facet_by)))}
     if(!is.null(colours)) {Hazard_Plot <- Hazard_Plot + scale_color_manual(values = colours)}
     if(theme == "prism") {Hazard_Plot <- Hazard_Plot + ggprism::theme_prism()}
     if(theme == "publication") {Hazard_Plot <- Hazard_Plot + safuncs::theme_Publication()}
+
+    if(grepl("\\-", factor)) {
+      Hazard_Plot = Hazard_Plot + facet_null() + theme(legend.spacing.y = unit(1, "lines")) +
+        guides(color = guide_legend(order = 1, title = factors_vec[1], ncol = legend_cols),
+               linetype = guide_legend(order = 2 ,title = factors_vec[2], ncol = legend_cols))
+      Hazard_Plot$mapping = modifyList(Hazard_Plot$mapping, aes_string(linetype = facet_by))
+    }
 
     #Save plots
     if(plot_save == TRUE) {

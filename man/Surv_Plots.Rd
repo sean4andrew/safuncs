@@ -17,10 +17,12 @@ Surv_Plots(
   plot = "both",
   colours = NULL,
   theme = "ggplot",
+  haz_points = TRUE,
   data_out = FALSE,
   plot_save = TRUE,
   plot_prefix = "ONDA_XX",
-  plot_dim = c(6, 4)
+  plot_dim = c(6, 4),
+  legend_cols = NULL
 )
 }
 \arguments{
@@ -48,6 +50,8 @@ Surv_Plots(
 
 \item{theme}{A string specifying the graphics theme for the plots. Theme "ggplot2", "prism", and "publication", currently available. Defaults to "ggplot2".}
 
+\item{haz_points}{Whether to display dots or points for the hazard curve. Defaults to TRUE.}
+
 \item{data_out}{Whether to print out the survival and/or hazard databases illustrated by the plots. Defaults to FALSE.}
 
 \item{plot_save}{Whether to save plots in the working directory.}
@@ -55,8 +59,6 @@ Surv_Plots(
 \item{plot_prefix}{A string specifying the prefix for the filename of the saved plots. Defaults to "ONDA_XX".}
 
 \item{plot_dim}{Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.}
-
-\item{trt_order}{Vector representing the order of treatment groups in the plots. Defaults to NULL where alphabetical order is used.}
 }
 \value{
 Returns a list containing the Kaplan-Meier Survival Curve and the Hazard Curve if {\code{plot = "both"}}. If only one plot is to be calculated and shown, set either \code{plot = "haz"} or \code{plot = "surv"}.
