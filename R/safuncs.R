@@ -1521,9 +1521,10 @@ Surv_Plots = function(surv_db,
     if("plot" %in% names(surv_plot)){surv_plot <- surv_plot$plot}
 
     if(is.null(colours)) {color_vec <- unique(layer_data(surv_plot)[,1])} else {color_vec <- colours}
+    legend_sep = if(sum(nchar(setdiff(factors_vec, facet_by))) > 15) " &\n" else " & "
     surv_plot$scales$scales = list()
     surv_plot = surv_plot +
-      guides(color = guide_legend(paste(setdiff(factors_vec, facet_by), collapse = ",\n"), ncol = legend_cols)) +
+      guides(color = guide_legend(paste(setdiff(factors_vec, facet_by), collapse = legend_sep), ncol = legend_cols)) +
       theme(legend.position = "right") +
       #coord_cartesian(clip = "off") +
       scale_x_continuous(breaks = seq(0, xlim[2] * 2, xbreaks), name = xlab, limits = xlim, oob = scales::oob_keep,
