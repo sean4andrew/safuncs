@@ -1460,7 +1460,8 @@ Surv_Plots = function(surv_db,
                       plot_save = TRUE,
                       plot_prefix = "ONDA_XX",
                       plot_dim = c(6, 4),
-                      legend_cols = NULL) {
+                      legend_cols = NULL,
+                      linesize = 1) {
 
   if(is.null(xlim)) {xlim <- c(0, max(surv_db$TTE) + max(1, round(max(surv_db$TTE) / 50)))}
   if(is.null(xbreaks)) {xbreaks <- max(1, round((xlim[2] - xlim[1]) / 10))}
@@ -1517,7 +1518,8 @@ Surv_Plots = function(surv_db,
                                       ylim = ylim,
                                       facet.by = facet_by,
                                       short.panel.labs = TRUE,
-                                      short.legend.labs = TRUE)
+                                      short.legend.labs = TRUE,
+                                      size = linesize)
     if("plot" %in% names(surv_plot)){surv_plot <- surv_plot$plot}
 
     if(is.null(colours)) {color_vec <- unique(layer_data(surv_plot)[,1])} else {color_vec <- colours}
@@ -1628,7 +1630,7 @@ Surv_Plots = function(surv_db,
     factors_leg = setdiff(factors_vec, facet_by)
     Hazard_Plot = ggplot(data = haz_db,
                          aes(x = Time, y = Hazard, color = .data[[paste(factors_leg, collapse = ", ")]])) +
-      geom_line(linewidth = 1) +
+      geom_line(linewidth = linesize) +
       scale_x_continuous(breaks = seq(0, xlim[2] + 100, xbreaks),
                          limits = xlim, name = xlab, expand = expansion()) +
       scale_y_continuous(n.breaks = 6, name = "Hazard", expand = expansion(0.01)) +

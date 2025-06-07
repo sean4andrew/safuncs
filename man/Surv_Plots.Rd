@@ -22,7 +22,8 @@ Surv_Plots(
   plot_save = TRUE,
   plot_prefix = "ONDA_XX",
   plot_dim = c(6, 4),
-  legend_cols = NULL
+  legend_cols = NULL,
+  linesize = 1
 )
 }
 \arguments{
