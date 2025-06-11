@@ -1570,10 +1570,6 @@ Surv_Plots = function(surv_db,
     }
   }
 
-  #Dealing with hazard curve creation
-  if(dailybin == TRUE) {dbin <- max(surv_db$TTE)}
-  if(dailybin == FALSE) {dbin <- NULL}
-
   #create Haz_list
   if(plot == "haz" | plot == "both") {
     Haz_list = list()
@@ -1586,6 +1582,10 @@ Surv_Plots = function(surv_db,
 
       #Filter data for a group
       surv_db_group = droplevels(surv_db[surv_db$group == Haz_Group,])
+
+      #Dealing with hazard curve creation
+      if(dailybin == TRUE) {dbin <- max(surv_db_group$TTE)}
+      if(dailybin == FALSE) {dbin <- NULL}
 
       #Address no mort situations
       if(sum(surv_db_group$Status) == 0){
