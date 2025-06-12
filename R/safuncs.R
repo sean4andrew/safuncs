@@ -1468,7 +1468,6 @@ Surv_Plots = function(surv_db,
 
   #Address factors
   factors_vec = factor
-  facet_by = NULL
   if(grepl("\\-", factor)) {
     factors_vec = strsplit(x = factor, split = "\\-") %>% unlist() %>% gsub(pattern = " ", replacement = "")
     facet_by = factors_vec[2]
@@ -1479,7 +1478,9 @@ Surv_Plots = function(surv_db,
   }
   if(grepl("\\*", factor)) {
     factors_vec = strsplit(x = factor, split = "\\*") %>% unlist() %>% gsub(pattern = " ", replacement = "")
+    facet_by = NULL
   }
+  if(length(factors_vec) == 1) {facet_by <- NULL}
 
   if(plot == "surv" | plot == "both") {
 
