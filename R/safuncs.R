@@ -852,7 +852,7 @@ theme_Publication = function(base_size = 14) {
 #'
 #' @description Predict future survival for an ongoing study (supplied into \code{surv_db}) based on a reference past study (\code{ref_surv_db}). Can consider multiple past studies using the \code{ref_specs} argument. Outputs predicted Kaplan-Meier Survival curves for each treatment group and similarly hazard curves.
 #'
-#' @details Prediction done by firstly estimating a \emph{hazard curve} for the reference group using \code{bshazard::bshazard()}. The ratio of hazards from the past study to the ongoing is estimated using \code{coxme::coxme()}. The reference hazard curve is multiplied by the hazard ratio to obtain the projected hazard curve for the ongoing study. Next, exponentiate -hazard which results in predicted survival.
+#' @details Prediction done by firstly estimating a \emph{hazard curve} for the reference group using \code{bshazard::bshazard()}. The ratio of hazards from the past study to the ongoing is estimated using \code{coxme::coxme()}. The reference hazard curve is multiplied by the hazard ratio to obtain the projected hazard curve for the ongoing study. The survival curve is then obtained by exponentiating the negative of the hazard rate.
 #'
 #' @param surv_db A survival dataframe for the ongoing study consisting of at least four columns named TTE, Status, Trt.ID and Tank.ID. For an example, see \code{surv_db_ex}.
 #' @param ref_surv_db A survival dataframe for the reference group consisting of at least the four column names mentioned in \code{surv_db} documentation. For example, a dataframe loaded form the Survival Data Library.xlsx.
@@ -865,7 +865,15 @@ theme_Publication = function(base_size = 14) {
 #' @param plot_prefix A string specifying the prefix of the filename of the saved plots.  Defaults to "ONDA_XX".
 #' @param plot_dim Numeric vector representing the width and height of the plot (in inches), respectively.
 #'
-#' @return Ouptuts a list containing two ggplot2 objects representing the predicted survival curves and predicted hazard curves. Additionally, the list consists of a dataframe containing the predicted rates over time and another dataframe containing the predicted rates at the specified \code{pred_tte} (or close to it due to limitations in available data from \code{surv_db_ref}).
+#' @return Outputs a list containing two ggplot2 objects representing the predicted survival curves and predicted hazard curves. Additionally, the list contains a dataframe with the predicted rates over time and another dataframe containing the predicted rates at the specified \code{pred_tte} (or close to it due to limitations in available data from \code{surv_db_ref}). The dataframes have at most 7 columns with the following content description for each: \tabular{lll}{
+#'  \code{ref_unique} \tab \tab The unique reference group used, based on \code{ref_surv_db} and \code{ref_specs}. \cr
+#'  \code{Trt.ID} \tab \tab The treatment group in the ongoing study (\code{surv_db}) with rates to be predicted. \cr
+#'  \code{time} \tab \tab The time to event associated with the hazard rate column (hazard). Round value up (i.e. \code{ceiling()}) to obtain time associated with the survival rate (sr). \cr
+#'  \code{hazard} \tab \tab Hazard rate. \cr
+#'  \code{hr} \tab \tab Hazard ratio (numerator = Trt.ID, denominator = ref_unique). \cr
+#'  \code{cumhaz} \tab \tab Cumulative hazard. \cr
+#'  \code{sr} \tab \tab Survival rate. \cr
+#' }
 #'
 #' @import dplyr
 #' @import ggplot2
