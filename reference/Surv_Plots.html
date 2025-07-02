@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">safuncs</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,7 +71,7 @@
 
 
 <dt id="arg-factor">factor<a class="anchor" aria-label="anchor" href="#arg-factor"></a></dt>
-<dd><p>A string representing the formula of factors (column names) which represent the structure of the plot. Accepts single to two factors with interactions, e.g. "Trt.ID * Tank.ID" creates curves for every treatment and tank combination while "Tank.ID | Trt.ID" creates curves for every tank faceted by treatment.</p></dd>
+<dd><p>A string representing the formula of factors (column names) which represent the structure of the plot. Accepts single to two factors with interactions; "Tank.ID * Trt.ID" creates curves for every tank and treatment combination, "Trt.ID - Tank.ID" does the same but distinguishes the curves by color across treatments and by linetype across tanks, while "Tank.ID | Trt.ID" creates curves for every tank faceted by treatment.</p></dd>
 
 
 <dt id="arg-xlim">xlim<a class="anchor" aria-label="anchor" href="#arg-xlim"></a></dt>
@@ -132,6 +132,14 @@
 
 <dt id="arg-plot-dim">plot_dim<a class="anchor" aria-label="anchor" href="#arg-plot-dim"></a></dt>
 <dd><p>Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.</p></dd>
+
+
+<dt id="arg-legend-cols">legend_cols<a class="anchor" aria-label="anchor" href="#arg-legend-cols"></a></dt>
+<dd><p>Numeric specifying the number of columns to split the legend entries to. Defaults to 1.</p></dd>
+
+
+<dt id="arg-linesize">linesize<a class="anchor" aria-label="anchor" href="#arg-linesize"></a></dt>
+<dd><p>Numeric specifying the line width (thickness) for the plots. Defaults to 1.</p></dd>
 
 </dl></div>
     <div class="section level2">
