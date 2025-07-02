@@ -1,6 +1,16 @@
-# safuncs 2.3.0
+# safuncs 2.4.0
 
 *Current*
+
+* Revamped function `Surv_Pred()`.
+* Added various arguments to `Surv_Plots()`.
+* Added function `fpr_checker()`.
+* Added various color vectors.
+* Added various example datasets.
+
+# safuncs 2.3.0
+
+*18Feb2025* - *01Jul2025*
 
 * Revamped function `Surv_Pred()`.
 * Completed `Surv_Pred()` documentation.
@@ -15,7 +25,7 @@
 * Added function `MultiVar()` used to generate a report from multivariate analyses.
 * Completed `Surv_Power()` documentation.
 * Improved simulation speed for `Surv_Simul()`.
-* Added `multivar_db_ex` as an example multivariate dataset
+* Added `multivar_db_ex` as an example multivariate dataset.
 * Added `surv_sim_db_ex` as an example simulated survival object from `Surv_Simul()`.
 
 # safuncs 2.1.0

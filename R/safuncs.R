@@ -3723,3 +3723,41 @@ fpr_check = function(formula,
 #' }
 #'
 "sc_db_ex"
+
+###################################################### Data 10 - nasif_cols ###########################################################
+
+#' Nasif's Color Vector
+#'
+#' @description A vector containing the hex codes: c("#009B00", "#0000FF", "#FFA900", "#9B009B", "#40E0D0", "#FF0000", "#FFD700").
+#'
+#' @usage
+#' data(nasif_cols)
+#' print(nasif_cols)
+#'
+"nasif_cols"
+
+###################################################### Data 11 - bar_cols ######################################################
+
+#' Barplot Color Vector
+#'
+#' @description A six-color vector for barplots, containing the hex codes: c("black", "#41afaa", "#466eb4", "#00a0e1", "#e6a532", "#d7642c").
+#'
+#' @usage
+#' data(bar_cols)
+#' print(bar_cols)
+#'
+"bar_cols"
+
+##################################################### Data 12 - path_db_ex #######################################################
+
+#' Example Pathology Data
+#'
+#' @description A dataframe containing Trt.ID, Tank.ID, and various (13) pathological signs containing binary data (Y/N). Contains "dirty" entries (e.g. N/AP, ME).
+#'
+#' @usage
+#' data(path_db_ex)
+#' View(path_db_ex)
+#'
+#' @format A data frame containing 591 rows and 12 columns.
+#'
+"path_db_ex"

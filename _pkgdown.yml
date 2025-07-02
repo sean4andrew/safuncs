@@ -25,9 +25,12 @@ reference:
   - MultiVar
   - silencer
   - knife
+  - fpr_checker
 - title: "Example Data"
   contents:
   - ends_with("_ex")
   - onda_cols1
   - onda_cols2
+  - nasif_cols
+  - bar_cols
 news:
