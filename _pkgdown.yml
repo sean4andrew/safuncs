@@ -25,7 +25,7 @@ reference:
   - MultiVar
   - silencer
   - knife
-  - fpr_checker
+  - fpr_check
 - title: "Example Data"
   contents:
   - ends_with("_ex")
