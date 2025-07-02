@@ -103,7 +103,7 @@
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Prediction done by firstly estimating a <em>hazard curve</em> for the reference group using <code><a href="https://rdrr.io/pkg/bshazard/man/bshazard.html" class="external-link">bshazard::bshazard()</a></code>. The ratio of hazards from the past study to the ongoing is estimated using <code><a href="https://rdrr.io/pkg/coxme/man/coxme.html" class="external-link">coxme::coxme()</a></code>. The reference hazard curve is multiplied by the hazard ratio to obtain the projected hazard curve for the ongoing study. Next, exp(-hazard) which produces the predicted survival curve.</p>
+    <p>Prediction done by firstly estimating a <em>hazard curve</em> for the reference group using <code><a href="https://rdrr.io/pkg/bshazard/man/bshazard.html" class="external-link">bshazard::bshazard()</a></code>. The ratio of hazards from the past study to the ongoing is estimated using <code><a href="https://rdrr.io/pkg/coxme/man/coxme.html" class="external-link">coxme::coxme()</a></code>. The reference hazard curve is multiplied by the hazard ratio to obtain the projected hazard curve for the ongoing study. Next, exponentiate -hazard which results in predicted survival.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -122,20 +122,114 @@
 <span class="r-in"><span><span class="co"># Next, we load the ongoing study. Suppose it is mid-way to completion, hence the</span></span></span>
 <span class="r-in"><span><span class="co"># survival data only extends to 35 TTE / DPC and we want to predict to 54. Lets</span></span></span>
 <span class="r-in"><span><span class="co"># create the 35 TTE dataset for this demo:</span></span></span>
-<span class="r-in"><span><span class="va">surv_db</span> <span class="op">=</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">surv_db</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>,<span class="op">]</span>, cut <span class="op">=</span> <span class="fl">35</span>, end <span class="op">=</span> <span class="st">"TTE"</span>,</span></span>
+<span class="r-in"><span><span class="va">surv_db</span> <span class="op">=</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/survSplit.html" class="external-link">survSplit</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">surv_db_ex</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>,<span class="op">]</span>, cut <span class="op">=</span> <span class="fl">35</span>, end <span class="op">=</span> <span class="st">"TTE"</span>,</span></span>
 <span class="r-in"><span>                              event <span class="op">=</span> <span class="st">"Status"</span>, episode <span class="op">=</span> <span class="st">"Eps"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'surv_db' not found</span>
 <span class="r-in"><span><span class="va">surv_db</span> <span class="op">=</span> <span class="va">surv_db</span><span class="op">[</span><span class="va">surv_db</span><span class="op">$</span><span class="va">Eps</span> <span class="op">==</span> <span class="fl">1</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">6</span><span class="op">)</span><span class="op">]</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'surv_db' not found</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">surv_db</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'surv_db' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      Tank.ID Trt.ID TTE Status</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2144      C8      D  35      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2146      C8      D  35      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2148      C8      D  35      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2150      C8      D  35      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2152      C8      D  35      0</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Now chuck all the created objects into Surv_Pred()!</span></span></span>
 <span class="r-in"><span><span class="fu">Surv_Pred</span><span class="op">(</span>surv_db <span class="op">=</span> <span class="va">surv_db</span>,</span></span>
 <span class="r-in"><span>          ref_surv_db <span class="op">=</span> <span class="va">ref_surv_db</span>,</span></span>
 <span class="r-in"><span>          ref_specs <span class="op">=</span> <span class="va">ref_specs</span>,</span></span>
 <span class="r-in"><span>          pred_tte <span class="op">=</span> <span class="fl">54</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'surv_db' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $Survival_Plot</span>
+<span class="r-plt img"><img src="Surv_Pred-1.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $Hazard_Plot</span>
+<span class="r-plt img"><img src="Surv_Pred-2.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $Predictions</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      ref_unique Trt.ID time      hazard       hr    cumhaz        sr</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   QCATC1068 A      A 35.5 0.027780370 1.000000 0.1942286 0.8234697</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   QCATC1068 A      A 36.5 0.026018378 1.000000 0.2202470 0.8023206</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   QCATC1068 A      A 37.5 0.023520442 1.000000 0.2437674 0.7836699</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   QCATC1068 A      A 38.5 0.020824897 1.000000 0.2645923 0.7675188</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5   QCATC1068 A      A 39.5 0.018433505 1.000000 0.2830258 0.7535003</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6   QCATC1068 A      A 40.5 0.016535738 1.000000 0.2995615 0.7411431</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7   QCATC1068 A      A 41.5 0.015208028 1.000000 0.3147696 0.7299571</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8   QCATC1068 A      A 42.5 0.014602773 1.000000 0.3293723 0.7193751</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9   QCATC1068 A      A 43.5 0.014360852 1.000000 0.3437332 0.7091181</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10  QCATC1068 A      A 44.5 0.014349833 1.000000 0.3580830 0.6990150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11  QCATC1068 A      A 45.5 0.013958291 1.000000 0.3720413 0.6893258</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12  QCATC1068 A      A 46.5 0.013434192 1.000000 0.3854755 0.6801272</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13  QCATC1068 A      A 47.5 0.012017408 1.000000 0.3974929 0.6720027</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14  QCATC1068 A      A 48.5 0.010463592 1.000000 0.4079565 0.6650078</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15  QCATC1068 A      A 49.5 0.008554239 1.000000 0.4165107 0.6593434</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16  QCATC1068 A      A 50.5 0.006853212 1.000000 0.4233640 0.6548403</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17  QCATC1068 A      A 51.5 0.005394079 1.000000 0.4287580 0.6513175</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18  QCATC1068 A      A 52.5 0.004244989 1.000000 0.4330030 0.6485585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19  QCATC1068 A      A 53.5 0.003340537 1.000000 0.4363436 0.6463956</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20  QCATC1068 A      B 35.5 0.057916348 2.084794 0.3830815 0.6817573</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21  QCATC1068 A      B 36.5 0.054242959 2.084794 0.4373245 0.6457619</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22  QCATC1068 A      B 37.5 0.049035277 2.084794 0.4863597 0.6148606</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23  QCATC1068 A      B 38.5 0.043415620 2.084794 0.5297754 0.5887372</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24  QCATC1068 A      B 39.5 0.038430061 2.084794 0.5682054 0.5665412</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 25  QCATC1068 A      B 40.5 0.034473608 2.084794 0.6026790 0.5473433</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 26  QCATC1068 A      B 41.5 0.031705606 2.084794 0.6343846 0.5302617</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 27  QCATC1068 A      B 42.5 0.030443774 2.084794 0.6648284 0.5143618</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 28  QCATC1068 A      B 43.5 0.029939418 2.084794 0.6947678 0.4991903</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 29  QCATC1068 A      B 44.5 0.029916446 2.084794 0.7246843 0.4844775</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 30  QCATC1068 A      B 45.5 0.029100162 2.084794 0.7537844 0.4705823</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 31  QCATC1068 A      B 46.5 0.028007523 2.084794 0.7817920 0.4575853</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 32  QCATC1068 A      B 47.5 0.025053821 2.084794 0.8068458 0.4462635</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 33  QCATC1068 A      B 48.5 0.021814434 2.084794 0.8286602 0.4366339</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 34  QCATC1068 A      B 49.5 0.017833826 2.084794 0.8464940 0.4289161</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 35  QCATC1068 A      B 50.5 0.014287534 2.084794 0.8607816 0.4228315</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 36  QCATC1068 A      B 51.5 0.011245543 2.084794 0.8720271 0.4181031</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 37  QCATC1068 A      B 52.5 0.008849927 2.084794 0.8808771 0.4144193</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 38  QCATC1068 A      B 53.5 0.006964332 2.084794 0.8878414 0.4115432</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 39  QCATC1068 A      C 35.5 0.035733631 1.286291 0.2423479 0.7847831</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 40  QCATC1068 A      C 36.5 0.033467197 1.286291 0.2758151 0.7589533</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 41  QCATC1068 A      C 37.5 0.030254126 1.286291 0.3060692 0.7363357</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 42  QCATC1068 A      C 38.5 0.026786871 1.286291 0.3328561 0.7168734</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 43  QCATC1068 A      C 39.5 0.023710846 1.286291 0.3565669 0.7000756</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 44  QCATC1068 A      C 40.5 0.021269766 1.286291 0.3778367 0.6853424</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 45  QCATC1068 A      C 41.5 0.019561945 1.286291 0.3973986 0.6720661</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 46  QCATC1068 A      C 42.5 0.018783411 1.286291 0.4161820 0.6595602</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 47  QCATC1068 A      C 43.5 0.018472230 1.286291 0.4346543 0.6474885</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 48  QCATC1068 A      C 44.5 0.018458057 1.286291 0.4531123 0.6356467</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 49  QCATC1068 A      C 45.5 0.017954420 1.286291 0.4710667 0.6243359</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 50  QCATC1068 A      C 46.5 0.017280276 1.286291 0.4883470 0.6136399</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 51  QCATC1068 A      C 47.5 0.015457880 1.286291 0.5038049 0.6042273</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 52  QCATC1068 A      C 48.5 0.013459221 1.286291 0.5172641 0.5961493</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 53  QCATC1068 A      C 49.5 0.011003238 1.286291 0.5282674 0.5896257</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 54  QCATC1068 A      C 50.5 0.008815222 1.286291 0.5370826 0.5844509</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 55  QCATC1068 A      C 51.5 0.006938353 1.286291 0.5440209 0.5804098</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 56  QCATC1068 A      C 52.5 0.005460289 1.286291 0.5494812 0.5772492</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 57  QCATC1068 A      C 53.5 0.004296902 1.286291 0.5537781 0.5747741</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 58  QCATC1068 A      D 35.5 0.038673567 1.392119 0.2618171 0.7696518</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 59  QCATC1068 A      D 36.5 0.036220666 1.392119 0.2980378 0.7422733</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 60  QCATC1068 A      D 37.5 0.032743243 1.392119 0.3307810 0.7183625</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 61  QCATC1068 A      D 38.5 0.028990725 1.392119 0.3597718 0.6978356</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 62  QCATC1068 A      D 39.5 0.025661624 1.392119 0.3854334 0.6801558</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 63  QCATC1068 A      D 40.5 0.023019707 1.392119 0.4084531 0.6646777</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 64  QCATC1068 A      D 41.5 0.021171377 1.392119 0.4296245 0.6507534</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 65  QCATC1068 A      D 42.5 0.020328791 1.392119 0.4499533 0.6376580</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 66  QCATC1068 A      D 43.5 0.019992008 1.392119 0.4699453 0.6250365</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 67  QCATC1068 A      D 44.5 0.019976669 1.392119 0.4899219 0.6126742</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 68  QCATC1068 A      D 45.5 0.019431596 1.392119 0.5093535 0.6008839</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 69  QCATC1068 A      D 46.5 0.018701988 1.392119 0.5280555 0.5897506</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 70  QCATC1068 A      D 47.5 0.016729657 1.392119 0.5447852 0.5799664</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 71  QCATC1068 A      D 48.5 0.014566560 1.392119 0.5593517 0.5715795</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 72  QCATC1068 A      D 49.5 0.011908514 1.392119 0.5712602 0.5648132</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 73  QCATC1068 A      D 50.5 0.009540483 1.392119 0.5808007 0.5594502</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 74  QCATC1068 A      D 51.5 0.007509197 1.392119 0.5883099 0.5552649</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 75  QCATC1068 A      D 52.5 0.005909527 1.392119 0.5942194 0.5519933</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 76  QCATC1068 A      D 53.5 0.004650424 1.392119 0.5988699 0.5494322</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $End_Predictions</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       ref_unique Trt.ID time       hr    cumhaz        sr</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19   QCATC1068 A      A 53.5 1.000000 0.4363436 0.6463956</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 191  QCATC1068 A      B 53.5 2.084794 0.8878414 0.4115432</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 192  QCATC1068 A      C 53.5 1.286291 0.5537781 0.5747741</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 193  QCATC1068 A      D 53.5 1.392119 0.5988699 0.5494322</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
