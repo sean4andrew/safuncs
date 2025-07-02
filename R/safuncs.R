@@ -3758,6 +3758,10 @@ fpr_check = function(formula,
 #' data(path_db_ex)
 #' View(path_db_ex)
 #'
-#' @format A data frame containing 591 rows and 12 columns.
+#' @format A data frame containing 591 rows and 12 columns: \tabular{lll}{
+#'  \code{Trt.ID} \tab \tab Unique label representing the treatment group associated with a row of data \cr
+#'  \code{Tank.ID} \tab \tab Unique label representing each different tank \cr
+#'  \code{misc...} \tab \tab Various pathological signs (columns 3-12) \cr
+#' }
 #'
 "path_db_ex"
