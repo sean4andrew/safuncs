@@ -45,7 +45,7 @@ Ouptuts a list containing two ggplot2 objects representing the predicted surviva
 Predict future survival for an ongoing study (supplied into \code{surv_db}) based on a reference past study (\code{ref_surv_db}). Can consider multiple past studies using the \code{ref_specs} argument. Outputs predicted Kaplan-Meier Survival curves for each treatment group and similarly hazard curves.
 }
 \details{
-Prediction done by firstly estimating a \emph{hazard curve} for the reference group using \code{bshazard::bshazard()}. The ratio of hazards from the past study to the ongoing is estimated using \code{coxme::coxme()}. The reference hazard curve is multiplied by the hazard ratio to obtain the projected hazard curve for the ongoing study. Next, exp(-hazard) which produces the predicted survival curve.
+Prediction done by firstly estimating a \emph{hazard curve} for the reference group using \code{bshazard::bshazard()}. The ratio of hazards from the past study to the ongoing is estimated using \code{coxme::coxme()}. The reference hazard curve is multiplied by the hazard ratio to obtain the projected hazard curve for the ongoing study. Next, exponentiate -hazard which results in predicted survival.
 }
 \examples{
 # In the first step, we load the reference database then specify the study and
@@ -58,7 +58,7 @@ ref_specs = data.frame(Study = "QCATC1068",
 # Next, we load the ongoing study. Suppose it is mid-way to completion, hence the
 # survival data only extends to 35 TTE / DPC and we want to predict to 54. Lets
 # create the 35 TTE dataset for this demo:
-surv_db = survival::survSplit(data = surv_db[-1,], cut = 35, end = "TTE",
+surv_db = survival::survSplit(data = surv_db_ex[-1,], cut = 35, end = "TTE",
                               event = "Status", episode = "Eps")
 surv_db = surv_db[surv_db$Eps == 1, -c(3, 6)]
 tail(surv_db, n = 5)
