@@ -29,7 +29,7 @@ Surv_Plots(
 \arguments{
 \item{surv_db}{A survival dataframe as described in \bold{Details}.}
 
-\item{factor}{A string representing the formula of factors (column names) which represent the structure of the plot. Accepts single to two factors with interactions, e.g. "Trt.ID * Tank.ID" creates curves for every treatment and tank combination while "Tank.ID | Trt.ID" creates curves for every tank faceted by treatment.}
+\item{factor}{A string representing the formula of factors (column names) which represent the structure of the plot. Accepts single to two factors with interactions; "Tank.ID * Trt.ID" creates curves for every tank and treatment combination, "Trt.ID - Tank.ID" does the same but distinguishes the curves by color across treatments and by linetype across tanks, while "Tank.ID | Trt.ID" creates curves for every tank faceted by treatment.}
 
 \item{xlim}{A vector specifying the plots x-axis lower and upper limits, respectively.}
 
@@ -60,6 +60,10 @@ Surv_Plots(
 \item{plot_prefix}{A string specifying the prefix for the filename of the saved plots. Defaults to "ONDA_XX".}
 
 \item{plot_dim}{Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.}
+
+\item{legend_cols}{Numeric specifying the number of columns to split the legend entries to. Defaults to 1.}
+
+\item{linesize}{Numeric specifying the line width (thickness) for the plots. Defaults to 1.}
 }
 \value{
 Returns a list containing the Kaplan-Meier Survival Curve and the Hazard Curve if {\code{plot = "both"}}. If only one plot is to be calculated and shown, set either \code{plot = "haz"} or \code{plot = "surv"}.

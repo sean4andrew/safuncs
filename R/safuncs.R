@@ -850,37 +850,22 @@ theme_Publication = function(base_size = 14) {
 
 #' @title Predict Future Survival
 #'
-#' @description Predict future survival based on comparisons of hazard ratios to reference data. Produces tables summarizing predicted survival rate and hazard ratios for each treatment. Additionally, produces Kaplan-Meier Survival Plots and Hazard Time Curves comparing survival data (\code{surv_db}) to its reference (\code{surv_db_ref}). Further details of outputs described in \bold{Value} and methods in \bold{Details}.
+#' @description Predict future survival for an ongoing study (supplied into \code{surv_db}) based on a reference past study (\code{ref_surv_db}). Can consider multiple past studies using the \code{ref_specs} argument. Outputs predicted Kaplan-Meier Survival curves for each treatment group and similarly hazard curves.
 #'
-#' @details Two prediction methods are possible: "simple" and "adaptive" which can be selected using \code{pred_method}.
+#' @details Prediction done by firstly estimating a \emph{hazard curve} for the reference group using \code{bshazard::bshazard()}. The ratio of hazards from the past study to the ongoing is estimated using \code{coxme::coxme()}. The reference hazard curve is multiplied by the hazard ratio to obtain the projected hazard curve for the ongoing study. Next, exp(-hazard) which produces the predicted survival curve.
 #'
-#' Both methods entail firstly, the estimation of a \emph{hazard curve} for the reference group using \code{bshazard::bshazard()}. Several parameters for the estimation can be modified for quality purposes. These parameters are \code{pred_dailybin}, \code{pred_phi}, and \code{pred_lambda} which are discussed in details in the documentation of \code{safuncs::Surv_Plots()}. For studies with multiple tanks per treatment, estimation of the hazard curve uses a data driven approach and aforementioned parameters cannot be modified (ignored).
-#'
-#' Both methods then estimate a \emph{hazard ratio} for each treatment in \code{surv_db}. This is achieved by fitting each treatment (separately) with the reference group in \code{surv_db_ref} to a cox proportional hazards model. The model may be fitted using \code{survival::coxph()} for data with single tanks per treatment or \code{coxme::coxme()} for data with multiple tanks per treatment.
-#'
-#' For the "simple" method, the estimated \emph{hazard ratio} is then multiplied by the \emph{hazard curve} to produce a \emph{predicted hazard curve}. The hazard curve is then cut off up to \code{pred_tte}. The curve's cumulative value is then calculated using \code{DescTools::AUC()}, then turned negative and exponentiated to calculate survival rate at \code{pred_tte}. This "simple" method is recommended over the "adaptive".
-#'
-#' For the "adaptive" method, the \emph{predicted hazard curve} is cut off to a range up to \code{pred_tte}, starting from the maximum TTE in \code{surv_db}. The cumulative hazard from the curve is then calculated using \code{DescTools::AUC()} and added with the observed cumulative hazard from \code{surv_db}. The total cumulative hazard is then turned negative and exponentiated to calculate survival rate at \code{pred_tte}. The idea of this method is to further use the observed data in \code{surv_db} for more accurate predictions, but I've found that it is often very sensitive to variations in \code{surv_db}, hence is not recommended for now.
-#'
-#' @param surv_db A survival dataframe as described in \code{Surv_Plots()}, consisting of four columns named TTE, Status, Trt.ID and Tank.ID. Example: \code{surv_db_ex} which is generated using \code{Surv_Gen()}.
-#' @param surv_db_ref A survival dataframe with the same column names as the supplied \code{surv_db}. Must only have one Trt.ID which represents the reference used for prediction.
-#' @param pred_tte A numeric representing the time to event at which the survival rate is to be predicted. Defaults to NULL where the maximum TTE observed in \code{surv_db_ref} is used.
-#' @param pred_method A string representing the method used to predict survival rate. Options are "simple" or "adaptive". Methods further discussed in \bold{Details}. Defaults to "simple".
-#' @param pred_dailybin Argument ignored if both \code{surv_db} and \code{surv_db_ref} contains multiple tanks. Whether to use daily (1 TTE interval) time bins in estimating hazard curves. Defaults to TRUE. Further details in \code{Surv_Plots}.
-#' @param pred_phi Argument ignored if both \code{surv_db} and \code{surv_db_ref} contains multiple tanks. A numeric indicating the dispersion parameter to be used in the count model that estimates the reference hazard curve. Defaults to 1.5. Set to NULL for a data driven estimate. Further details in \code{Surv_Plots}.
-#' @param pred_lambda Argument ignored if both \code{surv_db} and \code{surv_db_ref} contains multiple tanks. A numeric indicating the smoothing parameter to be used in estimating the reference hazard curve. Ignored if \code{pred_phi} is not NULL. Defaults to NULL (data driven estimate). Further details in \code{Surv_Plots}.
+#' @param surv_db A survival dataframe for the ongoing study consisting of at least four columns named TTE, Status, Trt.ID and Tank.ID. For an example, see \code{surv_db_ex}.
+#' @param ref_surv_db A survival dataframe for the reference group consisting of at least the four column names mentioned in \code{surv_db} documentation. For example, a dataframe loaded form the Survival Data Library.xlsx.
+#' @param ref_specs A dataframe specifying the study, treatment and time (tte) offset for the reference group in \code{ref_surv_db}. Column names: Study, Trt.ID, TTE_offset. A negative TTE_offset means the reference group survival data times are to be subtracted.
+#' @param pred_tte A numeric representing the tte at which the survival rate is to be predicted
+#' @param dailybin Whether to use daily (1 TTE interval) time bins in estimating hazard curves. Defaults to TRUE. Further details in \code{Surv_Plots}.
+#' @param phi A numeric indicating the count overdispersion parameter to be used in hazard curve estimation. Defaults to 1.5. Further details in \code{Surv_Plots}.
+#' @param lambda A numeric indicating the smoothing parameter to be used in hazard curve estimation. Defaults to NULL (data driven estimate). Further details in \code{Surv_Plots}.
 #' @param plot_save Whether to save plot outputs in the working directory. Defaults to TRUE.
 #' @param plot_prefix A string specifying the prefix of the filename of the saved plots.  Defaults to "ONDA_XX".
-#' @param data_out Whether to output dataframes containing predicted survival rates and hazard ratios.
+#' @param plot_dim Numeric vector representing the width and height of the plot (in inches), respectively.
 #'
-#' @return The output is a list consisting of at least four ggplot2 objects and optionally
-#' two dataframes described further below.
-#'
-#' \itemize{
-#'  \item '\emph{Comp_SR_Plot}' and '\emph{Comp_HR_Plot}' illustrate survival rates and hazard rates (respectively) of treatments in \code{surv_db} and \code{surv_db_ref} with the latter colored black.
-#'  \item '\emph{Pred_SR_Plot}' and '\emph{Pred_HR_Plot}' display the history of predictions for survival rate and hazard ratio (respectively) based on the utilized TTE. For example, if the utilized TTE is 30, this means the prediction is blind to all data after it and only used TTEs before. The dashed lines indicate the prediction when TTE on \code{surv_db_ref} was offset by +/- 2. This is to show sensitivity to discrepancies in "starting times" (onset of significant mortality) between the reference and the data of interest.
-#'  \item '\emph{Pred_TTE}' is a dataframe containing the predicted survival rate (pred_SR) and hazard ratio (pred_HR) based on the latest TTE, while predictions using TTEs prior is tabulated in '\emph{Pred_History}'.
-#' }
+#' @return Ouptuts a list containing two ggplot2 objects representing the predicted survival curves and predicted hazard curves. Additionally, the list consists of a dataframe containing the predicted rates over time and another dataframe containing the predicted rates at the specified \code{pred_tte} (or close to it due to limitations in available data from \code{surv_db_ref}).
 #'
 #' @import dplyr
 #' @import ggplot2
@@ -890,299 +875,184 @@ theme_Publication = function(base_size = 14) {
 #' @export
 #'
 #' @examples
-#' # Below is a brief tutorial showing how to use Surv_Pred() to predict future survival.
+#' # In the first step, we load the reference database then specify the study and
+#' # treatment to use as reference:
+#' ref_surv_db = surv_db_ex
+#' ref_specs = data.frame(Study = "QCATC1068",
+#'                        Trt.ID = "A",
+#'                        TTE_offset = 0)
 #'
-#' # In the first step, we load the data for which survival is to be predicted and its
-#' # reference (e.g. a past survival data involving the same disease). The reference must
-#' # contain only one treatment group:
-#' surv_db_ref = surv_db_ex[surv_db_ex$Trt.ID == "D",]
-#'
-#' # For demonstration purposes, we pretend the survival data to be predicted only extends
-#' # to 35 TTE / DPC. Survival rate at 54 TTE is to be predicted. To create such data from
-#' # the example, I use survival::survSplit(). For real applications, creating the data
-#' # this way would be unnecessary, instead refer to safuncs::Surv_Gen().
-#' surv_db = survival::survSplit(data = surv_db_ex[-1,], cut = 35, end = "TTE",
+#' # Next, we load the ongoing study. Suppose it is mid-way to completion, hence the
+#' # survival data only extends to 35 TTE / DPC and we want to predict to 54. Lets
+#' # create the 35 TTE dataset for this demo:
+#' surv_db = survival::survSplit(data = surv_db[-1,], cut = 35, end = "TTE",
 #'                               event = "Status", episode = "Eps")
-#'
-#' surv_db = surv_db[surv_db$Eps == 1 & surv_db$Trt.ID != "D",
-#'                   -c(3, 6)] #remove unnecessary rows and columns
-#'
+#' surv_db = surv_db[surv_db$Eps == 1, -c(3, 6)]
 #' tail(surv_db, n = 5)
 #'
-#' # Next, we feed both datasets to Surv_Pred() and execute!
+#' # Now chuck all the created objects into Surv_Pred()!
 #' Surv_Pred(surv_db = surv_db,
-#'           surv_db_ref = surv_db_ref,
-#'           pred_tte = 54,
-#'           pred_method = "simple",
-#'           plot_save = FALSE,
-#'           data_out = FALSE)[-4] #exclude data output and fourth plot for now for brevity
-#'
-#' # In the first two comparative plots, colored lines show characteristics of treatments
-#' # from surv_db while black lines show represent the reference group.
-#'
-#' # Notably, the third plot shows instability of the survival predictions. Using the
-#' # latest TTE, predictions compared to actual survival at 54 TTE is 76 vs 64% (+8%) for
-#' # Trt.A, 56 vs 64% (-8%) for Trt.B, and 70 vs 73% (-3%) for Trt.C. Notably, for Trt.B,
-#' # predictions took ~ 2 weeks to become close to accurate. A suspected cause of this is
-#' # the low(?) mortality counts that would led to an unreliable hazard ratio estimate
-#' # on which the survival prediction is based on. Due to sampling variability, early
-#' # predictions should be scrutinized.
-#'
-#' # I want to show another example where the predictions worked "better". Below I use a
-#' # real ongoing study (at the time of writing). Here, predictions appeared more stable
-#' # and stabilized quicker. I attribute this partly to the greater mortality counts which
-#' # lead to more precisely estimated hazard ratios.
-#'
-#' Surv_Pred(surv_db = surv_db_ex2, #real data with anonymized Trt.IDs
-#'           surv_db_ref = surv_db_ex3, #real past data as reference
-#'           pred_tte = 54,
-#'           pred_method = "simple",
-#'           plot_save = FALSE,
-#'           data_out = FALSE)
+#'           ref_surv_db = ref_surv_db,
+#'           ref_specs = ref_specs,
+#'           pred_tte = 54)
 Surv_Pred = function(surv_db,
-                     surv_db_ref,
-                     pred_tte = NULL,
-                     pred_method = "simple",
-                     pred_dailybin = TRUE,
-                     pred_phi = 1.5,
-                     pred_lambda = NULL,
+                     ref_surv_db,
+                     ref_specs,
+                     pred_tte,
+                     dailybin = TRUE,
+                     phi = 1.5,
+                     lambda = NULL,
                      plot_save = TRUE,
                      plot_prefix = "ONDA_XX",
-                     data_out = TRUE){
+                     plot_dim = c(7, 4.3)){
 
- #Set 0 offset time
- ref_TTE0 = surv_db_ref$TTE
+  surv_db_ref0 = merge(ref_surv_db, ref_specs)
+  surv_db_ref0 = surv_db_ref0[!is.na(surv_db_ref0$TTE_offset),]
+  if(nrow(surv_db_ref0) == 0) stop("No reference study selected. Possible ref_specs mismatch with ref_surv_db.")
+  surv_db_ref0$TTE = surv_db_ref0$TTE + surv_db_ref0$TTE_offset
+  surv_db_ref0$unique = interaction(surv_db_ref0$Study, surv_db_ref0$Trt.ID, sep = " ") |> trimws()
 
- #Default pred_tte
- if(is.null(pred_tte)) {pred_tte <- max(ref_TTE0)}
+  #Enforce >0 TTEs
+  surv_db_ref0 = surv_db_ref0[surv_db_ref0$TTE > 0, ]
+  surv_db = surv_db[surv_db$TTE > 0, ]
 
- #Initialize dataframes
- Pred_Stats = data.frame()
- Pred_Stats_Offset = data.frame()
+  #Get reference level hazard curve
+  surv_db_ref0$unique = paste("ref", surv_db_ref0$unique)
+  surv_db_ref0$Trt.ID = paste("ref", surv_db_ref0$Trt.ID)
 
- #Determine experimental design
- if(length(unique(surv_db_ref$Trt.ID)) > 1) {
-   stop("surv_db_ref must contain only one Trt.ID.")
- }
+  #Initialize dataframes
+  project_db = data.frame()
+  end_db = data.frame()
+  ref_haz = data.frame()
+  ref_surv = data.frame()
 
- exp_design = ifelse((length(unique(surv_db$Trt.ID)) == length(unique(surv_db$Tank.ID))) &
-                       (length(unique(surv_db_ref$Trt.ID)) == length(unique(surv_db_ref$Tank.ID))),
-                       "single_tank", "multi-tank")
+  #For loop to predict based on the different reference groups in surv_db_ref.
+  for(ref_unique in unique(surv_db_ref0$unique)){
+    surv_db_ref = surv_db_ref0[surv_db_ref0$unique == ref_unique, ]
 
- #Set parameters for ref_bshaz estimation
- if(exp_design == "single-tank") {
-   if(pred_dailybin == TRUE) {dbin <- max(surv_db_ref$TTE)} else {dbin <- NULL}
- } else {
-   pred_phi = NULL
-   pred_lambda = NULL
-   pred_dailybin = FALSE
-   dbin = NULL
- }
+    #Print warning message if surv_db_ref end TTE < pred_tte
+    if(max(surv_db_ref$TTE) < pred_tte) {
+      warning(paste0("The desired 'pred_tte' (", pred_tte,
+                     ") is greater than the maximum available in the reference database (",
+                     max(surv_db_ref$TTE), ") - ", ref_unique, "."))
+    }
 
- #Get reference level hazard curve
- ref_id = levels(as.factor(surv_db_ref$Trt.ID))
- surv_db_ref$Trt.ID = paste("ref", ref_id)
+    #Get ref_bshaz and ref_survfit
+    tank_form = if(length(unique(surv_db_ref$Trt.ID)) == length(unique(surv_db_ref$Tank.ID))) "1" else "Tank.ID"
+    ref_bshaz = silencer(bshazard::bshazard(data = surv_db_ref, as.formula(paste("survival::Surv(TTE, Status) ~", tank_form)),
+                                            verbose = FALSE, phi = phi, lambda = lambda,
+                                            nbin = if(dailybin == TRUE) max(surv_db_ref$TTE) else NULL))
+    ref_haz = rbind(ref_haz, data.frame(ref_unique = sub("ref", "", ref_unique),
+                                        hazard = ref_bshaz$hazard,
+                                        time = ref_bshaz$time))
+    ref_survfit = summary(survival::survfit(survival::Surv(TTE, Status) ~ 1, data = surv_db_ref))
+    ref_surv = rbind(ref_surv, data.frame(ref_unique = sub("ref", "", ref_unique),
+                                          surv = ref_survfit$surv,
+                                          time = ref_survfit$time))
 
- sink(tempfile())
- if(exp_design == "single-tank"){
-   ref_bshaz = bshazard::bshazard(data = surv_db_ref, survival::Surv(TTE, Status) ~ 1,
-                                  verbose = FALSE, phi = pred_phi, lambda = pred_lambda,
-                                  nbin = dbin)
- } else {
-   ref_bshaz = bshazard::bshazard(data = surv_db_ref, survival::Surv(TTE, Status) ~ Tank.ID,
-                                  verbose = FALSE, phi = pred_phi, lambda = pred_lambda,
-                                  nbin = dbin)
- }
- sink()
+    #Check ref_bshaz
+    if(any(diff(ref_bshaz$time) != 1)) stop("Incorrect time-interval in hazard dataframe. Please let Sean know!")
 
- #Produce offset times
- show_offset = TRUE
- if(show_offset == TRUE) {ref_tte_offset_vec <- c(-1, 0, 1) * 2} else {ref_tte_offset_vec <- 0}
+    #Loop for every treatment in the surv_db (not reference)
+    for(pred_trt in levels(as.factor(surv_db$Trt.ID))) {
 
- #Repeat for different offset times
- for(ref_tte_offset in ref_tte_offset_vec) {
+      #Combine reference and observed hazard dataframes
+      surv_db_trt = surv_db[surv_db$Trt.ID == pred_trt,]
+      comb_db = rbind(surv_db_ref[, c("Trt.ID", "Tank.ID", "TTE", "Status")],
+                      surv_db_trt[, c("Trt.ID", "Tank.ID", "TTE", "Status")])
+      comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = unique(surv_db_ref$Trt.ID))
 
-   #Ensure positive TTE
-   surv_db = surv_db[surv_db$TTE > 0, ]
-   surv_db_ref$TTE = ref_TTE0 + ref_tte_offset
-   surv_db_ref = surv_db_ref[surv_db_ref$TTE > 0, ]
+      #Create cut_db
+      cut_day = min(max(surv_db_trt$TTE), max(surv_db_ref$TTE))
+      cut_db = survival::survSplit(comb_db, cut = cut_day, end = "TTE", event = "Status", episode = "Obs")
+      precut_db = cut_db[cut_db$Obs == 1, ] #selecting phase 1 data only. Check if inclusive or not (desired = inclusive).
+      precut_db$Tank.ID = interaction(precut_db$Tank.ID, precut_db$Trt.ID)
 
-   #Print warning message if surv_db_ref end TTE < pred_tte
-   if(max(surv_db_ref$TTE) < pred_tte) {
-     warning(paste(sep = "", "The desired 'pred_tte' (", pred_tte,
-                   ") is greater than the maximum in the reference database (",
-                   max(surv_db_ref$TTE) ,") given the TTE offset of ", ref_tte_offset,
-                   ". For this offset, predictions are for 'pred_tte' ", ref_tte_offset,
-                   " (i.e. TTE = ", max(surv_db_ref$TTE),")."))
-   }
+      #Precut_survfit and cumhaz
+      precut_survfit = survival::survfit(survival::Surv(TTE, Status) ~ 1, data = surv_db_trt)
+      precut_cumhaz = -log(tail(summary(precut_survfit)$surv, 1))
 
-   #Loop for every treatment
-   for(pred_trt in levels(as.factor(surv_db$Trt.ID))) {
+      #Precut_HR
+      cox_mod = suppressWarnings(coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID),
+                                              data = precut_db))
+      pred_hr = exp(coef(cox_mod))
 
-     #Combine reference and observed hazard dataframes
-     surv_db_f = surv_db[surv_db$Trt.ID == pred_trt,]
-     comb_db = rbind(surv_db_ref, surv_db_f)
-     comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = paste("ref", ref_id))
+      #Postcut_bshaz
+      postcut_timesFP = ref_bshaz$time > cut_day & ref_bshaz$time <= pred_tte
+      postcut_haz = ref_bshaz$hazard[postcut_timesFP] * pred_hr
+      postcut_cumhaz = if(length(postcut_haz) > 0) cumsum(postcut_haz) else 0
+      postcut_times = ref_bshaz$time[postcut_timesFP]
 
-     min2_tte = max(min(surv_db_f$TTE), min(surv_db_ref$TTE))
-     max_tte = max(surv_db_f$TTE)
+      #Predict SRs
+      project_temp = data.frame(ref_unique = sub("ref", "", ref_unique),
+                                Trt.ID = pred_trt,
+                                time = if(length(postcut_times) != 0) postcut_times else tail(ref_bshaz$time, 1),
+                                hazard = if(length(postcut_haz) != 0) postcut_haz else tail(ref_bshaz$hazard, 1),
+                                hr = pred_hr,
+                                cumhaz = precut_cumhaz + postcut_cumhaz) |> suppressWarnings()
+      project_temp$sr = exp(-project_temp$cumhaz)
 
-     #Predict End SR and HR using different cuts
-     for(cut_day in min2_tte:max_tte) {
-       comb_db2 = survival::survSplit(comb_db, cut = cut_day, end = "TTE", event = "Status", episode = "Obs")
-       comb_db2 = comb_db2[comb_db2$Obs == 1, ]
+      project_db = rbind(project_db, project_temp)
+      end_db = rbind(end_db, project_temp[project_temp$time == tail(ref_bshaz$time, 1), -4])
 
-       #HR Calculation
-       cox_comp = suppressWarnings(coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID),
-                                                data = comb_db2))
-       pred_HR = exp(coef(cox_comp))
+    } #close loops by treatment in surv_db
+  } #close loops by unique in ref_surv_db0
 
-       #SR Calculation
-       ref_bshaz_t = data.frame(hazard = ref_bshaz$hazard[ref_bshaz$time < pred_tte],
-                                time = ref_bshaz$time[ref_bshaz$time < pred_tte])
+  linevec = c(2, 4, 1, 5, 6, 3)
 
-       #Uses the shape of the reference hazard curve throughout
-       if(pred_method == "simple") {
-         cumhaz = DescTools::AUC(x = c(ref_bshaz_t$time),
-                                 y = c(ref_bshaz_t$hazard) * pred_HR)
-         pred_SR = 100 * exp(-cumhaz)
-       }
+  #Create projection plots
+  sp = Surv_Plots(surv_db = surv_db,
+                  lambda = lambda, phi = phi, dailybin = dailybin,
+                  plot = "surv", plot_save = FALSE, xlim = c(0, pred_tte + 1))
+  sp$layers[[1]]$mapping = aes(color = .data[["Trt.ID"]])
+  sp$layers[[3]]$mapping = aes(color = .data[["Trt.ID"]])
 
-       #Uses obseved survival and the reference hazard curve
-       if(pred_method == "adaptive") {
+  sp = suppressMessages({
+    sp +
+      geom_step(data = project_db, aes(x = ceiling(time), y = sr, color = Trt.ID, linetype = ref_unique), size = 0.8) +
+      scale_linetype_manual(name = "Reference", values = linevec[1:length(unique(project_db$ref_unique))]) +
+      scale_color_discrete(name = "Trt.ID") +
+      guides(linetype = guide_legend(order = 1), colour = guide_legend(order = 2)) +
+      geom_step(data = ref_surv, aes(x = time, y = surv, linetype = ref_unique), size = 0.8, color = "#6C6C6C", show.legend = FALSE) +
+      theme(legend.key.width = unit(2, "lines"),
+            plot.title = element_text(hjust = 0.5)) +
+      ggtitle("Survival predictions based on past studies")
+  })
+  sp$layers = sp$layers[c(5, 1:4)]
 
-         #Split survival data for calculating cumulative hazard using the reference and the observable hazard curve
-         cut_db = survival::survSplit(surv_db, cut = cut_day + 1, end = "TTE", event = "Status", episode = "Obs")
-         precut_db = cut_db[cut_db$Obs == 1, ]
+  hp = suppressMessages({
+    Surv_Plots(surv_db = surv_db,
+               lambda = lambda, phi = phi, dailybin = dailybin,
+               plot = "haz", plot_save = FALSE, xlim = c(0, pred_tte + 1)) +
+      geom_line(data = project_db, aes(x = time, y = hazard, color = Trt.ID, linetype = ref_unique), size = 0.8) +
+      geom_point(data = project_db, aes(x = time, y = hazard, color = Trt.ID)) +
+      scale_linetype_manual(name = "Reference", values = linevec[1:length(unique(project_db$ref_unique))]) +
+      scale_color_discrete(name = "Trt.ID") +
+      scale_y_continuous(name = "Hazard") +
+      guides(linetype = guide_legend(order = 1), colour = guide_legend(order = 2)) +
+      geom_line(data = ref_haz, aes(x = time, y = hazard, linetype = ref_unique), size = 0.8,
+                inherit.aes = FALSE, color = "#6C6C6C") +
+      geom_point(data = ref_haz, aes(x = time, y = hazard), inherit.aes = FALSE, color = "#6C6C6C") +
+      theme(legend.key.width = unit(2, "lines"),
+            plot.title = element_text(hjust = 0.5)) +
+      ggtitle("Hazard predictions based on past studies")
+  })
+  hp$layers = hp$layers[c(5:6, 1:4)]
 
-         #Precut surv using surv_db
-         precut_surv = min(summary(survival::survfit(survival::Surv(TTE, Status) ~ 1,
-                                           data = droplevels(precut_db[precut_db$Trt.ID == pred_trt,])))$surv)
-         cumhaz_precut = -log(precut_surv)
+  #Save plots
+  if(plot_save == TRUE) {
+    ggsave(plot = sp, filename = paste(plot_prefix, "Survival Projections.tiff"),
+           dpi = 400, width = plot_dim[1], height = plot_dim[2])
+    ggsave(plot = hp, filename = paste(plot_prefix, "Hazard Projections.tiff"),
+           dpi = 400, width = plot_dim[1], height = plot_dim[2])
+  }
 
-         #Postcut bshaz using surv_db_ref
-         postcut_bshaz = ref_bshaz_t[ref_bshaz_t$time > cut_day,]
-         if(nrow(postcut_bshaz) > 1) {
-           cumhaz_postcut = DescTools::AUC(x = c(postcut_bshaz$time),
-                                           y = c(postcut_bshaz$hazard) * pred_HR)
-         } else {
-           cumhaz_postcut = 0
-         }
-
-         if(is.na(cumhaz_postcut)) {cumhaz_postcut <- 0}
-         pred_SR = 100 * exp(-(cumhaz_precut + cumhaz_postcut))
-       }
-
-       #Rbind to create prediction database
-       if(ref_tte_offset == 0) {
-         Pred_Stats = rbind(Pred_Stats, data.frame(Trt.ID = pred_trt,
-                                                   TTE_Used = cut_day,
-                                                   pred_SR,
-                                                   pred_HR))
-       } else {
-         Pred_Stats_Offset = rbind(Pred_Stats_Offset, data.frame(ref_tte_offset,
-                                                                 Trt.ID = pred_trt,
-                                                                 TTE_Used = cut_day,
-                                                                 pred_SR,
-                                                                 pred_HR))
-       }
-     }
-   }
- }
-
- row.names(Pred_Stats) = NULL
- row.names(Pred_Stats_Offset) = NULL
-
- #Create plots representing survival and hazard predictions over time
- xbreaks = round((max(Pred_Stats$TTE_Used) - min(Pred_Stats$TTE_Used)) / 5)
-
- Pred_SR_Plot = ggplot(data = Pred_Stats, aes(x = TTE_Used, y = pred_SR, color = Trt.ID)) +
-   geom_point() +
-   geom_line() +
-   facet_wrap(~Trt.ID) +
-   scale_y_continuous(name = paste("Predicted SR at a TTE of", pred_tte),
-                      breaks = seq(0, 100, 20), limits = c(0, 100)) +
-   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, xbreaks)) +
-   ggtitle("SR Prediction History")
-
- Pred_HR_Plot = ggplot(data = Pred_Stats, aes(x = TTE_Used, y = pred_HR, color = Trt.ID)) +
-   geom_point() +
-   geom_line() +
-   facet_wrap(~Trt.ID) +
-   scale_y_continuous(name = paste("Predicted HR at a TTE of", pred_tte), n.breaks = 6) +
-   scale_x_continuous(name = "TTEs used to predict", breaks = seq(0, 100, xbreaks)) +
-   ggtitle("HR Prediction History")
-
- if(show_offset == TRUE){
-   Pred_SR_Plot = Pred_SR_Plot +
-     geom_line(data = Pred_Stats_Offset[Pred_Stats_Offset$ref_tte_offset == ref_tte_offset_vec[1],],
-               linetype = "dashed", show.legend = FALSE) +
-     geom_line(data = Pred_Stats_Offset[Pred_Stats_Offset$ref_tte_offset == ref_tte_offset_vec[3],],
-               linetype = "dashed", show.legend = FALSE)
-
-   Pred_HR_Plot = Pred_HR_Plot +
-     geom_line(data = Pred_Stats_Offset[Pred_Stats_Offset$ref_tte_offset == ref_tte_offset_vec[1],],
-               linetype = "dashed", show.legend = FALSE) +
-     geom_line(data = Pred_Stats_Offset[Pred_Stats_Offset$ref_tte_offset == ref_tte_offset_vec[3],],
-               linetype = "dashed", show.legend = FALSE)
- }
-
- #Create Projection Plots
- surv_db_ref$TTE = ref_TTE0
- ref_plot_db = layer_data(Surv_Plots(surv_db = surv_db_ref,
-                                     plot = "surv",
-                                     plot_save = FALSE))
- ref_plot_db2 = layer_data(Surv_Plots(surv_db = surv_db_ref,
-                                      plot = "haz",
-                                      lambda = pred_lambda,
-                                      phi = pred_phi,
-                                      dailybin = pred_dailybin,
-                                      plot_save = FALSE))
-
- Comp_SR_Plot = Surv_Plots(surv_db = surv_db,
-                           plot = "surv",
-                           xlim = c(0, pred_tte),
-                           plot_save = FALSE) +
-     geom_step(data = ref_plot_db, inherit.aes = FALSE, show.legend = FALSE,
-             aes(x = x, y = y), linewidth = 1) +
-   ggtitle("Survival Rate Comparisons")
-
- Comp_HR_Plot = Surv_Plots(surv_db = surv_db,
-                           plot = "haz",
-                           xlim = c(0, pred_tte),
-                           lambda = pred_lambda,
-                           phi = pred_phi,
-                           dailybin = pred_dailybin,
-                           plot_save = FALSE) +
-   geom_line(data = ref_plot_db2, inherit.aes = FALSE, show.legend = FALSE, aes(x = x, y = y),
-             linewidth = 1) +
-   ggtitle("Hazard Rate Comparisons")
-
- #Save plots
- if(plot_save == TRUE) {
-   ggsave(plot = Pred_SR_Plot, filename = paste(sep = "", plot_prefix, " SR Prediction History.tiff"),
-          dpi = 400, width = 7, height = 4.1)
-   ggsave(plot = Pred_HR_Plot, filename = paste(sep = "", plot_prefix, " HR Prediction History.tiff"),
-          dpi = 400, width = 7, height = 4.1)
-   ggsave(plot = Comp_SR_Plot, dpi = 400, width = 6, height = 4,
-          filename = paste(sep = "", plot_prefix, " Survival Comparisons.tiff"))
-   ggsave(plot = Comp_HR_Plot, dpi = 400, width = 6, height = 4,
-          filename = paste(sep = "", plot_prefix, " Hazard Comparisons.tiff"))
- }
-
- #Return Outputs
- Output_list = list(Comp_SR_Plot = Comp_SR_Plot,
-                    Comp_HR_Plot = Comp_HR_Plot,
-                    Pred_SR_Plot = Pred_SR_Plot,
-                    Pred_HR_Plot = Pred_HR_Plot)
-
- if(data_out == TRUE) {
-   Output_list = append(Output_list,
-                        list(Pred_TTE = Pred_Stats[Pred_Stats$TTE_Used == max(Pred_Stats$TTE_Used),
-                                                   -which(colnames(Pred_Stats) == "TTE_Used")],
-                             Pred_History = Pred_Stats))
- }
- return(Output_list)
+  #Return Outputs
+  output = list(Survival_Plot = sp,
+                Hazard_Plot = hp,
+                Predictions = project_db,
+                End_Predictions = end_db)
+  return(output)
 }
 
 ################################################## Function 6 - Surv_Gen() ########################################################
@@ -1370,7 +1240,7 @@ Surv_Gen = function(mort_db,
 #' @md
 #'
 #' @param surv_db A survival dataframe as described in \bold{Details}.
-#' @param factor A string representing the formula of factors (column names) which represent the structure of the plot. Accepts single to two factors with interactions, e.g. "Trt.ID * Tank.ID" creates curves for every treatment and tank combination while "Tank.ID | Trt.ID" creates curves for every tank faceted by treatment.
+#' @param factor A string representing the formula of factors (column names) which represent the structure of the plot. Accepts single to two factors with interactions; "Tank.ID * Trt.ID" creates curves for every tank and treatment combination, "Trt.ID - Tank.ID" does the same but distinguishes the curves by color across treatments and by linetype across tanks, while "Tank.ID | Trt.ID" creates curves for every tank faceted by treatment.
 #' @param xlim A vector specifying the plots x-axis lower and upper limits, respectively.
 #' @param xbreaks A number specifying the interval for every major tick in the x-axis.
 #' @param xlab A string specifying the plot x-axis label. Defaults to "Days Post Challenge".
@@ -1386,6 +1256,8 @@ Surv_Gen = function(mort_db,
 #' @param plot_save Whether to save plots in the working directory.
 #' @param plot_prefix A string specifying the prefix for the filename of the saved plots. Defaults to "ONDA_XX".
 #' @param plot_dim Vector representing the dimensions (width, height) with which to save the plot in .tiff and .pptx.
+#' @param legend_cols Numeric specifying the number of columns to split the legend entries to. Defaults to 1.
+#' @param linesize Numeric specifying the line width (thickness) for the plots. Defaults to 1.
 #'
 #' @seealso \href{https://sean4andrew.github.io/safuncs/reference/Surv_Plots.html}{Link} for executed \bold{Examples} which includes any figure outputs.
 #'
@@ -1532,7 +1404,8 @@ Surv_Plots = function(surv_db,
       #coord_cartesian(clip = "off") +
       scale_x_continuous(breaks = seq(0, xlim[2] * 2, xbreaks), name = xlab, limits = xlim, oob = scales::oob_keep,
                          expand = expansion()) +
-      scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10, expand = expansion()) +
+      scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10, expand = expansion(),
+                         name = "Survival Probability") +
       scale_color_manual(labels = strn, values = color_vec)
 
     #Create survdat
@@ -3604,15 +3477,109 @@ silencer = function(x){
 #' @description Truncate a decimal by rounding or converting to scientific notation. Originally intended for p-values.
 #'
 #' @param x Vector of numeric values
+#' @param digits Number below which value is converted to scientific notation.
 #'
 #' @return Truncated values
 #' @export
-knife = function(x) {
-  if(x < 1e-4) {
-    return(format(x, scientific = TRUE, digits = 4))
+knife = function(x, digits = 4) {
+  if(x < (1 * 10 ^-digits)) {
+    return(format(x, scientific = TRUE, digits = digits))
   } else {
-    return(round(x, 4))
-}}
+    return(round(x, digits))
+  }
+}
+
+#################################################### Function 16 - fpr_check #################################################
+
+#' @title Check False Positive Rate
+#'
+#' @description Assesses the False Positive Rate or fraction of p values below 0.05 by simulating p-values given that the null is true (no effect of "x" (usually treatment) specified in \code{formula}). Uses the sampling design (sample sizes per x-level) indicated by the supplied \code{data}. Simulation involves resampling of the vector of values in "y" with replacement. Outputs a histogram showing the null distribution of p-values and test-statistic.
+#'
+#' @param formula A one-factor formula with the dependent variable (y) on the left hand side, a tiddle (~), and then the independent variable (x), e.g. y ~ x.
+#' @param data Relevant dataframe representing the sampling design (sample sizes in different x levels).
+#' @param model_or_test A string specifying the model or test to check false positive rate for. Currently supports: "logistic", "chisq", "anova" (or the equivalent "lm").
+#' @param n_sim Numeric describing the number of p-values to simulate.
+#' @param return_properties TRUE/FALSE describing whether to return characteristics for each simulation. Intended use is for troubleshooting.
+#'
+#' @return A printout describing the false positive rate. A histogram of the relevant test-statistic and p-value under the null. If \code{return_properties == TRUE}, a list containing the vector of p-values, vector of test-statistics, and model object or others deemed important.
+#' @export
+#'
+#' @examples
+#' #Check to see if false positive rate is acceptable (0.05) for ANOVA on iris dataset:
+#' data(iris)
+#' fpr_check(Sepal.Length ~ Species, iris, "anova", n_sim = 2000)
+#'
+#' #Now check to see fpr for a low count dataset:
+#' test_df = data.frame(Trt.ID = rep(c("A", "B"), times = 20),
+#'                      Pathology = c(rep(1, 34), rep(0, 6)))
+#' table(test_df)
+#'
+#' fpr_check(Pathology ~ Trt.ID, test_df, "chisq") |>
+#'   suppressWarnings() #Warning: Chisquare approximation may be incorrect
+#'
+#' fpr_check(Pathology ~ Trt.ID, test_df, "logistic")
+fpr_check = function(formula,
+                     data,
+                     model_or_test,
+                     n_sim = 1000,
+                     return_properties = FALSE){
+
+  split = formula |> deparse() |> strsplit(split = "~") |> unlist() |> sapply(trimws) |> unname()
+
+  p_vec = c()
+  teststat_vec = c()
+  obj_vec = list()
+  for(i in 1:n_sim) {
+    resamp_db = data.frame(x = data[[split[2]]],
+                           y = sample(data[[split[1]]], replace = TRUE))
+
+    if(model_or_test == "logistic") {
+      mod = glm(formula = y ~ x, family = "binomial", data = resamp_db)
+      obj_vec[[i]] = list(beta_coef = coef(mod), beta_vcov = vcov(mod))
+      p_vec = c(p_vec, anova(mod)$'Pr(>Chi)'[2])
+      teststat_vec = c(teststat_vec, anova(mod)$Deviance[2])
+      teststat = "Chisq."
+    }
+
+    if(model_or_test == "chisq") {
+      tab = table(resamp_db$x, resamp_db$y)
+      obj_vec[[i]] = tab
+      p_vec = c(p_vec, chisq.test(tab)$p.value)
+      teststat_vec = c(teststat_vec, as.numeric(chisq.test(tab)$statistic))
+      teststat = "Chisq."
+    }
+
+    if(model_or_test %in% c("anova", "lm")){
+      mod = lm(formula = y ~ x, data = resamp_db)
+      obj_vec[[i]] = list(beta_coef = coef(mod), vcov = vcov(mod))
+      p_vec = c(p_vec, anova(mod)$'Pr(>F)'[1])
+      teststat_vec = c(teststat_vec, as.numeric(anova(mod)$'F value')[1])
+      teststat = "F"
+
+    }
+  }
+
+  #Print plot
+  par(mfrow = c(1, 2))
+  hist(teststat_vec, breaks = 10, freq = TRUE, xlab = paste0("Test-statistic (", teststat, ")"),
+       main = paste0("Distributions when Null is True"))
+  hist(p_vec, breaks = seq(0, 1, 0.05), freq = TRUE, xlab = "P-value", main = "")
+  abline(v = 0.05, col = "red", lty = 2)
+  mtext(paste("Fraction of P < 0.05 =", round(sum(p_vec < 0.05) / length(p_vec), 3)), side = 3, col = "red")
+  par(mfrow = c(1, 1))
+
+  #Print FPR
+  print(paste("Fraction of P < 0.05 =", round(sum(p_vec < 0.05) / length(p_vec), 3), "(False Positive Rate given α = 0.05)"))
+
+  #Warnings
+  if(any(is.na(as.numeric(p_vec)))) {warning(paste("For some reason, some of the simulated p-values appear non-numeric. Use return_properties == TRUE in the function argument to obtain simulation characteristics for troubleshooting."))}
+
+  if(return_properties == TRUE) {
+    return(list(p_vector = p_vec,
+                test_statistic_vector = teststat_vec,
+                model_or_test = obj_vec))
+  }
+}
 
 ##################################################### Data 1 - mort_db_ex ####################################################
 

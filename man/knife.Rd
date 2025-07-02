@@ -4,10 +4,12 @@
 \alias{knife}
 \title{Truncate Number}
 \usage{
-knife(x)
+knife(x, digits = 4)
 }
 \arguments{
 \item{x}{Vector of numeric values}
+
+\item{digits}{Number below which value is converted to scientific notation.}
 }
 \value{
 Truncated values

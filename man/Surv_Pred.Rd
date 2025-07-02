@@ -6,112 +6,68 @@
 \usage{
 Surv_Pred(
   surv_db,
-  surv_db_ref,
-  pred_tte = NULL,
-  pred_method = "simple",
-  pred_dailybin = TRUE,
-  pred_phi = 1.5,
-  pred_lambda = NULL,
+  ref_surv_db,
+  ref_specs,
+  pred_tte,
+  dailybin = TRUE,
+  phi = 1.5,
+  lambda = NULL,
   plot_save = TRUE,
   plot_prefix = "ONDA_XX",
-  data_out = TRUE
+  plot_dim = c(7, 4.3)
 )
 }
 \arguments{
-\item{surv_db}{A survival dataframe as described in \code{Surv_Plots()}, consisting of four columns named TTE, Status, Trt.ID and Tank.ID. Example: \code{surv_db_ex} which is generated using \code{Surv_Gen()}.}
+\item{surv_db}{A survival dataframe for the ongoing study consisting of at least four columns named TTE, Status, Trt.ID and Tank.ID. For an example, see \code{surv_db_ex}.}
 
-\item{surv_db_ref}{A survival dataframe with the same column names as the supplied \code{surv_db}. Must only have one Trt.ID which represents the reference used for prediction.}
+\item{ref_surv_db}{A survival dataframe for the reference group consisting of at least the four column names mentioned in \code{surv_db} documentation. For example, a dataframe loaded form the Survival Data Library.xlsx.}
 
-\item{pred_tte}{A numeric representing the time to event at which the survival rate is to be predicted. Defaults to NULL where the maximum TTE observed in \code{surv_db_ref} is used.}
+\item{ref_specs}{A dataframe specifying the study, treatment and time (tte) offset for the reference group in \code{ref_surv_db}. Column names: Study, Trt.ID, TTE_offset. A negative TTE_offset means the reference group survival data times are to be subtracted.}
 
-\item{pred_method}{A string representing the method used to predict survival rate. Options are "simple" or "adaptive". Methods further discussed in \bold{Details}. Defaults to "simple".}
+\item{pred_tte}{A numeric representing the tte at which the survival rate is to be predicted}
 
-\item{pred_dailybin}{Argument ignored if both \code{surv_db} and \code{surv_db_ref} contains multiple tanks. Whether to use daily (1 TTE interval) time bins in estimating hazard curves. Defaults to TRUE. Further details in \code{Surv_Plots}.}
+\item{dailybin}{Whether to use daily (1 TTE interval) time bins in estimating hazard curves. Defaults to TRUE. Further details in \code{Surv_Plots}.}
 
-\item{pred_phi}{Argument ignored if both \code{surv_db} and \code{surv_db_ref} contains multiple tanks. A numeric indicating the dispersion parameter to be used in the count model that estimates the reference hazard curve. Defaults to 1.5. Set to NULL for a data driven estimate. Further details in \code{Surv_Plots}.}
+\item{phi}{A numeric indicating the count overdispersion parameter to be used in hazard curve estimation. Defaults to 1.5. Further details in \code{Surv_Plots}.}
 
-\item{pred_lambda}{Argument ignored if both \code{surv_db} and \code{surv_db_ref} contains multiple tanks. A numeric indicating the smoothing parameter to be used in estimating the reference hazard curve. Ignored if \code{pred_phi} is not NULL. Defaults to NULL (data driven estimate). Further details in \code{Surv_Plots}.}
+\item{lambda}{A numeric indicating the smoothing parameter to be used in hazard curve estimation. Defaults to NULL (data driven estimate). Further details in \code{Surv_Plots}.}
 
 \item{plot_save}{Whether to save plot outputs in the working directory. Defaults to TRUE.}
 
 \item{plot_prefix}{A string specifying the prefix of the filename of the saved plots.  Defaults to "ONDA_XX".}
 
-\item{data_out}{Whether to output dataframes containing predicted survival rates and hazard ratios.}
+\item{plot_dim}{Numeric vector representing the width and height of the plot (in inches), respectively.}
 }
 \value{
-The output is a list consisting of at least four ggplot2 objects and optionally
-two dataframes described further below.
-
-\itemize{
- \item '\emph{Comp_SR_Plot}' and '\emph{Comp_HR_Plot}' illustrate survival rates and hazard rates (respectively) of treatments in \code{surv_db} and \code{surv_db_ref} with the latter colored black.
- \item '\emph{Pred_SR_Plot}' and '\emph{Pred_HR_Plot}' display the history of predictions for survival rate and hazard ratio (respectively) based on the utilized TTE. For example, if the utilized TTE is 30, this means the prediction is blind to all data after it and only used TTEs before. The dashed lines indicate the prediction when TTE on \code{surv_db_ref} was offset by +/- 2. This is to show sensitivity to discrepancies in "starting times" (onset of significant mortality) between the reference and the data of interest.
- \item '\emph{Pred_TTE}' is a dataframe containing the predicted survival rate (pred_SR) and hazard ratio (pred_HR) based on the latest TTE, while predictions using TTEs prior is tabulated in '\emph{Pred_History}'.
-}
+Ouptuts a list containing two ggplot2 objects representing the predicted survival curves and predicted hazard curves. Additionally, the list consists of a dataframe containing the predicted rates over time and another dataframe containing the predicted rates at the specified \code{pred_tte} (or close to it due to limitations in available data from \code{surv_db_ref}).
 }
 \description{
-Predict future survival based on comparisons of hazard ratios to reference data. Produces tables summarizing predicted survival rate and hazard ratios for each treatment. Additionally, produces Kaplan-Meier Survival Plots and Hazard Time Curves comparing survival data (\code{surv_db}) to its reference (\code{surv_db_ref}). Further details of outputs described in \bold{Value} and methods in \bold{Details}.
+Predict future survival for an ongoing study (supplied into \code{surv_db}) based on a reference past study (\code{ref_surv_db}). Can consider multiple past studies using the \code{ref_specs} argument. Outputs predicted Kaplan-Meier Survival curves for each treatment group and similarly hazard curves.
 }
 \details{
-Two prediction methods are possible: "simple" and "adaptive" which can be selected using \code{pred_method}.
-
-Both methods entail firstly, the estimation of a \emph{hazard curve} for the reference group using \code{bshazard::bshazard()}. Several parameters for the estimation can be modified for quality purposes. These parameters are \code{pred_dailybin}, \code{pred_phi}, and \code{pred_lambda} which are discussed in details in the documentation of \code{safuncs::Surv_Plots()}. For studies with multiple tanks per treatment, estimation of the hazard curve uses a data driven approach and aforementioned parameters cannot be modified (ignored).
-
-Both methods then estimate a \emph{hazard ratio} for each treatment in \code{surv_db}. This is achieved by fitting each treatment (separately) with the reference group in \code{surv_db_ref} to a cox proportional hazards model. The model may be fitted using \code{survival::coxph()} for data with single tanks per treatment or \code{coxme::coxme()} for data with multiple tanks per treatment.
-
-For the "simple" method, the estimated \emph{hazard ratio} is then multiplied by the \emph{hazard curve} to produce a \emph{predicted hazard curve}. The hazard curve is then cut off up to \code{pred_tte}. The curve's cumulative value is then calculated using \code{DescTools::AUC()}, then turned negative and exponentiated to calculate survival rate at \code{pred_tte}. This "simple" method is recommended over the "adaptive".
-
-For the "adaptive" method, the \emph{predicted hazard curve} is cut off to a range up to \code{pred_tte}, starting from the maximum TTE in \code{surv_db}. The cumulative hazard from the curve is then calculated using \code{DescTools::AUC()} and added with the observed cumulative hazard from \code{surv_db}. The total cumulative hazard is then turned negative and exponentiated to calculate survival rate at \code{pred_tte}. The idea of this method is to further use the observed data in \code{surv_db} for more accurate predictions, but I've found that it is often very sensitive to variations in \code{surv_db}, hence is not recommended for now.
+Prediction done by firstly estimating a \emph{hazard curve} for the reference group using \code{bshazard::bshazard()}. The ratio of hazards from the past study to the ongoing is estimated using \code{coxme::coxme()}. The reference hazard curve is multiplied by the hazard ratio to obtain the projected hazard curve for the ongoing study. Next, exp(-hazard) which produces the predicted survival curve.
 }
 \examples{
-# Below is a brief tutorial showing how to use Surv_Pred() to predict future survival.
+# In the first step, we load the reference database then specify the study and
+# treatment to use as reference:
+ref_surv_db = surv_db_ex
+ref_specs = data.frame(Study = "QCATC1068",
+                       Trt.ID = "A",
+                       TTE_offset = 0)
 
-# In the first step, we load the data for which survival is to be predicted and its
-# reference (e.g. a past survival data involving the same disease). The reference must
-# contain only one treatment group:
-surv_db_ref = surv_db_ex[surv_db_ex$Trt.ID == "D",]
-
-# For demonstration purposes, we pretend the survival data to be predicted only extends
-# to 35 TTE / DPC. Survival rate at 54 TTE is to be predicted. To create such data from
-# the example, I use survival::survSplit(). For real applications, creating the data
-# this way would be unnecessary, instead refer to safuncs::Surv_Gen().
-surv_db = survival::survSplit(data = surv_db_ex[-1,], cut = 35, end = "TTE",
+# Next, we load the ongoing study. Suppose it is mid-way to completion, hence the
+# survival data only extends to 35 TTE / DPC and we want to predict to 54. Lets
+# create the 35 TTE dataset for this demo:
+surv_db = survival::survSplit(data = surv_db[-1,], cut = 35, end = "TTE",
                               event = "Status", episode = "Eps")
-
-surv_db = surv_db[surv_db$Eps == 1 & surv_db$Trt.ID != "D",
-                  -c(3, 6)] #remove unnecessary rows and columns
-
+surv_db = surv_db[surv_db$Eps == 1, -c(3, 6)]
 tail(surv_db, n = 5)
 
-# Next, we feed both datasets to Surv_Pred() and execute!
+# Now chuck all the created objects into Surv_Pred()!
 Surv_Pred(surv_db = surv_db,
-          surv_db_ref = surv_db_ref,
-          pred_tte = 54,
-          pred_method = "simple",
-          plot_save = FALSE,
-          data_out = FALSE)[-4] #exclude data output and fourth plot for now for brevity
-
-# In the first two comparative plots, colored lines show characteristics of treatments
-# from surv_db while black lines show represent the reference group.
-
-# Notably, the third plot shows instability of the survival predictions. Using the
-# latest TTE, predictions compared to actual survival at 54 TTE is 76 vs 64\% (+8\%) for
-# Trt.A, 56 vs 64\% (-8\%) for Trt.B, and 70 vs 73\% (-3\%) for Trt.C. Notably, for Trt.B,
-# predictions took ~ 2 weeks to become close to accurate. A suspected cause of this is
-# the low(?) mortality counts that would led to an unreliable hazard ratio estimate
-# on which the survival prediction is based on. Due to sampling variability, early
-# predictions should be scrutinized.
-
-# I want to show another example where the predictions worked "better". Below I use a
-# real ongoing study (at the time of writing). Here, predictions appeared more stable
-# and stabilized quicker. I attribute this partly to the greater mortality counts which
-# lead to more precisely estimated hazard ratios.
-
-Surv_Pred(surv_db = surv_db_ex2, #real data with anonymized Trt.IDs
-          surv_db_ref = surv_db_ex3, #real past data as reference
-          pred_tte = 54,
-          pred_method = "simple",
-          plot_save = FALSE,
-          data_out = FALSE)
+          ref_surv_db = ref_surv_db,
+          ref_specs = ref_specs,
+          pred_tte = 54)
 }
 \seealso{
 \href{https://sean4andrew.github.io/safuncs/reference/Surv_Pred.html}{Link} for executed \bold{Examples} which includes any figure outputs.
