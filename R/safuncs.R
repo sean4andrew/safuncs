@@ -864,6 +864,7 @@ theme_Publication = function(base_size = 14) {
 #' @param plot_save Whether to save plot outputs in the working directory. Defaults to TRUE.
 #' @param plot_prefix A string specifying the prefix of the filename of the saved plots.  Defaults to "ONDA_XX".
 #' @param plot_dim Numeric vector representing the width and height of the plot (in inches), respectively.
+#' @param plot_lwrap Whether to apply text wrapping to the "Reference" legend in the plots.
 #'
 #' @return Outputs a list containing two ggplot2 objects representing the predicted survival curves and predicted hazard curves. Additionally, the list contains a dataframe with the predicted rates over time and another dataframe containing the predicted rates at the specified \code{pred_tte} (or close to it due to limitations in available data from \code{surv_db_ref}). The dataframes have at most 7 columns with the following content description for each: \tabular{lll}{
 #'  \code{ref_unique} \tab \tab The unique reference group used, based on \code{ref_surv_db} and \code{ref_specs}. \cr
@@ -912,7 +913,8 @@ Surv_Pred = function(surv_db,
                      lambda = NULL,
                      plot_save = TRUE,
                      plot_prefix = "ONDA_XX",
-                     plot_dim = c(7, 4.3)){
+                     plot_dim = c(7, 4.3),
+                     plot_lwrap = FALSE){
 
   surv_db_ref0 = merge(ref_surv_db, ref_specs)
   surv_db_ref0 = surv_db_ref0[!is.na(surv_db_ref0$TTE_offset),]
@@ -1008,6 +1010,11 @@ Surv_Pred = function(surv_db,
 
   linevec = c(2, 4, 1, 5, 6, 3)
 
+  lwrap = function(x, plot_lwrap = FALSE) {
+    out = if(plot_lwrap) sub(" ", ",\n", trimws(x)) else sub(" ", ", ", trimws(x))
+    return(out)
+  }
+
   #Create projection plots
   sp = Surv_Plots(surv_db = surv_db,
                   lambda = lambda, phi = phi, dailybin = dailybin,
@@ -1017,11 +1024,13 @@ Surv_Pred = function(surv_db,
 
   sp = suppressMessages({
     sp +
-      geom_step(data = project_db, aes(x = ceiling(time), y = sr, color = Trt.ID, linetype = ref_unique), size = 0.8) +
+      geom_step(data = project_db, size = 0.8,
+                aes(x = ceiling(time), y = sr, color = Trt.ID, linetype = lwrap(ref_unique, plot_lwrap))) +
       scale_linetype_manual(name = "Reference", values = linevec[1:length(unique(project_db$ref_unique))]) +
       scale_color_discrete(name = "Trt.ID") +
       guides(linetype = guide_legend(order = 1), colour = guide_legend(order = 2)) +
-      geom_step(data = ref_surv, aes(x = time, y = surv, linetype = ref_unique), size = 0.8, color = "#6C6C6C", show.legend = FALSE) +
+      geom_step(data = ref_surv, aes(x = time, y = surv, linetype = lwrap(ref_unique, plot_lwrap)),
+                size = 0.8, color = "#6C6C6C", show.legend = FALSE) +
       theme(legend.key.width = unit(2, "lines"),
             plot.title = element_text(hjust = 0.5)) +
       ggtitle("Survival predictions based on past studies")
@@ -1032,14 +1041,15 @@ Surv_Pred = function(surv_db,
     Surv_Plots(surv_db = surv_db,
                lambda = lambda, phi = phi, dailybin = dailybin,
                plot = "haz", plot_save = FALSE, xlim = c(0, pred_tte + 1)) +
-      geom_line(data = project_db, aes(x = time, y = hazard, color = Trt.ID, linetype = ref_unique), size = 0.8) +
+      geom_line(data = project_db, linewidth = 0.8,
+                aes(x = time, y = hazard, color = Trt.ID, linetype = lwrap(ref_unique, plot_lwrap))) +
       geom_point(data = project_db, aes(x = time, y = hazard, color = Trt.ID)) +
       scale_linetype_manual(name = "Reference", values = linevec[1:length(unique(project_db$ref_unique))]) +
       scale_color_discrete(name = "Trt.ID") +
       scale_y_continuous(name = "Hazard") +
       guides(linetype = guide_legend(order = 1), colour = guide_legend(order = 2)) +
-      geom_line(data = ref_haz, aes(x = time, y = hazard, linetype = ref_unique), size = 0.8,
-                inherit.aes = FALSE, color = "#6C6C6C") +
+      geom_line(data = ref_haz, aes(x = time, y = hazard, linetype = lwrap(ref_unique, plot_lwrap)),
+                linewidth = 0.8, inherit.aes = FALSE, color = "#6C6C6C") +
       geom_point(data = ref_haz, aes(x = time, y = hazard), inherit.aes = FALSE, color = "#6C6C6C") +
       theme(legend.key.width = unit(2, "lines"),
             plot.title = element_text(hjust = 0.5)) +

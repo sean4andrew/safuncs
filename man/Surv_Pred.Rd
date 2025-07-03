@@ -14,7 +14,8 @@ Surv_Pred(
   lambda = NULL,
   plot_save = TRUE,
   plot_prefix = "ONDA_XX",
-  plot_dim = c(7, 4.3)
+  plot_dim = c(7, 4.3),
+  plot_lwrap = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ Surv_Pred(
 \item{plot_prefix}{A string specifying the prefix of the filename of the saved plots.  Defaults to "ONDA_XX".}
 
 \item{plot_dim}{Numeric vector representing the width and height of the plot (in inches), respectively.}
+
+\item{plot_lwrap}{Whether to apply text wrapping to the "Reference" legend in the plots.}
 }
 \value{
 Outputs a list containing two ggplot2 objects representing the predicted survival curves and predicted hazard curves. Additionally, the list contains a dataframe with the predicted rates over time and another dataframe containing the predicted rates at the specified \code{pred_tte} (or close to it due to limitations in available data from \code{surv_db_ref}). The dataframes have at most 7 columns with the following content description for each: \tabular{lll}{
