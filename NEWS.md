@@ -1,10 +1,10 @@
 # safuncs 2.4.0
 
-*Current*
+*0Jul2025 - Current*
 
 * Revamped function `Surv_Pred()`.
 * Added various arguments to `Surv_Plots()`.
-* Added function `fpr_checker()`.
+* Added function `fpr_check()`.
 * Added various color vectors.
 * Added various example datasets.
 
@@ -14,7 +14,7 @@
 
 * Revamped function `Surv_Pred()`.
 * Completed `Surv_Pred()` documentation.
-* Added an argument to `Surv_Gen()` and `Surv_Plot()` to account for an additional factor.
+* Added an argument to `Surv_Gen()` and `Surv_Plots()` to account for an additional factor.
 * Added data transformation assisting functions `xlsx_row2coln()` and `xlsx_trimrow()`.
 * Added miscellaneous functions `silencer()` and `knife()`.
 
