@@ -1,0 +1,632 @@
+---
+title: "Untitled"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r}
+library(safuncs)
+library(ggplot2)
+
+ # surv_db = survival::survSplit(surv_db_ex[surv_db_ex$TTE > 0,], cut = 37, end = "TTE", event = "Status", episode = "Obs")
+ # surv_db = surv_db[surv_db$Obs == 1,]
+ # ref_surv_db = surv_db_ex
+ # ref_surv_db$Study = sample(c("QCATC1068", "QCATC997"), replace = TRUE, size = 1200)
+ # ref_specs = data.frame(Study = "QCATC1068",
+ #                        Trt.ID = "A",
+ #                        TTE_offset = -2)
+
+
+ phi = 1.5
+ dailybin = TRUE
+ lambda = NULL
+ plot_dim = c(7, 4.3)
+ factor = "Trt.ID"
+ plot = "both"
+ plot_prefix = "ONDA_XX"
+ plot_lwrap = FALSE
+ 
+surv_db = ongoing_surv_db
+ref_surv_db = loocv_i$ref
+ref_specs = loocv_i$ref_specs
+pred_tte = max(loocv_i$ongoing$TTE)
+plot_save = FALSE
+ 
+ Surv_Pred = function(surv_db,
+                     ref_surv_db,
+                     ref_specs,
+                     pred_tte,
+                     dailybin = TRUE,
+                     phi = 1.5,
+                     lambda = NULL,
+                     factor = "Trt.ID",
+                     plot = "both",
+                     plot_save = TRUE,
+                     plot_prefix = "ONDA_XX",
+                     plot_dim = c(7, 4.3),
+                     plot_lwrap = FALSE){
+
+  surv_db_ref0 = merge(ref_surv_db, ref_specs) #ref_specs[-"surv_db_Trt.ID"]
+  surv_db_ref0 = surv_db_ref0[!is.na(surv_db_ref0$TTE_offset),]
+  if(nrow(surv_db_ref0) == 0) stop("No reference study selected. Possible ref_specs mismatch with ref_surv_db.")
+  surv_db_ref0$TTE = surv_db_ref0$TTE + surv_db_ref0$TTE_offset
+  surv_db_ref0$unique = interaction(surv_db_ref0$Study, surv_db_ref0$Trt.ID, sep = " ") |> trimws()
+
+  #Enforce >0 TTEs
+  surv_db_ref0 = surv_db_ref0[surv_db_ref0$TTE > 0, ]
+  surv_db = surv_db[surv_db$TTE > 0, ]
+
+  #Get reference level hazard curve
+  surv_db_ref0$unique = paste("ref", surv_db_ref0$unique)
+  surv_db_ref0$Trt.ID = paste("ref", surv_db_ref0$Trt.ID)
+
+  #Initialize dataframes
+  project_db = data.frame()
+  end_db = data.frame()
+  ref_haz = data.frame()
+  ref_surv = data.frame()
+
+  #For loop to predict based on the different reference groups in surv_db_ref.
+  for(ref_unique in unique(surv_db_ref0$unique)){
+    surv_db_ref = surv_db_ref0[surv_db_ref0$unique == ref_unique, ]
+
+    #Print warning message if surv_db_ref end TTE < pred_tte
+    if(max(surv_db_ref$TTE) < pred_tte) {
+      warning(paste0("The desired 'pred_tte' (", pred_tte,
+                     ") is greater than the maximum available in the reference database (",
+                     max(surv_db_ref$TTE), ") - ", ref_unique, "."))
+    }
+
+    #Get ref_bshaz and ref_survfit
+    tank_form = if(length(unique(surv_db_ref$Trt.ID)) == length(unique(surv_db_ref$Tank.ID))) "1" else "Tank.ID"
+    
+    ref_bshaz = silencer(bshazard::bshazard(data = surv_db_ref, as.formula(paste("survival::Surv(TTE, Status) ~", tank_form)),
+                                            verbose = FALSE, phi = phi, lambda = lambda,
+                                            nbin = if(dailybin == TRUE) max(surv_db_ref$TTE) else NULL))
+    ref_haz = rbind(ref_haz, data.frame(ref_unique = sub("ref", "", ref_unique),
+                                        hazard = ref_bshaz$hazard,
+                                        time = ref_bshaz$time))
+    ref_survfit = summary(survival::survfit(survival::Surv(TTE, Status) ~ 1, data = surv_db_ref))
+    ref_surv = rbind(ref_surv, data.frame(ref_unique = sub("ref", "", ref_unique),
+                                          surv = ref_survfit$surv,
+                                          time = ref_survfit$time))
+
+    #Check ref_bshaz
+    if(any(diff(ref_bshaz$time) != 1)) stop("Incorrect time-interval in hazard dataframe. Please let Sean know!")
+
+    #Loop for every treatment in the surv_db (not reference)
+    for(pred_trt in levels(as.factor(surv_db$Trt.ID))) {
+      
+      #Skip prediction if surv_db_Trt.ID not in ref_specs
+      if("surv_db_Trt.ID" %in% colnames(ref_specs)) {
+        if(ref_specs$surv_db_Trt.ID & sub("ref", "", unlist(strsplit(ref_unique, " ")))) next
+      }
+
+      #Combine reference and observed hazard dataframes
+      surv_db_trt = surv_db[surv_db$Trt.ID == pred_trt,]
+      comb_db = rbind(surv_db_ref[, c("Trt.ID", "Tank.ID", "TTE", "Status")],
+                      surv_db_trt[, c("Trt.ID", "Tank.ID", "TTE", "Status")])
+      comb_db$Trt.ID = relevel(as.factor(comb_db$Trt.ID), ref = unique(surv_db_ref$Trt.ID))
+
+      #Create cut_db
+      cut_day = min(max(surv_db_trt$TTE), max(surv_db_ref$TTE))
+      cut_db = survival::survSplit(comb_db, cut = cut_day, end = "TTE", event = "Status", episode = "Obs")
+      precut_db = cut_db[cut_db$Obs == 1, ] #selecting phase 1 data only. Check if inclusive or not (desired = inclusive).
+      precut_db$Tank.ID = interaction(precut_db$Tank.ID, precut_db$Trt.ID)
+
+      #Precut_survfit and cumhaz
+      precut_survfit = survival::survfit(survival::Surv(TTE, Status) ~ 1, data = surv_db_trt)
+      precut_cumhaz = -log(tail(summary(precut_survfit)$surv, 1))
+      precut_cumhaz = if(length(precut_cumhaz) == 0) 0 else precut_cumhaz
+
+      #Precut_HR
+      cox_mod = suppressWarnings(coxme::coxme(survival::Surv(TTE, Status) ~ Trt.ID + (1|Tank.ID),
+                                              data = precut_db))
+      pred_hr = exp(coef(cox_mod))
+
+      #Postcut_bshaz
+      postcut_timesFP = ref_bshaz$time > cut_day & ref_bshaz$time <= pred_tte
+      postcut_haz = ref_bshaz$hazard[postcut_timesFP] * pred_hr
+      postcut_cumhaz = if(length(postcut_haz) > 0) cumsum(postcut_haz) else 0
+      postcut_times = ref_bshaz$time[postcut_timesFP]
+
+      #Predict SRs
+      project_temp = data.frame(ref_unique = sub("ref", "", ref_unique),
+                                Trt.ID = pred_trt,
+                                time = if(length(postcut_times) != 0) postcut_times else tail(ref_bshaz$time, 1),
+                                hazard = if(length(postcut_haz) != 0) postcut_haz else tail(ref_bshaz$hazard, 1),
+                                hr = pred_hr,
+                                cumhaz = precut_cumhaz + postcut_cumhaz) |> suppressWarnings()
+      project_temp$sr = exp(-project_temp$cumhaz)
+
+      project_db = rbind(project_db, project_temp)
+      end_db = rbind(end_db, project_temp[project_temp$time == last(project_temp$time), -4])
+
+    } #close loops by treatment in surv_db
+  } #close loops by unique in ref_surv_db0
+
+  linevec = c(2, 4, 1, 5, 6, 3)
+
+  lwrap = function(x, plot_lwrap = FALSE) {
+    out = if(plot_lwrap) sub(" ", ",\n", trimws(x)) else sub(" ", ", ", trimws(x))
+    return(out)
+  }
+
+  if(plot %in% c("surv", "both")) {
+    #Create projection plots
+    sp = Surv_Plots(surv_db = surv_db, factor = factor,
+                    lambda = lambda, phi = phi, dailybin = dailybin,
+                    plot = "surv", plot_save = FALSE, xlim = c(0, pred_tte + 1))
+    sp$layers[[1]]$mapping = aes(color = .data[["Trt.ID"]])
+    sp$layers[[3]]$mapping = aes(color = .data[["Trt.ID"]])
+
+    sp = suppressMessages({
+      sp +
+        geom_step(data = project_db, size = 0.8,
+                  aes(x = ceiling(time), y = sr, color = Trt.ID, linetype = lwrap(ref_unique, plot_lwrap))) +
+        scale_linetype_manual(name = "Reference", values = linevec[1:length(unique(project_db$ref_unique))]) +
+        #guides(linetype = guide_legend(order = 1), colour = guide_legend(order = 2)) +
+        geom_step(data = ref_surv, aes(x = time, y = surv, linetype = lwrap(ref_unique, plot_lwrap)),
+                  size = 0.8, color = "#6C6C6C", show.legend = FALSE) +
+        theme(legend.key.width = unit(1.5, "lines"),
+              plot.title = element_text(hjust = 0.5))
+      })
+    sp$layers = sp$layers[c(5, 1:4)]
+  }
+
+  if(plot %in% c("haz", "both")){
+    hp = suppressMessages({
+      Surv_Plots(surv_db = surv_db, factor = factor,
+                 lambda = lambda, phi = phi, dailybin = dailybin,
+                 plot = "haz", plot_save = FALSE, xlim = c(0, pred_tte + 1)) +
+        #guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
+        geom_line(data = project_db, linewidth = 0.8,
+                  aes(x = time, y = hazard, color = Trt.ID, linetype = lwrap(ref_unique, plot_lwrap))) +
+        geom_point(data = project_db, aes(x = time, y = hazard, color = Trt.ID)) +
+        scale_linetype_manual(name = "Reference", values = linevec[1:length(unique(project_db$ref_unique))]) +
+        scale_y_continuous(name = "Hazard") +
+        geom_line(data = ref_haz, aes(x = time, y = hazard, linetype = lwrap(ref_unique, plot_lwrap)),
+                  linewidth = 0.8, inherit.aes = FALSE, color = "#6C6C6C") +
+        geom_point(data = ref_haz, aes(x = time, y = hazard), inherit.aes = FALSE, color = "#6C6C6C") +
+        theme(legend.key.width = unit(1.5, "lines"),
+              plot.title = element_text(hjust = 0.5))
+    })
+    hp$layers = hp$layers[c(5:6, 1:4)]
+  }
+
+  #Save plots
+  if(plot_save == TRUE) {
+    if(plot %in% c("surv", "both")){
+      ggsave(plot = sp, filename = paste(plot_prefix, "Survival Projections.tiff"),
+             dpi = 400, width = plot_dim[1], height = plot_dim[2])
+    }
+    if(plot %in% c("haz", "both")) {
+      ggsave(plot = hp, filename = paste(plot_prefix, "Hazard Projections.tiff"),
+             dpi = 400, width = plot_dim[1], height = plot_dim[2])
+    }
+  }
+
+  #Return Outputs
+  output = list(Survival_Plot = sp,
+                Hazard_Plot = hp,
+                Predictions = project_db,
+                End_Predictions = end_db)
+  
+#print(output)
+  return(output)
+}
+```
+Surv_LOOCV() function. I think I need this to recognize pathogen?
+```{r}
+surv_db = ref_surv_db
+ref_specs = ref_specs
+
+Surv_LOOCV = function(surv_db,
+                      ref_specs) {
+
+  ref_specs_ori = ref_specs
+  
+  output = list()
+  for(study_i in surv_db$Study){
+    output[[study_i]]$ongoing = surv_db[surv_db$Study == study_i, ]
+    output[[study_i]]$ref = surv_db[surv_db$Study != study_i, ]
+    
+    #recenter TTE_offset
+    ref_specs$TTE_offset = ref_specs_ori$TTE_offset - ref_specs_ori$TTE_offset[ref_specs_ori$Study == study_i]
+    
+    output[[study_i]]$ref_specs = ref_specs[ref_specs$Study != study_i, ]
+  }
+  
+  return(output)
+}
+```
+
+Run Surv_Pred for every LOOCV
+```{r}
+#Can I make this a function?
+Apply_SurvPred = function(loocv_list) {
+  pred_results = list()
+  for(loocv_name in names(loocv_list)) { #second layer for study, but I might need a first layer for pathogen..
+    loocv_i = loocv_list[[loocv_name]]
+    print(loocv_name)
+    end_pred = data.frame()
+    for(days_in in max(1, min(loocv_i$ongoing$TTE)): max(loocv_i$ongoing$TTE)) { #max(loocv_i$ongoing$TTE)
+      
+      ongoing_surv_db = survival::survSplit(loocv_i$ongoing[loocv_i$ongoing$TTE > 0,], cut = days_in, 
+                                            end = "TTE", event = "Status", episode = "Obs")
+      ongoing_surv_db = ongoing_surv_db[ongoing_surv_db$Obs == 1,]
+    
+      end_pred0 = Surv_Pred(surv_db = ongoing_surv_db,
+                            ref_surv_db = loocv_i$ref,
+                            ref_specs = loocv_i$ref_specs,
+                            pred_tte = max(loocv_i$ongoing$TTE),
+                            plot_save = FALSE)$End_Predictions |> suppressWarnings()
+      
+      if(nrow(end_pred0) > 0) {
+        end_pred0$days_in = days_in
+    
+        #Put an averaging function here based on the different reference groups for a single Trt.ID?
+        end_pred0 = end_pred0 |>
+          dplyr::group_by(Trt.ID, days_in) |>
+          dplyr::summarise(sr = mean(sr), time = mean(time)) |> suppressMessages() |> suppressWarnings()
+        
+        if(days_in == max(loocv_i$ongoing$TTE)) {
+          end_pred0$true_end_sr = end_pred0$sr
+          end_pred = merge(end_pred, end_pred0[, c("Trt.ID", "true_end_sr")])
+        }
+        
+        end_pred = rbind(end_pred, end_pred0)
+      }
+      # Cleanup temporary files
+      tmp_files = list.files(tempdir(), full.names = TRUE)
+      unlink(tmp_files, recursive = TRUE, force = TRUE)
+    }
+    rownames(end_pred) = NULL
+    pred_results[[loocv_name]] = end_pred
+  }
+  
+  return(pred_results)
+}
+```
+
+View predictions over time
+
+```{r}
+plot_type = 3
+xlims = list("one-third" = c(34, 54), 
+             "two-third" = c(44, 54))
+
+Plot_Pred = function(pred_results, plot_type = 3, xlims, facet = FALSE) {
+
+  #Make this whole thing a function (Pred_Diagnostics)? Only input variable probably the xlims.
+  binded_res = dplyr::bind_rows(pred_results, .id = "Study")
+  binded_res$group = interaction(binded_res$Study, binded_res$Trt.ID, sep = " ")
+  binded_res$discrepancy = binded_res$sr - binded_res$true_end_sr
+  
+  if(facet == FALSE) {
+    avg_db = binded_res |>
+      dplyr::group_by(days_in) |>
+      dplyr::summarise(avg_abs_disc = mean(abs(discrepancy)))
+  } else {
+    avg_db = binded_res |>
+      dplyr::group_by(Study, days_in) |>
+      dplyr::summarise(avg_abs_disc = mean(abs(discrepancy)))
+  }
+  
+  plot_res = list()
+  
+  if(plot_type == 1){
+    for(xlim in names(xlims)){
+      plot_res[["plot_type1"]][[xlim]] = ggplot(data = binded_res, aes(x = days_in, y = sr, 
+                                                                              group = group, color = Study)) +
+      geom_step(alpha = 0.6) +
+      scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.1)) +
+      geom_hline(data = binded_res,
+                 aes(yintercept = true_end_sr, group = group, color = Study),
+                 linetype = "dotted") +
+      xlim(xlims[[xlim]]) +
+      theme_bw()
+      
+      if(facet == TRUE) {
+        plot_res[["plot_type1"]][[xlim]] = plot_res[["plot_type1"]][[xlim]] + facet_wrap(~Study)
+      }
+    }
+  }
+  
+  if(plot_type == 2){
+    for(xlim in names(xlims)){
+      plot_res[["plot_type2"]][[xlim]] = ggplot(data = binded_res, aes(x = days_in, y = discrepancy, 
+                                                                              group = group, color = Study)) +
+        geom_step(alpha = 0.6) +
+        scale_y_continuous(breaks = seq(-1, 1, 0.1), limits = c(-0.5, 0.5), oob = scales::squish) +
+        scale_x_continuous(limits = xlims[[xlim]], n.breaks = 8) +
+        theme_bw()
+      
+      if(facet == TRUE) {
+        plot_res[["plot_type2"]][[xlim]] = plot_res[["plot_type2"]][[xlim]] + facet_wrap(~Study)
+      }
+    }
+  }
+  
+  if(plot_type == 3){
+    for(xlim in names(xlims)){
+      plot_res[["plot_type3"]][[xlim]] = ggplot(data = binded_res, aes(x = days_in, y = abs(discrepancy), 
+                                                                    group = group, color = Study)) +
+        geom_step(alpha = 0.6) + 
+        scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1), oob = scales::squish) +
+        scale_x_continuous(limits = xlims[[xlim]], n.breaks = 8) +
+        theme_bw() +
+        geom_step(data = avg_db, aes(x = days_in, y = avg_abs_disc), color = "black", linewidth = 1, inherit.aes = FALSE)
+      
+      if(facet == TRUE) {
+        plot_res[["plot_type3"]][[xlim]] = plot_res[["plot_type3"]][[xlim]] + facet_wrap(~Study)
+      }
+    }
+  }
+  
+  return(plot_res)
+}
+```
+
+Create LOOCV list
+```{r}
+ref_surv_db = read.csv(file = "Survival Data Library (updated 20Aug2025).csv")
+#ref_surv_db = ref_surv_db[ref_surv_db$Pathogen == "M. viscosa",]
+ref_surv_db = ref_surv_db[ref_surv_db$Pathogen == "Tenaci" & 
+                            ref_surv_db$Pathogen.Strain != "T.maritimum" &
+                            ref_surv_db$Study %in% c("QCATC1090", "QCATC1096-3", "QCATC997", "RD0051"), ]
+
+#Moritella
+# ref_specs = data.frame(Study = c("ONDA01166", "ONDA01254", "QCATC1090", "QCATC997"),
+#                        Trt.ID = c("A (Control)", "A (Control)", 
+#                                   "A (Ctrl Diet Unvac)", "E (Control)"),
+#                        TTE_offset = c(-5, -2, 0, -8))
+#A. sal
+# ref_specs = data.frame(Study = c("ONDA01227-1", "ONDA01227-2"),
+#                        Trt.ID = c("Group 2", "Control"),
+#                        TTE_offset = c(0, 0))
+#Y. ruckeri
+# ref_specs = data.frame(Study = c("QCATC1070-1", "QCATC1078", "RD0028"),
+#                        Trt.ID = c("Type2 3h-7", "Diet 1 (Control)", "Biotype 2 Med"),
+#                        TTE_offset = c(0, -2, 0))
+#P. sal
+# ref_specs = data.frame(Study = c("QCATC1079", "RD0035"),
+#                        Trt.ID = c("T1 (Control)", "2017_Current_25"),
+#                        TTE_offset = c(-6, 0))
+#ISAV
+ref_specs = data.frame(Study = c("QCATC1090", "QCATC1096-3", "QCATC997", "RD0051"),
+                       Trt.ID = c("F (Control)", "A (Control)", "50x - 20%T", "10^3 - 20%T"),
+                       TTE_offset = c(-2, -3, 0, -2))
+
+loocv_list0 = Surv_LOOCV(surv_db = ref_surv_db, #filter for the pathogen here. 
+                        ref_specs = ref_specs)
+```
+
+Get Predicts
+```{r}
+pred_results0 = Apply_SurvPred(loocv_list0)
+```
+
+Get Plots
+```{r}
+xlims = list("one-third" = c(30, 55),
+             "half-way" = c(34, 55))
+
+#Using different references (peak)
+# Plot_Pred(pred_results = pred_results1,
+#           plot_type = 1, 
+#           xlims = xlims,
+#           facet = TRUE)
+# 
+# Plot_Pred(pred_results = pred_results1,
+#           plot_type = 3, 
+#           xlims = xlims,
+#           facet = TRUE)
+
+#Using  different references (flat)
+# Plot_Pred(pred_results = pred_results2,
+#           plot_type = 1,
+#           xlims = xlims,
+#           facet = TRUE)
+# 
+Plot_Pred(pred_results = pred_results0,
+          plot_type = 1,
+          xlims = xlims,
+          facet = TRUE)
+```
+
+Using all data together
+```{r}
+# Plot_Pred(pred_results = pred_results0,
+#           plot_type = 1, 
+#           xlims = xlims,
+#           facet = TRUE)
+
+Plot_Pred(pred_results = pred_results0,
+          plot_type = 3,
+          xlims = xlims,
+          facet = TRUE)
+```
+
+Step 1. Estimate tank variability on initial and final weights. 
+Step 2. If tank variability is low, SGR variation between-tanks is probably caused entirely by fish-variability. 
+Step 3. Estimate fish-variability in SGR at different size ranges. 
+
+Use for power calculations (SGR). Can also be used for power calculation comparing final weight (FW). Weight gain (WG) also, but this is almost perfectly correlated with SGR p-values so its not something we should worry much about I think.
+```{r}
+library(dplyr)
+library(lme4)
+library(lmerTest)
+
+sd_between_tanks = c()
+  for(i in 1:1000){
+  
+  tank_num = 3
+  trt_num = 1
+  
+  sim_db = data.frame()
+  
+  #Simulate data
+  for(trt_i in 1:trt_num){
+    for(tank_i in 1:tank_num){
+      
+      tank_val = rnorm(n = 1, mean = 0, sd = 0.039)
+      fish_val = rnorm(n = 17, mean = 0, sd = 0.1053)
+      y_val = tank_val + fish_val
+      
+      sim_db0 = data.frame(trt_id = LETTERS[trt_i],
+                           tank_id = paste(LETTERS[trt_i], tank_i),
+                           y_val = y_val)
+      
+      sim_db = rbind(sim_db, sim_db0)
+    }
+  }
+  
+  #Calculate tank averages
+  avg_db = sim_db |>
+    dplyr::group_by(tank_id) |>
+    summarise(tank_avg = mean(y_val))
+
+  sd_between_tanks = c(sd_between_tanks, sd(avg_db$tank_avg))
+  }
+
+mean(sd_between_tanks)
+```
+
+Final-tank weights inter-tank SD.
+```{r}
+tank_means = c()
+for(tank_i in 1:10000) {
+  sgr_coef = rnorm(n = 50, mean = log(717/245)/70, sd = 0.00127) + rnorm(n = 1, mean = 0, sd = 0.000365)
+  Wf_sim = rnorm(n = 50, mean = 245, sd = 23.3) * exp(70 * sgr_coef)
+  tank_means = c(tank_means, mean(Wf_sim))
+}
+
+sd(tank_means) #inter-tank SD estimated to be 16.9
+```
+
+Function to estimate inter-fish SD:
+```{r}
+estimate_fish_sgr_sd = function(Wi, #vector of initial weights
+                                Wf, #vector of final weights
+                                t,  #time between the two weights
+                                sd_limits = c(0, 0.3), #x-axis range investigated
+                                sd_increments = 0.002, #sds to be investigated
+                                n_sim = 1000, 
+                                show_plot = TRUE,
+                                plot_title = "") {
+  
+  investigated_sds = seq(sd_limits[1], sd_limits[2], sd_increments)
+  Wf_sim_mean_sds = c()
+  
+  sgr = (log(mean(Wf)) - log(mean(Wi))) / t
+  target_sd = sd(Wf) 
+  sd_attempts = investigated_sds / 100
+  
+  for(sd_i in sd_attempts){
+    Wf_sim_sd = c()
+  
+    for(i in 1:n_sim){
+      Wf_sim = Wi * exp(t * rnorm(n = length(Wi), mean = sgr, sd = sd_i))
+      Wf_sim_sd = c(Wf_sim_sd, sd(Wf_sim))
+    }
+    Wf_sim_mean_sds = c(Wf_sim_mean_sds, mean(Wf_sim_sd))
+  }
+  
+  if(show_plot == TRUE) {
+    plot(y = abs(Wf_sim_mean_sds - target_sd), x = sd_attempts * 100, ylab = "Discrepancy", xlab = "SD used in simulation", 
+         main = plot_title)
+  }
+  
+  best_sd = sd_attempts[which(abs(Wf_sim_mean_sds - target_sd) == 
+                                min(abs(Wf_sim_mean_sds - target_sd)))] #answer = 0.00108
+
+  return(list = list("message" = paste("The best inter-fish SGR sd is estimated to be:", 100 * best_sd, "%BW/t"),
+                     "value" = 100 * best_sd))
+}
+```
+
+```{r}
+VTW = read.csv(file = "VT Weights.csv")
+results_compiled = data.frame()
+
+for(trt_i in unique(VTW$Trt.ID)) {
+  for(tank_i in unique(VTW$Tank.ID[VTW$Trt.ID == trt_i])) {
+    
+    fvtw = VTW[VTW$Tank.ID == tank_i & VTW$Trt.ID == trt_i, ] 
+    res = estimate_fish_sgr_sd(Wi = fvtw$Weight[fvtw$Timepoint == "Initial"], 
+                               Wf = fvtw$Weight[fvtw$Timepoint == "Final"], t = 168,
+                               plot_title = paste0("Trt=", trt_i,", Tank=", tank_i))
+    
+    results_compiled = rbind(results_compiled, data.frame(trt_id = trt_i,
+                                                          tank_id = tank_i,
+                                                          fish_sd = res$value))
+  }
+}
+
+results_compiled
+```
+
+Function to estimate inter-tank SD:
+```{r}
+estimate_tank_sgr_sd = function(fish_sd, fish_num, tank_num, observed_tank_sd,
+                                sd_limits = c(0, 0.1), sd_increments = 0.001, n_sim = 1000,
+                                plot_title = "", show_plot = TRUE) {
+  
+  investigated_sds = seq(sd_limits[1], sd_limits[2], sd_increments)
+  sd_attempts = investigated_sds / 100
+  tank_sd_at_each_attempt = c()
+  
+  tank_sd_at_each_attempt = c()
+  for(sd_i in sd_attempts){
+    tank_sds_i = c()
+  
+    for(iter in 1:n_sim) {
+      tank_avweights = c()
+
+      for(tank_i in 1:tank_num){
+        tank_val = rnorm(n = 1, mean = 0, sd = sd_i)
+        fish_val = rnorm(n = fish_num, mean = 0, sd = fish_sd / 100)
+        y_val = tank_val + fish_val
+        tank_avweights = c(tank_avweights, mean(y_val))
+      }
+      tank_sds_i = c(tank_sds_i, sd(tank_avweights))
+    }
+    
+    tank_sd_at_each_attempt = c(tank_sd_at_each_attempt, mean(tank_sds_i))
+  }
+  
+  discrepancy = abs(tank_sd_at_each_attempt - observed_tank_sd / 100)
+
+  if(show_plot == TRUE) {
+    plot(y = discrepancy, x = sd_attempts * 100, ylab = "Discrepancy", xlab = "Tank-SD used in simulation", 
+         main = plot_title)
+  }
+  
+  best_tank_sd = sd_attempts[which(discrepancy == min(discrepancy))] 
+  
+  return(list = list("message" = paste("The best inter-tank SGR sd is estimated to be:", 100 * best_tank_sd, "%BW/t"),
+                     "value" = 100 * best_tank_sd))
+}
+```
+
+```{r}
+results_compiled$observed_tank_sd = 0.0415
+
+tank_sd = c()
+for(row_i in 1:nrow(results_compiled)){
+  results_sel = results_compiled[row_i, ]
+  
+  tank_sd = c(tank_sd, 
+              estimate_tank_sgr_sd(fish_sd = results_sel$fish_sd,
+                                   fish_num = 17,
+                                   tank_num = 3,
+                                   observed_tank_sd = results_sel$observed_tank_sd,
+                                   n_sim = 1000)$value)
+  print(row_i)
+}
+
+results_compiled$tank_sd = tank_sd
+results_compiled
+```
+

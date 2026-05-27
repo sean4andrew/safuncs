@@ -9,8 +9,9 @@ Surv_Plots(
   factor = "Trt.ID",
   xlim = NULL,
   xbreaks = NULL,
-  xlab = "Days Post Challenge",
-  ylim = c(0, 1.03),
+  xlab = "Days post challenge",
+  ylim = c(0, 1.01),
+  ylab = "Survival probability",
   lambda = NULL,
   phi = NULL,
   dailybin = TRUE,
@@ -21,7 +22,7 @@ Surv_Plots(
   data_out = FALSE,
   plot_save = TRUE,
   plot_prefix = "ONDA_XX",
-  plot_dim = c(6, 4),
+  plot_dim = c(5.8, 4.6),
   legend_cols = NULL,
   linesize = 1
 )
