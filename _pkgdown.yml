@@ -11,6 +11,10 @@ reference:
   desc: "Functions for simulating count data and count power analysis"
   contents:
   - starts_with("Con_")
+- title: "Pathology Data Analysis"
+  desc: "Functions for cleaning, analyzing, and plotting pathology data"
+  contents:
+  - starts_with("Path_")
 - title: "Transform Data"
   desc: "Functions to aid in data transformations"
   contents:
@@ -26,6 +30,8 @@ reference:
   - silencer
   - knife
   - fpr_check
+  - est_fish_sgr_sd
+  - est_tank_sgr_sd
 - title: "Example Data"
   contents:
   - ends_with("_ex")
