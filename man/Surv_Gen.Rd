@@ -6,6 +6,7 @@
 \usage{
 Surv_Gen(
   mort_db,
+  mort_fish_count = FALSE,
   starting_fish_count,
   last_tte,
   add_factor = NULL,
@@ -18,6 +19,8 @@ Surv_Gen(
 }
 \arguments{
 \item{mort_db}{A mort dataframe as described in \bold{Details}.}
+
+\item{mort_fish_count}{Whether to replicate data (by row) based on the number of fish specified under the column 'fish_count'.}
 
 \item{starting_fish_count}{Value representing the starting number of fish for every tank. Alternatively, a dataframe containing the columns "Trt.ID", "Tank.ID", and "starting_fish_count" to allow for different fish starting numbers per tank.}
 

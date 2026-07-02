@@ -12,10 +12,14 @@ Surv_Pred(
   dailybin = TRUE,
   phi = 1.5,
   lambda = NULL,
+  factor = "Trt.ID",
+  plot = "both",
   plot_save = TRUE,
   plot_prefix = "ONDA_XX",
   plot_dim = c(7, 4.3),
-  plot_lwrap = FALSE
+  plot_lwrap = FALSE,
+  plot_endsr = FALSE,
+  ref_remove = FALSE
 )
 }
 \arguments{
@@ -23,15 +27,19 @@ Surv_Pred(
 
 \item{ref_surv_db}{A survival dataframe for the reference group consisting of at least the four column names mentioned in \code{surv_db} documentation. For example, a dataframe loaded form the Survival Data Library.xlsx.}
 
-\item{ref_specs}{A dataframe specifying the study, treatment and time (tte) offset for the reference group in \code{ref_surv_db}. Column names: Study, Trt.ID, TTE_offset. A negative TTE_offset means the reference group survival data times are to be subtracted.}
+\item{ref_specs}{A dataframe specifying the pathogen, study, treatment and time (tte) offset for the reference group in \code{ref_surv_db}. Column names: Pathogen, Study, Trt.ID, TTE_offset. A negative TTE_offset means the reference group survival data times are to be subtracted. May also specify different reference datasets to use in predicting \code{surv_db} Trt.ID by adding another column "surv_db_Trt.ID".}
 
-\item{pred_tte}{A numeric representing the tte at which the survival rate is to be predicted}
+\item{pred_tte}{A numeric representing the tte at which survival rate is to be predicted.}
 
 \item{dailybin}{Whether to use daily (1 TTE interval) time bins in estimating hazard curves. Defaults to TRUE. Further details in \code{Surv_Plots}.}
 
 \item{phi}{A numeric indicating the count overdispersion parameter to be used in hazard curve estimation. Defaults to 1.5. Further details in \code{Surv_Plots}.}
 
 \item{lambda}{A numeric indicating the smoothing parameter to be used in hazard curve estimation. Defaults to NULL (data driven estimate). Further details in \code{Surv_Plots}.}
+
+\item{factor}{A string specifying factors for the plot. See \code{Surv_Plots()} documentation for details.}
+
+\item{plot}{A string specifying which to plot. Options are "surv", "haz", or "both".}
 
 \item{plot_save}{Whether to save plot outputs in the working directory. Defaults to TRUE.}
 

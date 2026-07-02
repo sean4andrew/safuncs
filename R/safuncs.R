@@ -822,23 +822,25 @@ theme_Publication = function(base_size = 14) {
     + theme(plot.title = element_text(face = "bold",
                                       size = rel(1.2), hjust = 0.5),
             text = element_text(),
-            panel.background = element_rect(colour = NA),
+            panel.background = element_rect(colour = NA, fill = NA),
             plot.background = element_rect(colour = NA),
             panel.border = element_rect(colour = NA),
             axis.title = element_text(face = "bold",size = rel(1)),
-            axis.title.y = element_text(angle= 90,vjust = 2),
-            axis.title.x = element_text(vjust = -0.6),
-            axis.text = element_text(),
-            axis.line = element_line(colour = "black"),
-            axis.ticks = element_line(),
+            axis.title.y = element_text(angle= 90, vjust = 2, size = 13.3),
+            axis.title.x = element_text(vjust = -0.6, size = 13.3),
+            axis.text = element_text(size = 11.6, color = "black"),
+            axis.line = element_line(colour = "black", linewidth = 0.7),
+            axis.ticks = element_line(linewidth = 0.7),
             panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(),
             legend.key = element_blank(),
+            legend.key.width = unit(0.7, "cm"),
+            legend.text = element_text(size = 11, margin = margin(l = 3, t = 3, b = 3)),
             legend.position = "right",
             legend.direction = "vertical",
             legend.key.size= unit(0.4, "cm"),
             legend.spacing = unit(0, "cm"),
-            legend.title = element_text(size = 12),
+            legend.title = element_blank(),
             plot.margin = margin(10, 10, 10, 10),
             legend.margin = margin(0, 0, 0, 0),
             strip.background = element_rect(colour = "grey92", fill = "grey92"),
@@ -856,11 +858,13 @@ theme_Publication = function(base_size = 14) {
 #'
 #' @param surv_db A survival dataframe for the ongoing study consisting of at least four columns named TTE, Status, Trt.ID and Tank.ID. For an example, see \code{surv_db_ex}.
 #' @param ref_surv_db A survival dataframe for the reference group consisting of at least the four column names mentioned in \code{surv_db} documentation. For example, a dataframe loaded form the Survival Data Library.xlsx.
-#' @param ref_specs A dataframe specifying the study, treatment and time (tte) offset for the reference group in \code{ref_surv_db}. Column names: Study, Trt.ID, TTE_offset. A negative TTE_offset means the reference group survival data times are to be subtracted.
-#' @param pred_tte A numeric representing the tte at which the survival rate is to be predicted
+#' @param ref_specs A dataframe specifying the pathogen, study, treatment and time (tte) offset for the reference group in \code{ref_surv_db}. Column names: Pathogen, Study, Trt.ID, TTE_offset. A negative TTE_offset means the reference group survival data times are to be subtracted. May also specify different reference datasets to use in predicting \code{surv_db} Trt.ID by adding another column "surv_db_Trt.ID".
+#' @param pred_tte A numeric representing the tte at which survival rate is to be predicted.
 #' @param dailybin Whether to use daily (1 TTE interval) time bins in estimating hazard curves. Defaults to TRUE. Further details in \code{Surv_Plots}.
 #' @param phi A numeric indicating the count overdispersion parameter to be used in hazard curve estimation. Defaults to 1.5. Further details in \code{Surv_Plots}.
 #' @param lambda A numeric indicating the smoothing parameter to be used in hazard curve estimation. Defaults to NULL (data driven estimate). Further details in \code{Surv_Plots}.
+#' @param factor A string specifying factors for the plot. See \code{Surv_Plots()} documentation for details.
+#' @param plot A string specifying which to plot. Options are "surv", "haz", or "both".
 #' @param plot_save Whether to save plot outputs in the working directory. Defaults to TRUE.
 #' @param plot_prefix A string specifying the prefix of the filename of the saved plots.  Defaults to "ONDA_XX".
 #' @param plot_dim Numeric vector representing the width and height of the plot (in inches), respectively.
@@ -911,12 +915,16 @@ Surv_Pred = function(surv_db,
                      dailybin = TRUE,
                      phi = 1.5,
                      lambda = NULL,
+                     factor = "Trt.ID",
+                     plot = "both",
                      plot_save = TRUE,
                      plot_prefix = "ONDA_XX",
                      plot_dim = c(7, 4.3),
-                     plot_lwrap = FALSE){
+                     plot_lwrap = FALSE,
+                     plot_endsr = FALSE,
+                     ref_remove = FALSE){
 
-  surv_db_ref0 = merge(ref_surv_db, ref_specs)
+  surv_db_ref0 = merge(ref_surv_db, ref_specs) #ref_specs[-"surv_db_Trt.ID"]
   surv_db_ref0 = surv_db_ref0[!is.na(surv_db_ref0$TTE_offset),]
   if(nrow(surv_db_ref0) == 0) stop("No reference study selected. Possible ref_specs mismatch with ref_surv_db.")
   surv_db_ref0$TTE = surv_db_ref0$TTE + surv_db_ref0$TTE_offset
@@ -966,6 +974,11 @@ Surv_Pred = function(surv_db,
     #Loop for every treatment in the surv_db (not reference)
     for(pred_trt in levels(as.factor(surv_db$Trt.ID))) {
 
+      #Skip prediction if surv_db_Trt.ID not in ref_specs
+      if("surv_db_Trt.ID" %in% colnames(ref_specs)) {
+        if(ref_specs$surv_db_Trt.ID & sub("ref", "", unlist(strsplit(ref_unique, " ")))) next
+      }
+
       #Combine reference and observed hazard dataframes
       surv_db_trt = surv_db[surv_db$Trt.ID == pred_trt,]
       comb_db = rbind(surv_db_ref[, c("Trt.ID", "Tank.ID", "TTE", "Status")],
@@ -1003,7 +1016,7 @@ Surv_Pred = function(surv_db,
       project_temp$sr = exp(-project_temp$cumhaz)
 
       project_db = rbind(project_db, project_temp)
-      end_db = rbind(end_db, project_temp[project_temp$time == tail(ref_bshaz$time, 1), -4])
+      end_db = rbind(end_db, project_temp[project_temp$time == max(project_temp$time, 1), -4])
 
     } #close loops by treatment in surv_db
   } #close loops by unique in ref_surv_db0
@@ -1015,54 +1028,70 @@ Surv_Pred = function(surv_db,
     return(out)
   }
 
-  #Create projection plots
-  sp = Surv_Plots(surv_db = surv_db,
-                  lambda = lambda, phi = phi, dailybin = dailybin,
-                  plot = "surv", plot_save = FALSE, xlim = c(0, pred_tte + 1))
-  sp$layers[[1]]$mapping = aes(color = .data[["Trt.ID"]])
-  sp$layers[[3]]$mapping = aes(color = .data[["Trt.ID"]])
+  if(plot %in% c("surv", "both")) {
+    #Create projection plots
+    sp = Surv_Plots(surv_db = surv_db, factor = factor,
+                    lambda = lambda, phi = phi, dailybin = dailybin,
+                    plot = "surv", plot_save = FALSE, xlim = c(0, pred_tte + 1))
+    sp$layers[[1]]$mapping = aes(color = .data[[factor]])
+    sp$layers[[3]]$mapping = aes(color = .data[[factor]])
 
-  sp = suppressMessages({
-    sp +
-      geom_step(data = project_db, size = 0.8,
-                aes(x = ceiling(time), y = sr, color = Trt.ID, linetype = lwrap(ref_unique, plot_lwrap))) +
-      scale_linetype_manual(name = "Reference", values = linevec[1:length(unique(project_db$ref_unique))]) +
-      scale_color_discrete(name = "Trt.ID") +
-      guides(linetype = guide_legend(order = 1), colour = guide_legend(order = 2)) +
-      geom_step(data = ref_surv, aes(x = time, y = surv, linetype = lwrap(ref_unique, plot_lwrap)),
-                size = 0.8, color = "#6C6C6C", show.legend = FALSE) +
-      theme(legend.key.width = unit(2, "lines"),
-            plot.title = element_text(hjust = 0.5)) +
-      ggtitle("Survival predictions based on past studies")
-  })
-  sp$layers = sp$layers[c(5, 1:4)]
+    sp = suppressMessages({
+      sp +
+        geom_step(data = project_db, size = 0.8,
+                  aes(x = ceiling(time), y = sr, color = Trt.ID, linetype = lwrap(ref_unique, plot_lwrap))) +
+        scale_linetype_manual(name = "Reference", values = linevec[1:length(unique(project_db$ref_unique))]) +
+        scale_color_discrete(name = "Trt.ID") +
+        guides(linetype = guide_legend(order = 2), colour = guide_legend(order = 1)) +
+        geom_step(data = ref_surv, aes(x = time, y = surv, linetype = lwrap(ref_unique, plot_lwrap)),
+                  size = 0.8, color = "#6C6C6C", show.legend = FALSE) +
+        theme(legend.key.width = unit(1.5, "lines"),
+              plot.title = element_text(hjust = 0.5))
+      })
+    sp$layers = sp$layers[c(5, 1:4)]
+  }
 
-  hp = suppressMessages({
-    Surv_Plots(surv_db = surv_db,
-               lambda = lambda, phi = phi, dailybin = dailybin,
-               plot = "haz", plot_save = FALSE, xlim = c(0, pred_tte + 1)) +
-      geom_line(data = project_db, linewidth = 0.8,
-                aes(x = time, y = hazard, color = Trt.ID, linetype = lwrap(ref_unique, plot_lwrap))) +
-      geom_point(data = project_db, aes(x = time, y = hazard, color = Trt.ID)) +
-      scale_linetype_manual(name = "Reference", values = linevec[1:length(unique(project_db$ref_unique))]) +
-      scale_color_discrete(name = "Trt.ID") +
-      scale_y_continuous(name = "Hazard") +
-      guides(linetype = guide_legend(order = 1), colour = guide_legend(order = 2)) +
-      geom_line(data = ref_haz, aes(x = time, y = hazard, linetype = lwrap(ref_unique, plot_lwrap)),
-                linewidth = 0.8, inherit.aes = FALSE, color = "#6C6C6C") +
-      geom_point(data = ref_haz, aes(x = time, y = hazard), inherit.aes = FALSE, color = "#6C6C6C") +
-      theme(legend.key.width = unit(2, "lines"),
-            plot.title = element_text(hjust = 0.5)) +
-      ggtitle("Hazard predictions based on past studies")
-  })
-  hp$layers = hp$layers[c(5:6, 1:4)]
+  if(plot %in% c("haz", "both")){
+    hp = suppressMessages({
+      Surv_Plots(surv_db = surv_db, factor = factor,
+                 lambda = lambda, phi = phi, dailybin = dailybin,
+                 plot = "haz", plot_save = FALSE, xlim = c(0, pred_tte + 1)) +
+        geom_line(data = project_db, linewidth = 0.8,
+                  aes(x = time, y = hazard, color = Trt.ID, linetype = lwrap(ref_unique, plot_lwrap))) +
+        geom_point(data = project_db, aes(x = time, y = hazard, color = Trt.ID)) +
+        scale_linetype_manual(name = "Reference", values = linevec[1:length(unique(project_db$ref_unique))]) +
+        #scale_color_discrete(name = "Trt.ID") +
+        scale_y_continuous(name = "Hazard") +
+        #guides(linetype = guide_legend(order = 1), colour = guide_legend(order = 2)) +
+        geom_line(data = ref_haz, aes(x = time, y = hazard, linetype = lwrap(ref_unique, plot_lwrap)),
+                  linewidth = 0.8, inherit.aes = FALSE, color = "#6C6C6C") +
+        geom_point(data = ref_haz, aes(x = time, y = hazard), inherit.aes = FALSE, color = "#6C6C6C") +
+        theme(legend.key.width = unit(1.5, "lines"),
+              plot.title = element_text(hjust = 0.5))
+    })
+    hp$layers = hp$layers[c(5:6, 1:4)]
+  }
+
+  if(ref_remove == TRUE) {
+    hp$layers[[1]] = NULL
+    sp$layers[[1]] = NULL
+  }
+
+  if(plot_endsr == TRUE){
+    sp = sp + geom_text(data = end_db, show.legend = FALSE, size = 3,
+                        aes(x = time - 1.5, y = sr + 0.07, color = Trt.ID, label = round(100 * sr)))
+  }
 
   #Save plots
   if(plot_save == TRUE) {
-    ggsave(plot = sp, filename = paste(plot_prefix, "Survival Projections.tiff"),
-           dpi = 400, width = plot_dim[1], height = plot_dim[2])
-    ggsave(plot = hp, filename = paste(plot_prefix, "Hazard Projections.tiff"),
-           dpi = 400, width = plot_dim[1], height = plot_dim[2])
+    if(plot %in% c("surv", "both")){
+      ggsave(plot = sp, filename = paste(plot_prefix, "Survival Projections.tiff"),
+             dpi = 400, width = plot_dim[1], height = plot_dim[2])
+    }
+    if(plot %in% c("haz", "both")) {
+      ggsave(plot = hp, filename = paste(plot_prefix, "Hazard Projections.tiff"),
+             dpi = 400, width = plot_dim[1], height = plot_dim[2])
+    }
   }
 
   #Return Outputs
@@ -1091,6 +1120,7 @@ Surv_Pred = function(surv_db,
 #' @md
 #'
 #' @param mort_db A mort dataframe as described in \bold{Details}.
+#' @param mort_fish_count Whether to replicate data (by row) based on the number of fish specified under the column 'fish_count'.
 #' @param starting_fish_count Value representing the starting number of fish for every tank. Alternatively, a dataframe containing the columns "Trt.ID", "Tank.ID", and "starting_fish_count" to allow for different fish starting numbers per tank.
 #' @param last_tte Value representing the time-to-event the fish survived to, assigned to every row of survivor data generated.
 #' @param add_factor A string or character vector representing the name(s) of column(s) in \code{mort_db} to be carried over to the generated survival data for further analysis (e.g. as facet factor in \code{safuncs::Surv_Plots()}). Column must also be present in \code{starting_fish_count} dataframe. Defaults to NULL.
@@ -1151,6 +1181,7 @@ Surv_Pred = function(surv_db,
 #'                             add_sampled = data.frame(sampled_per_tank = 5,
 #'                                                      sampled_tte = 30))
 Surv_Gen = function(mort_db,
+                    mort_fish_count = FALSE,
                     starting_fish_count,
                     last_tte,
                     add_factor = NULL,
@@ -1163,6 +1194,12 @@ Surv_Gen = function(mort_db,
   #Remove NA rows
   mort_db[mort_db == "#N/A"] = NA
   mort_db = na.omit(mort_db)
+
+  if(mort_fish_count == TRUE){
+    mort_db = data.frame(lapply(mort_db, rep, mort_db$fish_count))
+    mort_db = mort_db[, -which(colnames(mort_db) == "fish_count")]
+    print(paste("Your total number of morts is:", nrow(mort_db)))
+  }
 
   groups = append(c("Trt.ID", "Tank.ID"), add_factor)
 
@@ -1337,8 +1374,9 @@ Surv_Plots = function(surv_db,
                       factor = "Trt.ID",
                       xlim = NULL,
                       xbreaks = NULL,
-                      xlab = "Days Post Challenge",
-                      ylim = c(0, 1.03),
+                      xlab = "Days post-challenge",
+                      ylim = c(0, 1.01),
+                      ylab = "Survival probability",
                       lambda = NULL,
                       phi = NULL,
                       dailybin = TRUE,
@@ -1349,7 +1387,7 @@ Surv_Plots = function(surv_db,
                       data_out = FALSE,
                       plot_save = TRUE,
                       plot_prefix = "ONDA_XX",
-                      plot_dim = c(6, 4),
+                      plot_dim = c(5.8, 4.6),
                       legend_cols = NULL,
                       linesize = 1) {
 
@@ -1411,6 +1449,7 @@ Surv_Plots = function(surv_db,
                                       short.panel.labs = TRUE,
                                       short.legend.labs = TRUE,
                                       size = linesize)
+    surv_plot$layers[[3]]$show.legend = FALSE
     if("plot" %in% names(surv_plot)){surv_plot <- surv_plot$plot}
 
     if(is.null(colours)) {color_vec <- unique(layer_data(surv_plot)[,1])} else {color_vec <- colours}
@@ -1422,8 +1461,8 @@ Surv_Plots = function(surv_db,
       #coord_cartesian(clip = "off") +
       scale_x_continuous(breaks = seq(0, xlim[2] * 2, xbreaks), name = xlab, limits = xlim, oob = scales::oob_keep,
                          expand = expansion()) +
-      scale_y_continuous(labels = scales::percent, limits = ylim, n.breaks = 10, expand = expansion(),
-                         name = "Survival Probability") +
+      scale_y_continuous(limits = ylim, n.breaks = 10, expand = expansion(),
+                         name = ylab, labels = scales::percent) +
       scale_color_manual(labels = strn, values = color_vec)
 
     #Create survdat
@@ -1529,7 +1568,7 @@ Surv_Plots = function(surv_db,
       coord_cartesian(clip = "off") +
       guides(color = guide_legend(title = factors_vec[1], ncol = legend_cols))
 
-    if(haz_points == TRUE) {Hazard_Plot <- Hazard_Plot + geom_point()}
+    if(haz_points == TRUE) {Hazard_Plot <- Hazard_Plot + geom_point(show.legend = FALSE)}
     if(!is.null(facet_by)) {Hazard_Plot <- Hazard_Plot + facet_wrap(as.formula(paste("~", facet_by)))}
     if(!is.null(colours)) {Hazard_Plot <- Hazard_Plot + scale_color_manual(values = colours)}
     if(theme == "prism") {Hazard_Plot <- Hazard_Plot + ggprism::theme_prism()}
@@ -2384,6 +2423,12 @@ MultiVar = function(multivar_db,
   box_height2_vec = c()
   univariate_tests = TRUE # defined in case it is to be converted to an optional output
   knife <- function(x) { # for formatting p-values (mostly)
+    if(!is.numeric(x)) {
+      return(x)
+    }
+    if (is.na(x)) {
+      return(NA)
+    }
     if(x < 1e-4) {
       return(format(x, scientific = TRUE, digits = 4))
     } else {
@@ -3597,6 +3642,172 @@ fpr_check = function(formula,
                 test_statistic_vector = teststat_vec,
                 model_or_test = obj_vec))
   }
+}
+
+################################################# Function 17 - est_fish_sgr_sd #################################################
+
+#' @title Estimate Inter-fish SGR SD
+#'
+#' @description placeholder
+#'
+#' @param Wi placeholder
+#'
+#' @return placeholder
+#' @export
+#'
+#' @examples
+#' #placeholder
+est_fish_sgr_sd = function(Wi, #vector of initial weights
+                           Wf, #vector of final weights
+                           t,  #time between the two weights
+                           sd_limits = c(0, 0.3), #x-axis range investigated
+                           sd_increments = 0.002, #sds to be investigated
+                           n_sim = 1000,
+                           show_plot = TRUE,
+                           plot_title = "") {
+
+  investigated_sds = seq(sd_limits[1], sd_limits[2], sd_increments)
+  Wf_sim_mean_sds = c()
+
+  sgr = (log(mean(Wf)) - log(mean(Wi))) / t
+  target_sd = sd(Wf)
+  sd_attempts = investigated_sds / 100
+
+  for(sd_i in sd_attempts){
+    Wf_sim_sd = c()
+
+    for(i in 1:n_sim){
+      Wf_sim = Wi * exp(t * rnorm(n = length(Wi), mean = sgr, sd = sd_i))
+      Wf_sim_sd = c(Wf_sim_sd, sd(Wf_sim))
+    }
+    Wf_sim_mean_sds = c(Wf_sim_mean_sds, mean(Wf_sim_sd))
+  }
+
+  if(show_plot == TRUE) {
+    plot(y = abs(Wf_sim_mean_sds - target_sd), x = sd_attempts * 100, ylab = "Discrepancy", xlab = "SD used in simulation",
+         main = plot_title)
+  }
+
+  best_sd = sd_attempts[which(abs(Wf_sim_mean_sds - target_sd) ==
+                                min(abs(Wf_sim_mean_sds - target_sd)))] #answer = 0.00108
+
+  return(list = list("message" = paste("The best inter-fish SGR sd is estimated to be:", 100 * best_sd, "%BW/t"),
+                     "value" = 100 * best_sd))
+}
+
+################################################# Function 17 - est_tank_sgr_sd #################################################
+
+#' @title Estimate Inter-Tank SGR SD
+#'
+#' @description placeholder
+#'
+#' @param fish_sd placeholder
+#'
+#' @return placeholder
+#' @export
+#'
+#' @examples
+#' #placeholder
+est_tank_sgr_sd = function(fish_sd,
+                           fish_num,
+                           tank_num,
+                           observed_tank_sd,
+                           sd_limits = c(0, 0.1),
+                           sd_increments = 0.001,
+                           n_sim = 1000,
+                           plot_title = "",
+                           show_plot = TRUE) {
+
+  investigated_sds = seq(sd_limits[1], sd_limits[2], sd_increments)
+  sd_attempts = investigated_sds / 100
+  tank_sd_at_each_attempt = c()
+
+  tank_sd_at_each_attempt = c()
+  for(sd_i in sd_attempts){
+    tank_sds_i = c()
+
+    for(iter in 1:n_sim) {
+      tank_avweights = c()
+
+      for(tank_i in 1:tank_num){
+        tank_val = rnorm(n = 1, mean = 0, sd = sd_i)
+        fish_val = rnorm(n = fish_num, mean = 0, sd = fish_sd / 100)
+        y_val = tank_val + fish_val
+        tank_avweights = c(tank_avweights, mean(y_val))
+      }
+      tank_sds_i = c(tank_sds_i, sd(tank_avweights))
+    }
+
+    tank_sd_at_each_attempt = c(tank_sd_at_each_attempt, mean(tank_sds_i))
+  }
+
+  discrepancy = abs(tank_sd_at_each_attempt - observed_tank_sd / 100)
+
+  if(show_plot == TRUE) {
+    plot(y = discrepancy, x = sd_attempts * 100, ylab = "Discrepancy", xlab = "Tank-SD used in simulation",
+         main = plot_title)
+  }
+
+  best_tank_sd = sd_attempts[which(discrepancy == min(discrepancy))]
+
+  return(list = list("message" = paste("The best inter-tank SGR sd is estimated to be:", 100 * best_tank_sd, "%BW/t"),
+                     "value" = 100 * best_tank_sd))
+}
+
+
+#################################################### Function 18 - Path_Gen ##################################################
+#' @title Generates Cleaned Pathology Data
+#'
+#' @description Prepares a standardized pathology dataframe for further analysis using follow-up functions in the safuncs package (e.g. \code{Path_Sum()}). Filters for relevant columns and standardizes contents of pathology columns by converting values to either NA, "Present", or "Absent".
+#'
+#' @param path_db A dataframe containing at least one column for the relevant factor (e.g. Trt.ID) and other columns for pathological signs (one for each sign).
+#' @param rel_cols A numeric vector representing the column indices of non-pathology columns that are to be carried forward to the output/return of this function.
+#' @param path_cols A numeric vector specifying the column indices of pathology columns which values are to be standardized using the "to_" arguments of this function.
+#' @param to_na A character vector specifying what values in \code{path_cols} are to be converted to NA.
+#' @param to_present A character vector specifying what values in \code{path_cols} are to be converted to "Present".
+#' @param to_absent A character vector specifying what values in \code{path_cols} are to be converted to "Absent".
+#'
+#' @returns A dataframe containing only the relevant columns -- all of \code{rel_cols} and \code{path_cols}. Values in the pathology columns standardized according to function "to_" arguments.
+#' @export
+#'
+#' @examples
+#' #placeholder
+Path_Gen = function(path_db,
+                    rel_cols,
+                    path_cols,
+                    to_na = c(" ", "N/AP", "", "N/R", "N/A", "N/Ap", "N/ap", "N/Av", "ME", ""), #values from path_cols to convert to NA which would represent missing data
+                    to_present = c("Y", "Yes", "yes", "y"), #values to convert to "Present". Automatically converts >0 counts to present
+                    to_absent = c("N", "No", "no", "n")) { #values to convert to "Absent". Automatically converts 0 counts to absent
+
+  #Trim whitespaces
+  path_db = data.frame(lapply(path_db, trimws))
+
+  #Convert values to NA and remove rows where all values are NAs (can occur with morts)
+  for(rep_val in to_na) {
+    path_db[path_db == rep_val] = NA
+  }
+  #Remove rows when they are filled with all NA values
+  path_db = path_db[!apply(path_db[path_cols], 1, function(row) all(is.na(row))), ]
+
+  #Convert values to absent or present
+  lookup = c(rep("Present", length(to_present)), rep("Absent", length(to_absent)))
+  names(lookup) = c(to_present, to_absent)
+  path_db = path_db |>
+    dplyr::mutate((across(everything(), ~ recode(.x, !!!lookup))))
+
+  #Change counts to present/absent (if applicable)
+  path_db[, path_cols] = lapply(path_db[ , path_cols],
+                                function(col){
+                                  sapply(col,
+                                         function(ele){
+                                           ele2 = as.numeric(ele) |> suppressWarnings()
+                                           if(!is.na(ele2)){
+                                             ele = as.character(ifelse(ele2 > 0, "Present", "Absent"))
+                                           } else as.character(ele)
+                                         })})
+
+  path_db = path_db[, c(rel_cols, path_cols)]
+  return(path_db)
 }
 
 ##################################################### Data 1 - mort_db_ex ####################################################
