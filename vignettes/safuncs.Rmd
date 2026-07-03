@@ -23,7 +23,7 @@ Welcome to the documentation of the R package `safuncs`! This package is designe
 Below I wrote a short tutorial on how some of the core functions in `safuncs` can be used.
 
 To get started, please install and load the package by running the following code:
-```{r, results = "hide", message = FALSE, warning = FALSE, eval = FALSE}
+```{r, results = "hide", message = FALSE, warning = FALSE}
 remotes::install_github("sean4andrew/safuncs") # install package
 library(safuncs) # load
 ```
