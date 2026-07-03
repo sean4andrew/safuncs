@@ -1,0 +1,3 @@
+# License
+
+    Copyright 2024 {safuncs} Sean Andrew. All rights reserved.
