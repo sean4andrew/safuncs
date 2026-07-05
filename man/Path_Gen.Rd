@@ -41,6 +41,7 @@ lapply(path_db_ex, unique)
 path_db = Path_Gen(path_db = path_db_ex,
                    rel_cols = 1,
                    path_cols = 3:12)
-#Again, view the unique values per column, note "N/AP" values converted to "NA", "Y" converted to "Present", and "N" converted to "Absent".
+#Again, view the unique values per column, note "N/AP" values converted to "NA",
+"Y" converted to "Present", and "N" converted to "Absent".
 lapply(path_db, unique)
 }

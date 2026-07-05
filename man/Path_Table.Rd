@@ -7,7 +7,7 @@
 Path_Table(path_sum, digits = 0, prev_append = c("se_plus-minus"))
 }
 \arguments{
-\item{path_sum}{A list or dataframe from \code{Path_Summary()}.}
+\item{path_sum}{A list of dataframes or a single dataframe from \code{Path_Summary()}.}
 
 \item{digits}{A number specifying the decimal places for the prevalence values in the output flextable. Defaults to 0.}
 
@@ -17,7 +17,7 @@ Path_Table(path_sum, digits = 0, prev_append = c("se_plus-minus"))
 A list that contains, at minimum, 2 flextable objects of the summary statistics (from \code{Path_Summary()}) in wide and long format. If a contrast dataframe from \code{Path_Summary()} is also included in the \code{path_sum} argument, then the output list contains additionally a flextable for the contrast dataframe.
 }
 \description{
-Converts the dataframe(s) from \code{Path_Summary()} into flextable objects in wide and long formats. Flextable can then be printed to word using \code{officer} package.
+Converts the pathology data summary from \code{Path_Summary()} into a list of flextable objects to print out to Word. Summary data are converted to flextables in wide and long formats. Contrast data (pairwise comparison p-values) are converted to their standalone flextable.
 }
 \examples{
 #Generate summarized pathology dataframe:

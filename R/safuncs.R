@@ -3779,7 +3779,8 @@ est_tank_sgr_sd = function(fish_sd,
 #' path_db = Path_Gen(path_db = path_db_ex,
 #'                    rel_cols = 1,
 #'                    path_cols = 3:12)
-#' #Again, view the unique values per column, note "N/AP" values converted to "NA", "Y" converted to "Present", and "N" converted to "Absent".
+#' #Again, view the unique values per column, note "N/AP" values converted to "NA",
+#' "Y" converted to "Present", and "N" converted to "Absent".
 #' lapply(path_db, unique)
 Path_Gen = function(path_db,
                     rel_cols,
@@ -3822,7 +3823,7 @@ Path_Gen = function(path_db,
 #################################################### Function 20 - Path_Summary ##################################################
 #' @title Create Summary Statistics from Pathology Data
 #'
-#' @description Takes a cleaned pathology dataframe and summarizes, for each pathological sign, its prevalence, standard error, and n across each unique combination of factors. P-value and letter groups from logistic regression and a wald-type test with p-value adjustments are also produced; the logistic regression model and letters considers only the first specified factor and ignores all others.
+#' @description Takes a cleaned pathology dataframe and summarizes, for each pathological sign, its prevalence, standard error, and n for each unique combination of levels of factor(s). Additionally, returns p-values and letter groups based on logistic regression and likelihood ratio tests, with p-value adjustments to account for multiple pairwise comparisons; the logistic regression model and letters considers only the first specified factor and ignores all others.
 #'
 #' @param path_db A cleaned pathology dataframe such as that from \code{Path_Gen()}. Must contain at least one column as the factor, and one column for a pathological sign. Multiple signs  path
 #' @param path_cols A numeric vector representing the column indices of pathological signs.
@@ -3939,16 +3940,17 @@ Path_Summary = function(path_db,
 #################################################### Function 21 - Path_Table ##################################################
 #' @title Create Flextables from Prevalence Data
 #'
-#' @description Converts the dataframe(s) from \code{Path_Summary()} into flextable objects in wide and long formats. Flextable can then be printed to word using \code{officer} package.
+#' @description Converts the pathology data summary from \code{Path_Summary()} into a list of flextable objects to print out to Word. Summary data are converted to flextables in wide and long formats. Contrast data (pairwise comparison p-values) are converted to their standalone flextable.
 #'
-#' @param path_sum A list or dataframe from \code{Path_Summary()}.
+#' @param path_sum A list of dataframes or a single dataframe from \code{Path_Summary()}.
 #' @param digits A number specifying the decimal places for the prevalence values in the output flextable. Defaults to 0.
 #' @param prev_append A string specifying the suffix to append to prevalence values in the output table. Suffix may be the standard error or counts of presence. Suffix may be presented inside brackets or after a +/- sign. Choose one of the following arguments: "se_brackets", "se_plus-minus", "presence_brackets". Defaults to "se_plus-minus".
 #'
 #' @returns A list that contains, at minimum, 2 flextable objects of the summary statistics (from \code{Path_Summary()}) in wide and long format. If a contrast dataframe from \code{Path_Summary()} is also included in the \code{path_sum} argument, then the output list contains additionally a flextable for the contrast dataframe.
 #' @export
-#' @import flextable
 #' @import officer
+#' @import ftExtra
+#' @import flextable
 #'
 #' @examples
 #' #Generate summarized pathology dataframe:
@@ -4109,7 +4111,7 @@ Path_Table = function(path_sum,
 
     contrast_tab = flextable(contrast_db) |>
       set_caption(caption = paste("Table 3. Comparison of pathological sign prevalence across pairs of treatments.")) |>
-      add_footer_lines(as_paragraph(paste("Data for every pathological sign was fitted to a logistic regression model used to calculate P values. The global p-value is based of a likelihood ratio test on the model. Treatments were also compaerd pairwise using likelihood ratio tests, with p-values adjusted using the Benjamini-Hochberg method. Different letters denote significantly different groups."))) |>
+      add_footer_lines(as_paragraph(paste("Data for every pathological sign was fitted to a logistic regression model used to calculate P values. Pairwise comparison of treatments were conducted using likelihood ratio tests. P-values from pairwise comparison were adjusted using the Benjamini-Hochberg method. Different letters denote significantly different groups."))) |>
       standard_theme(dig = digits, width = 0.8) |>
       theme_booktabs() |>
       merge_v(j = c("Pathology")) |>

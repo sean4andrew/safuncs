@@ -17,6 +17,7 @@ Imports:
     remotes,
     devtools,
     coxme,
+    ftExtra,
     dplyr,
     eoffice,
     ggplot2,
