@@ -265,7 +265,7 @@ Surv_Power(simul_db = surv_sim_db_ex1,
            prog_show = FALSE,
            data_out = FALSE)
 #> [1] "NOTE: Tukey pairwise correction is not available for log-rank tests. No power value is returned for such a combination of test and correction."
-#> [1] "Time elapsed: 00:01:08 (hh:mm:ss)"
+#> [1] "Time elapsed: 00:01:07 (hh:mm:ss)"
 #> $power_global_plot
 
 #> 
@@ -301,7 +301,7 @@ Surv_Power(simul_db = surv_sim_db_ex2,
            pairwise_corr = c("none"),
            prog_show = FALSE,
            data_out = FALSE)
-#> [1] "Time elapsed: 00:01:13 (hh:mm:ss)"
+#> [1] "Time elapsed: 00:01:12 (hh:mm:ss)"
 #> $power_global_plot
 
 #> 
@@ -345,7 +345,7 @@ Surv_Power(simul_db = surv_sim_db_ex3,
            data_out = FALSE,
            xlab = "Challenge Strength",
            xnames = c("Strong", "Medium", "Weak"))
-#> [1] "Time elapsed: 00:00:30 (hh:mm:ss)"
+#> [1] "Time elapsed: 00:00:29 (hh:mm:ss)"
 #> $power_global_plot
 
 #> 
@@ -373,7 +373,7 @@ surv_sim_db_ex4 = Surv_Simul(haz_db = haz_db_ex,
                              n_sim = 500,
                              prog_show = FALSE,
                              plot_out = FALSE)
-#> [1] "Time elapsed: 00:00:14 (hh:mm:ss)"
+#> [1] "Time elapsed: 00:00:13 (hh:mm:ss)"
 
 # Compare power across sample sizes:
 Surv_Power(simul_db = surv_sim_db_ex4,

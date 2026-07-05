@@ -1,11 +1,12 @@
 # Create Summary Statistics from Pathology Data
 
 Takes a cleaned pathology dataframe and summarizes, for each
-pathological sign, its prevalence, standard error, and n across each
-unique combination of factors. P-value and letter groups from logistic
-regression and a wald-type test with p-value adjustments are also
-produced; the logistic regression model and letters considers only the
-first specified factor and ignores all others.
+pathological sign, its prevalence, standard error, and n for each unique
+combination of levels of factor(s). Additionally, returns p-values and
+letter groups based on logistic regression and likelihood ratio tests,
+with p-value adjustments to account for multiple pairwise comparisons;
+the logistic regression model and letters considers only the first
+specified factor and ignores all others.
 
 ## Usage
 

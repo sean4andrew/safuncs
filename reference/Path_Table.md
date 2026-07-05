@@ -1,9 +1,11 @@
 # Create Flextables from Prevalence Data
 
-Converts the dataframe(s) from
+Converts the pathology data summary from
 [`Path_Summary()`](https://sean4andrew.github.io/safuncs/reference/Path_Summary.md)
-into flextable objects in wide and long formats. Flextable can then be
-printed to word using `officer` package.
+into a list of flextable objects to print out to Word. Summary data are
+converted to flextables in wide and long formats. Contrast data
+(pairwise comparison p-values) are converted to their standalone
+flextable.
 
 ## Usage
 
@@ -15,7 +17,7 @@ Path_Table(path_sum, digits = 0, prev_append = c("se_plus-minus"))
 
 - path_sum:
 
-  A list or dataframe from
+  A list of dataframes or a single dataframe from
   [`Path_Summary()`](https://sean4andrew.github.io/safuncs/reference/Path_Summary.md).
 
 - digits:
@@ -68,30 +70,14 @@ path_sum = Path_Summary(path_db = path_db,
 path_tables = Path_Table(path_sum = path_sum,
                          digits = 1, #1 decimal places for prevalence values
                          prev_append = c("se_brackets")) #append standard errors (in brackets) to prevalence values
-#> Error in loadNamespace(x): there is no package called ‘ftExtra’
 
 #View pathology table (wide format):
 path_tables$wide
-#> Error: object 'path_tables' not found
 
-#View pathology table (long format):
-path_tables$long
-#> Error: object 'path_tables' not found
 
-#View pathology contrast table:
-path_tables$contrast
-#> Error: object 'path_tables' not found
+.cl-161a3256{table-layout:auto;width:100%;}.cl-16123c04{font-family:'DejaVu Sans';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-16123c18{font-family:'DejaVu Sans';font-size:6.6pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;vertical-align:super;}.cl-1615aed4{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-1615d3e6{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-1615d3f0{background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-1615d3f1{background-color:transparent;vertical-align: middle;border-bottom: 1pt dashed rgba(211, 211, 211, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-1615d3fa{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1pt dashed rgba(211, 211, 211, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-1615d3fb{background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(255, 255, 255, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}
 
-#Print results in word docx:
-library(officer)
-library(flextable)
-results_doc = read_docx() |>
-  body_add_flextable(value = path_tables$wide, align = "left", topcaption = TRUE) |>
-  body_add_break() |>
-  body_add_flextable(value = path_tables$long, align = "left", topcaption = TRUE) |>
-  body_add_break() |>
-  body_add_flextable(value = path_tables$contrast, align = "left", topcaption = TRUE)
-#> Error: object 'path_tables' not found
-print(results_doc, target = paste0("ONDA Pathology Analyses ", format(Sys.Date(), "%d%b%Y"),".docx"))
-#> Error: object 'results_doc' not found
+Table 1. Pathological sign prevalence (%) and standard errors (in brackets) across treatments.
+
+Trt.ID
 ```
