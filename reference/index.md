@@ -30,6 +30,8 @@ Functions for cleaning, analyzing, and plotting pathology data
 
 - [`Path_Gen()`](https://sean4andrew.github.io/safuncs/reference/Path_Gen.md)
   : Generates Cleaned Pathology Data
+- [`Path_Plots()`](https://sean4andrew.github.io/safuncs/reference/Path_Plots.md)
+  : Plot Pathogen Data
 - [`Path_Summary()`](https://sean4andrew.github.io/safuncs/reference/Path_Summary.md)
   : Create Summary Statistics from Pathology Data
 - [`Path_Table()`](https://sean4andrew.github.io/safuncs/reference/Path_Table.md)
