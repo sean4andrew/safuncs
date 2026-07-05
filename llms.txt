@@ -41,6 +41,10 @@ Functions for cleaning, analyzing, and plotting pathology data
 
 - [`Path_Gen()`](https://sean4andrew.github.io/safuncs/reference/Path_Gen.md)
   : Generates Cleaned Pathology Data
+- [`Path_Summary()`](https://sean4andrew.github.io/safuncs/reference/Path_Summary.md)
+  : Create Summary Statistics from Pathology Data
+- [`Path_Table()`](https://sean4andrew.github.io/safuncs/reference/Path_Table.md)
+  : Create Flextables from Prevalence Data
 
 ## Transform Data
 
@@ -103,7 +107,7 @@ Miscellaneous functions
 - [`onda_cols1`](https://sean4andrew.github.io/safuncs/reference/onda_cols1.md)
   [`print()`](https://sean4andrew.github.io/safuncs/reference/onda_cols1.md)
   : Primary ONDA Color Vector
-- [`onda_cols1`](https://sean4andrew.github.io/safuncs/reference/onda_cols2.md)
+- [`onda_cols2`](https://sean4andrew.github.io/safuncs/reference/onda_cols2.md)
   [`print()`](https://sean4andrew.github.io/safuncs/reference/onda_cols2.md)
   : Secondary ONDA Color Vector
 - [`nasif_cols`](https://sean4andrew.github.io/safuncs/reference/nasif_cols.md)

@@ -265,7 +265,7 @@ Surv_Power(simul_db = surv_sim_db_ex1,
            prog_show = FALSE,
            data_out = FALSE)
 #> [1] "NOTE: Tukey pairwise correction is not available for log-rank tests. No power value is returned for such a combination of test and correction."
-#> [1] "Time elapsed: 00:01:04 (hh:mm:ss)"
+#> [1] "Time elapsed: 00:01:01 (hh:mm:ss)"
 #> $power_global_plot
 
 #> 
@@ -301,7 +301,7 @@ Surv_Power(simul_db = surv_sim_db_ex2,
            pairwise_corr = c("none"),
            prog_show = FALSE,
            data_out = FALSE)
-#> [1] "Time elapsed: 00:01:10 (hh:mm:ss)"
+#> [1] "Time elapsed: 00:01:08 (hh:mm:ss)"
 #> $power_global_plot
 
 #> 
@@ -334,7 +334,7 @@ surv_sim_db_ex3 = Surv_Simul(haz_db = haz_db_ex,
                              n_sim = 500,
                              prog_show = FALSE,
                              plot_out = FALSE)
-#> [1] "Time elapsed: 00:00:06 (hh:mm:ss)"
+#> [1] "Time elapsed: 00:00:05 (hh:mm:ss)"
 
 # Next, calculate and compare power across scenarios:
 Surv_Power(simul_db = surv_sim_db_ex3,
@@ -385,7 +385,7 @@ Surv_Power(simul_db = surv_sim_db_ex4,
            xlab = "Fish number per tank",
            xnames = fish_num_vec,
            plot_lines = TRUE)
-#> [1] "Time elapsed: 00:01:02 (hh:mm:ss)"
+#> [1] "Time elapsed: 00:01:03 (hh:mm:ss)"
 #> $power_global_plot
 
 #> 

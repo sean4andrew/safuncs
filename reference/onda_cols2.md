@@ -7,8 +7,8 @@ ONDA: c("#163029", "#80C7BC", "#AFE2E3", "#D0D0AA", "#CEDFD7",
 ## Usage
 
 ``` r
-data(onda_cols1)
-print(onda_cols1)
+data(onda_cols2)
+print(onda_cols2)
 ```
 
 ## Format

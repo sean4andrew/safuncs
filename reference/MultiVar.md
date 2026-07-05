@@ -89,13 +89,13 @@ MultiVar(
   "none". "confidence" draws ellipses representing the 95 percent
   confidence interval about the center of multivariate normal data
   (principal component scores); drawn using
-  [`ggpubr::stat_conf_ellipse()`](https://rpkgs.datanovia.com/ggpubr/reference/stat_conf_ellipse.html).
+  [`ggpubr::stat_conf_ellipse()`](https://rdrr.io/pkg/ggpubr/man/stat_conf_ellipse.html).
   "distribution" represents ellipses expected to cover 95 percent of all
   multivariate normal data; drawn using
   [`ggplot2::stat_ellipse()`](https://ggplot2.tidyverse.org/reference/stat_ellipse.html)
   with argument `type = "norm"`. "convexhull" represents the smallest
   convex polygon enclosing all points; drawn using
-  [`ggpubr::stat_chull()`](https://rpkgs.datanovia.com/ggpubr/reference/stat_chull.html).
+  [`ggpubr::stat_chull()`](https://rdrr.io/pkg/ggpubr/man/stat_chull.html).
   For plots without ellipses, include "none". Defaults to
   c("confidence").
 

@@ -77,5 +77,5 @@ Label_Gen(input_list = input_variables,
           fill_by_row = TRUE,
           save_name = NULL)
 #> [1] "You have 48 total labels"
-#> [1] "File saved as Label_Gen 2026-07-03.csv in /home/runner/work/safuncs/safuncs/docs/reference"
+#> [1] "File saved as Label_Gen 2026-07-05.csv in /home/runner/work/safuncs/safuncs/docs/reference"
 ```

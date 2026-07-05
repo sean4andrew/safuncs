@@ -41,7 +41,7 @@ Path_Gen(
 - to_na:
 
   A character vector specifying what values in `path_cols` are to be
-  converted to NA.
+  converted to NA which represents missing data.
 
 - to_present:
 
