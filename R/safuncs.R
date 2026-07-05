@@ -3695,7 +3695,7 @@ est_fish_sgr_sd = function(Wi, #vector of initial weights
                      "value" = 100 * best_sd))
 }
 
-################################################# Function 17 - est_tank_sgr_sd #################################################
+################################################# Function 18 - est_tank_sgr_sd #################################################
 
 #' @title Estimate Inter-Tank SGR SD
 #'
@@ -3755,7 +3755,7 @@ est_tank_sgr_sd = function(fish_sd,
 }
 
 
-#################################################### Function 18 - Path_Gen ##################################################
+#################################################### Function 19 - Path_Gen ##################################################
 #' @title Generates Cleaned Pathology Data
 #'
 #' @description Prepares a standardized pathology dataframe for further analysis using follow-up functions in the safuncs package (e.g. \code{Path_Sum()}). Filters for relevant columns and standardizes contents of pathology columns by converting values to either NA, "Present", or "Absent".
@@ -3763,7 +3763,7 @@ est_tank_sgr_sd = function(fish_sd,
 #' @param path_db A dataframe containing at least one column for the relevant factor (e.g. Trt.ID) and other columns for pathological signs (one for each sign).
 #' @param rel_cols A numeric vector representing the column indices of non-pathology columns that are to be carried forward to the output/return of this function.
 #' @param path_cols A numeric vector specifying the column indices of pathology columns which values are to be standardized using the "to_" arguments of this function.
-#' @param to_na A character vector specifying what values in \code{path_cols} are to be converted to NA.
+#' @param to_na A character vector specifying what values in \code{path_cols} are to be converted to NA which represents missing data.
 #' @param to_present A character vector specifying what values in \code{path_cols} are to be converted to "Present".
 #' @param to_absent A character vector specifying what values in \code{path_cols} are to be converted to "Absent".
 #'
@@ -3775,8 +3775,8 @@ est_tank_sgr_sd = function(fish_sd,
 Path_Gen = function(path_db,
                     rel_cols,
                     path_cols,
-                    to_na = c(" ", "N/AP", "", "N/R", "N/A", "N/Ap", "N/ap", "N/Av", "ME", ""), #values from path_cols to convert to NA which would represent missing data
-                    to_present = c("Y", "Yes", "yes", "y"), #values to convert to "Present". Automatically converts >0 counts to present
+                    to_na = c(" ", "N/AP", "", "N/R", "N/A", "N/Ap", "N/ap", "N/Av", "ME", ""),
+                    to_present = c("Y", "Yes", "yes", "y"),
                     to_absent = c("N", "No", "no", "n")) { #values to convert to "Absent". Automatically converts 0 counts to absent
 
   #Trim whitespaces
@@ -3808,6 +3808,260 @@ Path_Gen = function(path_db,
 
   path_db = path_db[, c(rel_cols, path_cols)]
   return(path_db)
+}
+
+#################################################### Function 20 - Path_Summary ##################################################
+#' @title Create Summary Statistics from Pathology Data
+#'
+#' @description Takes a cleaned pathology dataframe and summarizes, for each pathological sign, its prevalence, standard error, and n across each unique combination of factors. P-value and letter groups from logistic regression and a wald-type test with p-value adjustments are also produced; the logistic regression model and letters considers only the first specified factor and ignores all others.
+#'
+#' @param path_db A cleaned pathology dataframe such as that from \code{Path_Gen()}. Must contain at least one column as the factor, and one column for a pathological sign. Multiple signs  path
+#' @param path_cols A numeric vector representing the column indices of pathological signs.
+#' @param factors A character vector specifying the factor(s) relevant in the dataframe. Defaults to "Trt.ID", Only the first factor is considered in statistical tests, however, summary statistics such as prevalence, standard errors, and n, are calculated for every possible combination of factor level.
+#' @param p_adj A string specifying the p-value adjustment method to account for multiple comparisons. Defaults to "BH". Method based on \code{p.adjust()}.
+#' @param contrast_out A logical (TRUE/FALSE) specifying whether to return an additional dataframe containing the p-value based on pairwise comparison of groups/level of the first specified factor in \code{factors}. Defaults to TRUE.
+#'
+#' @returns A dataframe or list (when \code{contrast_out = TRUE}) containing summary statistics and results from univariate hypothesis test.
+#'
+#' @export
+#'
+#' @examples
+#' #placeholder
+Path_Summary = function(path_db,
+                        path_cols,
+                        factors = c("Trt.ID"),
+                        p_adj = "BH",
+                        contrast_out = TRUE){
+
+  logis_pair_df = data.frame()
+  #Function to professionalize pathology names:
+  prof_str = function(x, dot_word = NULL) {
+    out_str = gsub("\\.", " ", x) |> gsub(pattern = "\\s+", replacement = " ") |> stringr::str_to_title()
+    if(!is.null(dot_word)) {
+      for(word in dot_word) {
+        out_str = gsub(paste0("\\b", word, "\\b"), paste0(word, "."), out_str)
+      }
+    }
+    return(out_str)
+  } #replaces dots with spaces, add dots after specified words, remove double spaces, and capitalize
+
+  #Create data for stacked barplot:
+  non_pathnames = setdiff(colnames(path_db), colnames(path_db)[path_cols])
+  fac_db = path_db |>
+    tidyr::pivot_longer(-all_of(non_pathnames), names_to = "Path", values_to = "Presence") |>
+    data.frame()
+  fac_db = fac_db[!is.na(fac_db$Presence),]
+  fac_db$Path = prof_str(fac_db$Path) |> stringr::str_to_sentence()
+
+  fac_db_sum = fac_db |>
+    group_by(Path, across(all_of(factors)), Presence) |> #adjust depending on relevant factors
+    summarise(n = n(), .groups = "drop") |>
+    tidyr::complete(Path, !!!syms(factors), Presence, fill = list(n = 0)) |>
+    group_by(Path, across(all_of(factors))) |>
+    mutate(prop = n / sum(n), sum_n = sum(n)) |>
+    mutate(prop_se = sqrt(prop * (1 - prop) / sum(n))) |>
+    data.frame()
+  fac_db_sum$pos = ifelse(fac_db_sum$Presence == "Absent", 0.95,
+                          ifelse(fac_db_sum$Presence == "Present", 0.05, NA)) #position of text in plots
+
+  #Hypothesis testing:
+  fac_db = fac_db[order(fac_db$Path, fac_db[[factors[1]]], decreasing = FALSE), ]
+  fac_db$Presence = ifelse(fac_db$Presence == "Absent", 0, fac_db$Presence)
+  fac_db$Presence = ifelse(fac_db$Presence == "Present", 1, fac_db$Presence)
+  fac_db$Presence = as.numeric(fac_db$Presence)
+
+  fac_db_sum$logis_p = NA
+  fac_db_sum2 = data.frame()
+  for(path_i in levels(factor(fac_db$Path))) {
+    form = as.formula(paste("Presence ~", factors[1]))
+    logis_mod = glm(data = subset(fac_db, Path == path_i), family = binomial(link = "logit"), formula = form)
+    logis_p = anova(logis_mod)$`Pr(>Chi)`[2]
+    fac_db_sum$logis_p[fac_db_sum$Path == path_i] = logis_p
+
+    #non-wald type pairwise tests
+    pairs_list = combn(levels(factor(fac_db[[factors[1]]])), 2, simplify = FALSE)
+    logis_pair_p_vec = c()
+    for(pair in pairs_list) {
+      fac_db_sel = fac_db[which(fac_db[,factors[1]] %in% pair),] |> subset(Path == path_i)
+      logis_pair_mod = glm(data = fac_db_sel,
+                           family = binomial(link = "logit"), formula = form)
+      logis_pair_p = anova(logis_pair_mod)$`Pr(>Chi)`[2]
+      names(logis_pair_p) = paste(collapse = "-", pair)
+      logis_pair_p_vec = c(logis_pair_p_vec, logis_pair_p)
+    }
+    logis_pair_p_vec = p.adjust(logis_pair_p_vec, method = p_adj)
+    logis_let = multcompView::multcompLetters(logis_pair_p_vec)$Letters
+    logis_let = data.frame(lev = names(logis_let),
+                           Letters = as.character(logis_let))
+    colnames(logis_let) = c(factors[1], "Letters")
+    fac_db_sum2 = rbind(fac_db_sum2, left_join(fac_db_sum[fac_db_sum$Path == path_i,],
+                                               logis_let[,c(1, ncol(logis_let))]) |> suppressMessages())
+
+    if(contrast_out == TRUE) {
+      logis_pair_df = rbind(logis_pair_df, data.frame(Path = path_i,
+                                                      Contrast = names(logis_pair_p_vec),
+                                                      P = sprintf("%.4f", logis_pair_p_vec)))
+    }
+    print(path_i)
+  }
+
+  if(length(factors) == 2) print(paste("Note: hypothesis tests done considers only", factors[1], "as a factor."))
+
+  if(contrast_out == TRUE) {
+    return(list(summary_db = fac_db_sum2,
+                contrast_db = logis_pair_df))
+  } else return(fac_db_sum2)
+}
+
+#################################################### Function 21 - Path_Table ##################################################
+#' @title Create Flextables from Prevalence Data
+#'
+#' @description Converts the dataframe(s) from \code{Path_Summary()} into flextable objects in wide and long formats.
+#'
+#' @param path_sum A list or dataframe from \code{Path_Summary()}.
+#' @param digits A number specifying the decimal places for the prevalence values in the output flextable.
+#' @param prev_append A string specifying the suffix to append to prevalence values in the output table. Suffix may be the standard error or counts of presence. Suffix may be presented inside brackets or after a +/- sign. Choose one of the following arguments: "se_brackets", "se_plus-minus", "presence_brackets". Defaults to "se_plus-minus".
+#'
+#' @returns A list that contains, at minimum, 2 flextable objects of the summary statistics (from \code{Path_Summary()}) in wide and long format. If a contrast dataframe from \code{Path_Summary()} is also included in the \code{path_sum} argument, then the output list contains additionally a flextable for the contrast dataframe.
+#' @export
+#'
+#' @examples
+#' #placeholder
+Path_Table = function(path_sum,
+                      digits = 0,
+                      prev_append = c("se_plus-minus")) {
+  out = list()
+  flextable = TRUE #legacy
+  data_out = c("wide", "long", "contrast") #legacy
+
+  if(is.list(path_sum) & !is.data.frame(path_sum)) {
+    contrast_db = path_sum$contrast_db
+    path_sum = path_sum$summary_db
+  }
+
+  sprintf_code = paste0("%.", digits, "f")
+
+  fac_db_sum_clean = path_sum[path_sum$Presence == "Present",
+                              -which(colnames(path_sum) %in% c("Presence", "pos"))]
+
+  if(prev_append == "presence_brackets") {
+    s_name = "and counts (in brackets)"
+    fac_db_sum_clean$Prevalence = interaction(sep = " ", sprintf(sprintf_code, 100*fac_db_sum_clean$prop),
+                                              paste0("(", fac_db_sum_clean$n, ")"))
+  }
+  if(prev_append == "se_brackets") {
+    s_name = "and standard errors (in brackets)"
+    fac_db_sum_clean$Prevalence = interaction(sep = " ", sprintf(sprintf_code, 100*fac_db_sum_clean$prop),
+                                              paste0("(", sprintf(sprintf_code, 100*fac_db_sum_clean$prop_se), ")"))
+  }
+  if(prev_append == "se_plus-minus") {
+    s_name = "± standard error"
+    fac_db_sum_clean$Prevalence = interaction(sep = " ± ", sprintf(sprintf_code, 100*fac_db_sum_clean$prop),
+                                              paste0(sprintf(sprintf_code, 100*fac_db_sum_clean$prop_se)))
+  }
+
+  fac_db_sum_clean$Prevalence = ifelse(fac_db_sum_clean$logis_p < 0.05,
+                                       paste0(fac_db_sum_clean$Prevalence, "^", fac_db_sum_clean$Letters, "^"),
+                                       as.character(fac_db_sum_clean$Prevalence))
+  fac_db_sum_clean$logis_p = sprintf("%.4f", fac_db_sum_clean$logis_p)
+
+  standard_theme = function(x, dig = 4, width = 1) {
+    colformat_double(x, digits = dig) |>
+      set_table_properties(layout = "autofit", width = width) |>
+      theme_vanilla() |>
+      flextable::border(border.bottom = fp_border(color = "white"), part = "footer") |>
+      bold(bold = FALSE, part = "header")
+  }
+
+  if("long" %in% data_out) {
+    fac_db_long = fac_db_sum_clean[, -which(colnames(fac_db_sum_clean) %in% c("n", "prop", "prop_se"))]
+    nuisance = setdiff(colnames(fac_db_long), c("Path", "Prevalence", "sum_n", "logis_p", "Letters"))
+    fac_db_long = fac_db_long[, c("Path", nuisance, "Prevalence", "sum_n", "logis_p", "Letters")]
+    colnames(fac_db_long) = c("Pathology", nuisance, "Prevalence", "n",
+                              "Global-P\n(significance of treatment)", "Letters")
+
+    lev_length = 1
+    if(length(nuisance) == 1) lev_length <- length(unique(as.vector(fac_db_long[[nuisance]])))
+
+    if(flextable == TRUE) {
+      fac_db_long = flextable(fac_db_long) |>
+        set_caption(caption = paste0("Table 2. Pathological signs prevalence (%) ",
+                                     s_name, " across treatments.")) |>
+        add_footer_lines(as_paragraph(paste("For every pathological sign, treatments were compared pairwise using logistic regression and likelihood ratio tests. Letters are based on pairwise comparisons of Trt.ID with p-values adjusted using the Benjamini-Hochberg method."))) |>
+        standard_theme(dig = digits) |>
+        theme_booktabs() |>
+        align(j = c("Prevalence", "n", "Global-P\n(significance of treatment)", "Letters"),
+              align = "right", part = "all") |>
+        merge_v(j = c("Pathology", nuisance)) |>
+        flextable::hline(i = seq(0, nrow(fac_db_long), lev_length)[-c(1, length(seq(0, nrow(fac_db_long), lev_length)))],
+                         border = fp_border(color = "lightgrey", width = 1, style = "dashed")) |>
+        flextable::border(border.bottom = fp_border(color = "white"), part = "footer")
+
+      if(length(nuisance) == 1) fac_db_long <- fac_db_long |> merge_v(j = c("Pathology", "Global-P\n(significance of treatment)"))
+    }
+
+    out[["long"]] = fac_db_long
+  }
+
+  if("wide" %in% data_out) {
+    fac_db_wide0 = fac_db_sum_clean[, -which(colnames(fac_db_sum_clean) %in% c("n", "prop", "sum_n", "prop_se"))]
+
+    nuisance = setdiff(colnames(fac_db_wide0), c("Path", "logis_p", "Letters", "Prevalence"))
+    fac_db_wide = fac_db_wide0 |>
+      dplyr::select(all_of(nuisance), Path, Prevalence) |>   # keep only relevant columns
+      pivot_wider(names_from = Path, values_from = Prevalence) |>
+      mutate(across(everything(), as.character))
+
+    keep_non_na = function(x) x[!is.na(x)][1]
+    fac_db_wide_p = fac_db_wide0 |>
+      group_by(Path) |>
+      summarise(logis_p = keep_non_na(logis_p)) |>
+      pivot_wider(names_from = Path, values_from = logis_p) |>
+      mutate(!!nuisance[1] := "Global-P")
+    if(length(nuisance) == 2) fac_db_wide_p <- fac_db_wide_p |> mutate(!!nuisance[2] := "")
+    fac_db_wide_p = fac_db_wide_p |>
+      dplyr::select(all_of(nuisance), everything()) |>
+      mutate(across(everything(), as.character))
+    fac_db_wide = rbind(fac_db_wide, fac_db_wide_p)
+
+    if(flextable == TRUE) {
+      fac_db_wide = flextable(fac_db_wide) |>
+        set_caption(caption = paste("Table 1. Pathological sign prevalence (%)", s_name, "across treatments.")) |>
+        add_footer_lines(as_paragraph(paste("For every pathological sign, treatments were compared using logistic regression and likelihood ratio tests. Letters are based on pairwise comparisons of Trt.ID with p-values adjusted using the Benjamini-Hochberg method."))) |>
+        standard_theme(dig = digits) |>
+        theme_booktabs() |>
+        ftExtra::colformat_md() |>
+        #align(j = c("Prevalence", "Standard error", "n", "Global-P\n(significance of treatment)", "Letters"),
+        #align = "right", part = "all") |>
+        hline(i = nrow(fac_db_wide) - 1,
+              border = fp_border(color = "lightgrey", width = 1, style = "dashed")) |>
+        flextable::border(border.bottom = fp_border(color = "white"), part = "footer")
+    }
+
+    out[["wide"]] = fac_db_wide
+  }
+
+  if(is.data.frame(path_sum) & "contrast" %in% data_out) {
+    contrast_db$Contrast = gsub("\\-", " vs. ", contrast_db$Contrast)
+    contrast_db$Path = gsub(" ", "\n", contrast_db$Path)
+    colnames(contrast_db) = c("Pathology", "Compared pair", "P-value")
+
+    lev_length = length(unique(as.vector(contrast_db$'Compared pair')))
+
+    contrast_tab = flextable(contrast_db) |>
+      set_caption(caption = paste("Table 3. Comparison of pathological sign prevalence across pairs of treatments.")) |>
+      add_footer_lines(as_paragraph(paste("Data for every pathological sign was fitted to a logistic regression model used to calculate P values. The global p-value is based of a likelihood ratio test on the model. Treatments were also compaerd pairwise using likelihood ratio tests, with p-values adjusted using the Benjamini-Hochberg method. Different letters denote significantly different groups."))) |>
+      standard_theme(dig = digits, width = 0.8) |>
+      theme_booktabs() |>
+      merge_v(j = c("Pathology")) |>
+      align(j = c("P-value"), align = "right", part = "all") |>
+      hline(i = seq(0, nrow(contrast_db), lev_length)[-c(1, length(seq(0, nrow(contrast_db), lev_length)))],
+            border = fp_border(color = "lightgrey", width = 1, style = "dashed")) |>
+      flextable::border(border.bottom = fp_border(color = "white"), part = "footer")
+
+    out[["contrast"]] = contrast_tab
+  }
+  return(out)
 }
 
 ##################################################### Data 1 - mort_db_ex ####################################################
@@ -3911,8 +4165,8 @@ Path_Gen = function(path_db,
 #' @description A vector containing the hex codes for the secondary theme of colors for ONDA: c("#163029", "#80C7BC", "#AFE2E3", "#D0D0AA", "#CEDFD7", "#FFFFFF").
 #'
 #' @usage
-#' data(onda_cols1)
-#' print(onda_cols1)
+#' data(onda_cols2)
+#' print(onda_cols2)
 #'
 "onda_cols2"
 

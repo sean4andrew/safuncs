@@ -8,8 +8,8 @@
 An object of class \code{character} of length 6.
 }
 \usage{
-data(onda_cols1)
-print(onda_cols1)
+data(onda_cols2)
+print(onda_cols2)
 }
 \description{
 A vector containing the hex codes for the secondary theme of colors for ONDA: c("#163029", "#80C7BC", "#AFE2E3", "#D0D0AA", "#CEDFD7", "#FFFFFF").

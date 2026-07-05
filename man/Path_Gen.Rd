@@ -20,7 +20,7 @@ Path_Gen(
 
 \item{path_cols}{A numeric vector specifying the column indices of pathology columns which values are to be standardized using the "to_" arguments of this function.}
 
-\item{to_na}{A character vector specifying what values in \code{path_cols} are to be converted to NA.}
+\item{to_na}{A character vector specifying what values in \code{path_cols} are to be converted to NA which represents missing data.}
 
 \item{to_present}{A character vector specifying what values in \code{path_cols} are to be converted to "Present".}
 
