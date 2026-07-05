@@ -1,5 +1,14 @@
 # Plot Pathogen Data
 
+Creates a barplot which visualizes the summary statistics for
+pathological data generated using
+[`Path_Summary()`](https://sean4andrew.github.io/safuncs/reference/Path_Summary.md).
+Creates a plot with each pathological sign in the x-axis or as single
+panels (by setting the argument `facet_by_path = TRUE`). Easily add
+details to plots such as standard error bars, and numbers/text
+representing the counts of prevalence or sample sizes for each bar; to
+do this, use the `plot_` set of arguments.
+
 ## Usage
 
 ``` r
@@ -102,27 +111,59 @@ Path_Plots(
 
   A numeric representing the vertical nudge on the plotted text. For
   example, a value of 2 would represent a positive nudge (upward
-  movement) of the text by 2 points in the y-axis (+2
+  movement) of the text by 2 points in the y-axis (+2 percent
+  prevalence).
+
+## Value
 
 A ggplot object showing the summary statistics of the pathology data.
-Creates a barplot which visualizes the summary statistics for
-pathological data generated using
-[`Path_Summary()`](https://sean4andrew.github.io/safuncs/reference/Path_Summary.md).
-Creates a plot with each pathological sign in the x-axis or as single
-panels (by setting the argument `facet_by_path = TRUE`). Easily add
-details to plots such as standard error bars, and numbers/text
-representing the counts of prevalence or sample sizes for each bar; to
-do this, use the `plot_` set of arguments. \#Generate summarized
-pathology dataframe: data(path_db_ex) path_db = Path_Gen(path_db =
-path_db_ex, rel_cols = 1, path_cols = 3:12)path_sum =
-Path_Summary(path_db = path_db, factor = c("Trt.ID"), path_cols = 2:11,
-contrast_out = TRUE)#Plot (default arguments, one panel per pathological
-sign): Path_Plots(path_sum = path_sum)#Single-panel plot (no facets)
-with error bars and sample size labels: Path_Plots(path_sum = path_sum,
-facet_by_path = FALSE, plot_errorbars = TRUE, plot_errorbars_width =
-0.3, plot_text = "total n", plot_text_size = 3, plot_text_colour =
-"grey")#Faceted plot with custom colours, 2 rows of panels, and presence
-counts nudged upward: Path_Plots(path_sum = path_sum, facet_by_path =
-TRUE, facet_rows = 2, facet_space_x = 0.5, colours = c("#000000",
-"#E63946", "#2A9D8F", "#264653", "#F4A261"), plot_text = "presence n",
-plot_text_nudge_y = 2, plot_text_colour = "white")
+
+## Examples
+
+``` r
+#Generate summarized pathology dataframe:
+data(path_db_ex)
+path_db = Path_Gen(path_db = path_db_ex,
+                   rel_cols = 1,
+                   path_cols = 3:12)
+
+path_sum = Path_Summary(path_db = path_db,
+                        factor = c("Trt.ID"),
+                        path_cols = 2:11,
+                        contrast_out = TRUE)
+#> [1] "Ascites"
+#> [1] "Dark body"
+#> [1] "Exopthlamia"
+#> [1] "Eye haemorrhage"
+#> [1] "Grey kidney"
+#> [1] "Mouth haemorrhage"
+#> [1] "Skin haemorrhage"
+#> [1] "Swollen kidney"
+#> [1] "Swollen spleen"
+#> [1] "Visceral haemorrhage"
+
+#Plot (default arguments, one panel per pathological sign):
+Path_Plots(path_sum = path_sum)
+
+
+
+#Single-panel plot (no facets) with error bars and sample size labels:
+Path_Plots(path_sum = path_sum,
+          facet_by_path = FALSE,
+          plot_errorbars = TRUE,
+          plot_errorbars_width = 0.3,
+          plot_text = "total n",
+          plot_text_size = 3,
+          plot_text_colour = "grey")
+
+
+#Faceted plot with custom colours, 2 rows of panels, and presence counts nudged upward:
+Path_Plots(path_sum = path_sum,
+          facet_by_path = TRUE,
+          facet_rows = 2,
+          facet_space_x = 0.5,
+          colours = c("#000000", "#E63946", "#2A9D8F", "#264653", "#F4A261"),
+          plot_text = "presence n",
+          plot_text_nudge_y = 2,
+          plot_text_colour = "white")
+```
