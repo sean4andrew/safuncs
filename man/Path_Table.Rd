@@ -31,6 +31,7 @@ path_sum = Path_Summary(path_db = path_db,
                         path_cols = 2:11,
                         contrast_out = TRUE)
 
+#Generate pathology table:
 path_tables = Path_Table(path_sum = path_sum,
                          digits = 1, #1 decimal places for prevalence values
                          prev_append = c("se_brackets")) #append standard errors (in brackets) to prevalence values

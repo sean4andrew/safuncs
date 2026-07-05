@@ -3964,6 +3964,7 @@ Path_Summary = function(path_db,
 #'                         path_cols = 2:11,
 #'                         contrast_out = TRUE)
 #'
+#' #Generate pathology table:
 #' path_tables = Path_Table(path_sum = path_sum,
 #'                          digits = 1, #1 decimal places for prevalence values
 #'                          prev_append = c("se_brackets")) #append standard errors (in brackets) to prevalence values
@@ -4111,7 +4112,7 @@ Path_Table = function(path_sum,
 
     contrast_tab = flextable(contrast_db) |>
       set_caption(caption = paste("Table 3. Comparison of pathological sign prevalence across pairs of treatments.")) |>
-      add_footer_lines(as_paragraph(paste("Data for every pathological sign was fitted to a logistic regression model used to calculate P values. Pairwise comparison of treatments were conducted using likelihood ratio tests. P-values from pairwise comparison were adjusted using the Benjamini-Hochberg method. Different letters denote significantly different groups."))) |>
+      add_footer_lines(as_paragraph(paste("Data for every pathological sign was fitted to a logistic regression model used to calculate P values. Pairwise comparison of treatments were conducted using likelihood ratio tests with p-values adjusted for multiple comparisons using the Benjamini-Hochberg method. Different letters denote significantly different groups."))) |>
       standard_theme(dig = digits, width = 0.8) |>
       theme_booktabs() |>
       merge_v(j = c("Pathology")) |>
@@ -4124,6 +4125,181 @@ Path_Table = function(path_sum,
   }
   return(out)
 }
+
+#################################################### Function 22 - Path_Plots ##################################################
+#' @title Plot Pathogen Data
+#'
+#' @description Creates a barplot which visualizes the summary statistics for pathological data generated using \code{Path_Summary()}. Creates a plot with each pathological sign in the x-axis or as single panels (by setting the argument \code{facet_by_path = TRUE}). Easily add details to plots such as standard error bars, and numbers/text representing the counts of prevalence or sample sizes for each bar; to do this, use the \code{plot_} set of arguments.
+#'
+#' @param path_sum A list containing the dataframes named \code{summary_db} and \code{contrast_db} which is the output of \code{Path_Summary()}.
+#' @param factor A string specifying the relevant factor - a column name in \code{summary_db}. Defaults to "Trt.ID".
+#' @param colours A character vector specifying the colours to be used for each bar in the plot. Defaults to NULL (recommended colours or ggplot default colours when the unique number of factor levels exceed 6).
+#' @param facet_by_path Whether to facet (create panels) for each pathological sign. Defaults to TRUE.
+#' @param facet_rows Numeric representing the number of rows of panels. Defaults to NULL where rows are automatically determined.
+#' @param facet_space_x A numeric representing the horizontal gap between pathology panels. Value used in \code{panel.spacing.x = unit(facet_space_x, "cm")}. Defaults to 0.3.
+#' @param path_wrap Whether to text wrap labels for pathological signs. Wraps text after spaces; for example, wraps on "Mouth haemorrhage" to make it two horizontal layers. Defaults to FALSE.
+#' @param path_order A character vector specifying the order of pathological signs in the plot. Defaults to NULL.
+#' @param minor_y_ticks Whether to add ticks on the y-axis on minor breaks. Only available for non-facet plots. Defaults to TRUE.
+#' @param plot_errorbars Whether to plot errorbars representing standard errors. Defaults to TRUE.
+#' @param plot_errorbars_width A numeric representing the width of the errorbar. Defaults to 0.3.
+#' @param plot_text A string indicating whether (and which) text should be indicated in the bottom of each bar plot. Text can be the number of samples, number of positives for that pathological sign, or none. Choose between "total n", "presence n", and NULL. Defaults to NULL.
+#' @param plot_text_size A numeric representing the size of the text plotted. Defaults to 2.6.
+#' @param plot_text_colour A character representing the colour of the text plotted. Defaults to "black".
+#' @param plot_text_nudge_y A numeric representing the vertical nudge on the plotted text. For example, a value of 2 would represent a positive nudge (upward movement) of the text by 2 points in the y-axis (+2% prevalence).
+#'
+#' @returns A ggplot object showing the summary statistics of the pathology data.
+#' @export
+#' @import ggplot2
+#'
+#' @examples
+#' #Generate summarized pathology dataframe:
+#' data(path_db_ex)
+#' path_db = Path_Gen(path_db = path_db_ex,
+#'                    rel_cols = 1,
+#'                    path_cols = 3:12)
+#'
+#' path_sum = Path_Summary(path_db = path_db,
+#'                         factor = c("Trt.ID"),
+#'                         path_cols = 2:11,
+#'                         contrast_out = TRUE)
+#'
+#' #Plot (default arguments, one panel per pathological sign):
+#' Path_Plots(path_sum = path_sum)
+#'
+#'
+#' #Single-panel plot (no facets) with error bars and sample size labels:
+#' Path_Plots(path_sum = path_sum,
+#'           facet_by_path = FALSE,
+#'           plot_errorbars = TRUE,
+#'           plot_errorbars_width = 0.3,
+#'           plot_text = "total n",
+#'           plot_text_size = 3,
+#'           plot_text_colour = "grey")
+#'
+#' #Faceted plot with custom colours, 2 rows of panels, and presence counts nudged upward:
+#' Path_Plots(path_sum = path_sum,
+#'           facet_by_path = TRUE,
+#'           facet_rows = 2,
+#'           facet_space_x = 0.5,
+#'           colours = c("#000000", "#E63946", "#2A9D8F", "#264653", "#F4A261"),
+#'           plot_text = "presence n",
+#'           plot_text_nudge_y = 2,
+#'           plot_text_colour = "white")
+Path_Plots = function(path_sum,
+                      factor = "Trt.ID",
+                      colours = NULL,
+                      facet_by_path = TRUE,
+                      facet_rows = NULL,
+                      facet_space_x = 0.3,
+                      path_wrap = FALSE,
+                      path_order = NULL,
+                      minor_y_ticks = TRUE, #only available for non facet plots
+                      plot_errorbars = TRUE,
+                      plot_errorbars_width = 0.3,
+                      plot_text = NULL, #can be "presence n", "total n", NULL.
+                      plot_text_size = 2.6,
+                      plot_text_colour = "black",
+                      plot_text_nudge_y = 0){
+
+  if(!is.data.frame(path_sum)) path_sum_db <- path_sum$summary_db else path_sum_db <- path_sum
+
+  if(!is.null(path_order)) {
+    path_sum_db$Path = factor(path_sum_db$Path, levels = path_order)
+  }
+
+  if(path_wrap == TRUE){
+    path_sum_db$Path = path_sum_db$Path |>
+      as.character() |>
+      gsub(pattern = " ", replacement = "\n") |>
+      as.factor()
+  }
+
+  gplot = ggplot(data = subset(path_sum_db, Presence == "Present"),
+                 aes(x = Path, y = prop, fill = .data[[factor]])) +
+    geom_bar(stat = "identity", colour = NA, width = 0.7,
+             position = position_dodge(width = 0.7)) +
+    scale_y_continuous(labels = scales::percent_format(suffix = ""), name = "Prevalence (%)",
+                       expand = expansion(), n.breaks = 6,
+                       minor_breaks = seq(0, 1, 0.05), limits = c(0, 1)) +
+    safuncs::theme_Publication() +
+    guides(fill = guide_legend(title = NULL)) +
+    coord_cartesian(clip = "on") +
+    geom_hline(yintercept = 0, linewidth = 0.9) +
+    theme(axis.text.x = element_text(size = 9, margin = margin(t = 5)),
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          axis.title.x = element_blank(),
+          strip.text.x = element_text(size = 10.5, face = "bold.italic",
+                                      margin = margin(b = 11.5, t = 8)),
+          strip.text.y = element_text(size = 10.5, face = "bold.italic"),
+          strip.background = element_blank())
+
+  fl = unique(path_sum_db[, factor])
+
+  if(!is.null(colours)) gplot <- gplot + scale_fill_manual(values = colours) else {
+    gplot = gplot + scale_fill_manual(values = if(length(fl) > 6) GG_Colour_Hue(length(fl)) else
+      c("#000000", "#E69F00", "#56B4E9", "#009E73", "#D55E00", "#CC79A7"))
+  }
+
+  if(facet_by_path == TRUE) {
+    gplot$mapping = aes(x = .data[[factor]], y = prop, fill = .data[[factor]])
+    gplot = gplot +
+      facet_wrap(~ Path, nrow = facet_rows) +
+      theme(legend.position = "none",
+            panel.spacing.x = unit(facet_space_x, "cm"))
+  }
+
+  if(minor_y_ticks == TRUE & facet_by_path == FALSE) {
+    gplot = gplot + ggprism::annotation_ticks(sides = "l", type = "minor", outside = TRUE)
+  }
+
+  #Create function to add details to barplot:
+  bar_dets = function(x,
+                      factor,
+                      errorbars = plot_errorbars,
+                      errorbars_width = plot_errorbars_width,
+                      text = plot_text,
+                      text_size = plot_text_size,
+                      text_col = plot_text_colour) {
+    out_list = list()
+    if(errorbars == TRUE) {
+      out_list = c(out_list,
+                   list(geom_point(data = x[x$Presence == "Present",],
+                                   aes(x = .data[[factor[1]]], y = prop),
+                                   color = "black",
+                                   position = position_dodge(width = 0.7),
+                                   show.legend = FALSE, shape = 18),
+                        geom_errorbar(data = x[x$Presence == "Present",],
+                                      position = position_dodge(width = 0.7),
+                                      aes(x = .data[[factor[1]]],
+                                          y = prop, ymin = prop - prop_se, ymax = prop + prop_se),
+                                      stat = "identity", width = errorbars_width)))
+    }
+    if(!is.null(text)) {
+      if(text == "presence n") {
+        out_list = c(out_list,
+                     list(geom_text(data = x[x$Presence == "Present",], aes(x = .data[[factor[1]]], y = pos + plot_text_nudge_y/100,
+                                                                            label = n),
+                                    position = position_dodge(width = 0.7),
+                                    size = text_size, color = text_col, fontface = "bold")))
+      }
+      if(text == "total n") {
+        out_list = c(out_list,
+                     list(geom_text(data = x[x$Presence == "Present",], aes(x = .data[[factor[1]]], y = pos + plot_text_nudge_y/100,
+                                                                            label = sum_n),
+                                    position = position_dodge(width = 0.7),
+                                    size = text_size, color = text_col, fontface = "bold")))
+      }
+    }
+    return(out_list)
+  }
+
+  gplot = gplot +
+    bar_dets(x = path_sum_db, factor = ifelse(facet_by_path == TRUE, factor, "Path"))
+
+  return(gplot)
+}
+
 
 ##################################################### Data 1 - mort_db_ex ####################################################
 
