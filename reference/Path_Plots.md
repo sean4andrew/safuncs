@@ -1,4 +1,4 @@
-# Plot Pathogen Data
+# Plot Pathological Data
 
 Creates a barplot which visualizes the summary statistics for
 pathological data generated using
