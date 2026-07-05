@@ -3758,7 +3758,7 @@ est_tank_sgr_sd = function(fish_sd,
 #################################################### Function 19 - Path_Gen ##################################################
 #' @title Generates Cleaned Pathology Data
 #'
-#' @description Prepares a standardized pathology dataframe for further analysis using follow-up functions in the safuncs package (e.g. \code{Path_Sum()}). Filters for relevant columns and standardizes contents of pathology columns by converting values to either NA, "Present", or "Absent".
+#' @description Prepares a standardized pathology dataframe for further analysis using follow-up functions in the safuncs package (e.g. \code{Path_Summary()}). Filters for relevant columns and standardizes contents of pathology columns by converting values to either NA, "Present", or "Absent".
 #'
 #' @param path_db A dataframe containing at least one column for the relevant factor (e.g. Trt.ID) and other columns for pathological signs (one for each sign).
 #' @param rel_cols A numeric vector representing the column indices of non-pathology columns that are to be carried forward to the output/return of this function.
@@ -3780,7 +3780,7 @@ est_tank_sgr_sd = function(fish_sd,
 #'                    rel_cols = 1,
 #'                    path_cols = 3:12)
 #' #Again, view the unique values per column, note "N/AP" values converted to "NA",
-#' "Y" converted to "Present", and "N" converted to "Absent".
+#' #"Y" converted to "Present", and "N" converted to "Absent".
 #' lapply(path_db, unique)
 Path_Gen = function(path_db,
                     rel_cols,
@@ -4145,7 +4145,7 @@ Path_Table = function(path_sum,
 #' @param plot_text A string indicating whether (and which) text should be indicated in the bottom of each bar plot. Text can be the number of samples, number of positives for that pathological sign, or none. Choose between "total n", "presence n", and NULL. Defaults to NULL.
 #' @param plot_text_size A numeric representing the size of the text plotted. Defaults to 2.6.
 #' @param plot_text_colour A character representing the colour of the text plotted. Defaults to "black".
-#' @param plot_text_nudge_y A numeric representing the vertical nudge on the plotted text. For example, a value of 2 would represent a positive nudge (upward movement) of the text by 2 points in the y-axis (+2% prevalence).
+#' @param plot_text_nudge_y A numeric representing the vertical nudge on the plotted text. For example, a value of 2 would represent a positive nudge (upward movement) of the text by 2 points in the y-axis (+2 percent prevalence).
 #'
 #' @returns A ggplot object showing the summary statistics of the pathology data.
 #' @export

@@ -51,7 +51,7 @@ Path_Plots(
 
 \item{plot_text_colour}{A character representing the colour of the text plotted. Defaults to "black".}
 
-\item{plot_text_nudge_y}{A numeric representing the vertical nudge on the plotted text. For example, a value of 2 would represent a positive nudge (upward movement) of the text by 2 points in the y-axis (+2% prevalence).}
+\item{plot_text_nudge_y}{A numeric representing the vertical nudge on the plotted text. For example, a value of 2 would represent a positive nudge (upward movement) of the text by 2 points in the y-axis (+2 percent prevalence).}
 }
 \value{
 A ggplot object showing the summary statistics of the pathology data.
