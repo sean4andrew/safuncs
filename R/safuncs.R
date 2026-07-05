@@ -3771,7 +3771,16 @@ est_tank_sgr_sd = function(fish_sd,
 #' @export
 #'
 #' @examples
-#' #placeholder
+#' #Load example pathology dataframe and view unique values per column
+#' data(path_db_ex)
+#' lapply(path_db_ex, unique)
+#'
+#' #Prepare dataset for further analyses
+#' path_db = Path_Gen(path_db = path_db_ex,
+#'                    rel_cols = 1,
+#'                    path_cols = 3:12)
+#' #Again, view the unique values per column, note "N/AP" values converted to "NA", "Y" converted to "Present", and "N" converted to "Absent".
+#' lapply(path_db, unique)
 Path_Gen = function(path_db,
                     rel_cols,
                     path_cols,
@@ -3826,7 +3835,21 @@ Path_Gen = function(path_db,
 #' @export
 #'
 #' @examples
-#' #placeholder
+#' #Generate pathology dataset:
+#' data(path_db_ex)
+#' path_db = Path_Gen(path_db = path_db_ex,
+#'                    rel_cols = 1,
+#'                    path_cols = 3:12)
+#'
+#' path_sum = Path_Summary(path_db = path_db,
+#'                         factor = c("Trt.ID"),
+#'                         path_cols = 2:11,
+#'                         contrast_out = TRUE)
+#' #Dataframe containing summary statistics and hypothesis test across factor levels of the first factor (in this case "Trt.ID"):
+#' head(path_sum$summary_db, 5)
+#'
+#' #Dataframe containing P-values from pairwise comparison of levels of the first factor
+#' head(path_sum$contrast_db, 5)
 Path_Summary = function(path_db,
                         path_cols,
                         factors = c("Trt.ID"),
@@ -3916,17 +3939,52 @@ Path_Summary = function(path_db,
 #################################################### Function 21 - Path_Table ##################################################
 #' @title Create Flextables from Prevalence Data
 #'
-#' @description Converts the dataframe(s) from \code{Path_Summary()} into flextable objects in wide and long formats.
+#' @description Converts the dataframe(s) from \code{Path_Summary()} into flextable objects in wide and long formats. Flextable can then be printed to word using \code{officer} package.
 #'
 #' @param path_sum A list or dataframe from \code{Path_Summary()}.
-#' @param digits A number specifying the decimal places for the prevalence values in the output flextable.
+#' @param digits A number specifying the decimal places for the prevalence values in the output flextable. Defaults to 0.
 #' @param prev_append A string specifying the suffix to append to prevalence values in the output table. Suffix may be the standard error or counts of presence. Suffix may be presented inside brackets or after a +/- sign. Choose one of the following arguments: "se_brackets", "se_plus-minus", "presence_brackets". Defaults to "se_plus-minus".
 #'
 #' @returns A list that contains, at minimum, 2 flextable objects of the summary statistics (from \code{Path_Summary()}) in wide and long format. If a contrast dataframe from \code{Path_Summary()} is also included in the \code{path_sum} argument, then the output list contains additionally a flextable for the contrast dataframe.
 #' @export
+#' @import flextable
+#' @import officer
 #'
 #' @examples
-#' #placeholder
+#' #Generate summarized pathology dataframe:
+#' data(path_db_ex)
+#' path_db = Path_Gen(path_db = path_db_ex,
+#'                    rel_cols = 1,
+#'                    path_cols = 3:12)
+#'
+#' path_sum = Path_Summary(path_db = path_db,
+#'                         factor = c("Trt.ID"),
+#'                         path_cols = 2:11,
+#'                         contrast_out = TRUE)
+#'
+#' path_tables = Path_Table(path_sum = path_sum,
+#'                          digits = 1, #1 decimal places for prevalence values
+#'                          prev_append = c("se_brackets")) #append standard errors (in brackets) to prevalence values
+#'
+#' #View pathology table (wide format):
+#' path_tables$wide
+#'
+#' #View pathology table (long format):
+#' path_tables$long
+#'
+#' #View pathology contrast table:
+#' path_tables$contrast
+#'
+#' #Print results in word docx:
+#' library(officer)
+#' library(flextable)
+#' results_doc = read_docx() |>
+#'   body_add_flextable(value = path_tables$wide, align = "left", topcaption = TRUE) |>
+#'   body_add_break() |>
+#'   body_add_flextable(value = path_tables$long, align = "left", topcaption = TRUE) |>
+#'   body_add_break() |>
+#'   body_add_flextable(value = path_tables$contrast, align = "left", topcaption = TRUE)
+#' print(results_doc, target = paste0("ONDA Pathology Analyses ", format(Sys.Date(), "%d%b%Y"),".docx"))
 Path_Table = function(path_sum,
                       digits = 0,
                       prev_append = c("se_plus-minus")) {
@@ -3977,6 +4035,7 @@ Path_Table = function(path_sum,
     fac_db_long = fac_db_sum_clean[, -which(colnames(fac_db_sum_clean) %in% c("n", "prop", "prop_se"))]
     nuisance = setdiff(colnames(fac_db_long), c("Path", "Prevalence", "sum_n", "logis_p", "Letters"))
     fac_db_long = fac_db_long[, c("Path", nuisance, "Prevalence", "sum_n", "logis_p", "Letters")]
+    fac_db_long$Prevalence = gsub("\\^[^\\^]*\\^", "", fac_db_long$Prevalence)
     colnames(fac_db_long) = c("Pathology", nuisance, "Prevalence", "n",
                               "Global-P\n(significance of treatment)", "Letters")
 
@@ -4009,14 +4068,14 @@ Path_Table = function(path_sum,
     nuisance = setdiff(colnames(fac_db_wide0), c("Path", "logis_p", "Letters", "Prevalence"))
     fac_db_wide = fac_db_wide0 |>
       dplyr::select(all_of(nuisance), Path, Prevalence) |>   # keep only relevant columns
-      pivot_wider(names_from = Path, values_from = Prevalence) |>
+      tidyr::pivot_wider(names_from = Path, values_from = Prevalence) |>
       mutate(across(everything(), as.character))
 
     keep_non_na = function(x) x[!is.na(x)][1]
     fac_db_wide_p = fac_db_wide0 |>
       group_by(Path) |>
       summarise(logis_p = keep_non_na(logis_p)) |>
-      pivot_wider(names_from = Path, values_from = logis_p) |>
+      tidyr::pivot_wider(names_from = Path, values_from = logis_p) |>
       mutate(!!nuisance[1] := "Global-P")
     if(length(nuisance) == 2) fac_db_wide_p <- fac_db_wide_p |> mutate(!!nuisance[2] := "")
     fac_db_wide_p = fac_db_wide_p |>

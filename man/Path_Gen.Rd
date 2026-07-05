@@ -33,5 +33,14 @@ A dataframe containing only the relevant columns -- all of \code{rel_cols} and \
 Prepares a standardized pathology dataframe for further analysis using follow-up functions in the safuncs package (e.g. \code{Path_Sum()}). Filters for relevant columns and standardizes contents of pathology columns by converting values to either NA, "Present", or "Absent".
 }
 \examples{
-#placeholder
+#Load example pathology dataframe and view unique values per column
+data(path_db_ex)
+lapply(path_db_ex, unique)
+
+#Prepare dataset for further analyses
+path_db = Path_Gen(path_db = path_db_ex,
+                   rel_cols = 1,
+                   path_cols = 3:12)
+#Again, view the unique values per column, note "N/AP" values converted to "NA", "Y" converted to "Present", and "N" converted to "Absent".
+lapply(path_db, unique)
 }

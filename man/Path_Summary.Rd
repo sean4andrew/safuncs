@@ -30,5 +30,19 @@ A dataframe or list (when \code{contrast_out = TRUE}) containing summary statist
 Takes a cleaned pathology dataframe and summarizes, for each pathological sign, its prevalence, standard error, and n across each unique combination of factors. P-value and letter groups from logistic regression and a wald-type test with p-value adjustments are also produced; the logistic regression model and letters considers only the first specified factor and ignores all others.
 }
 \examples{
-#placeholder
+#Generate pathology dataset:
+data(path_db_ex)
+path_db = Path_Gen(path_db = path_db_ex,
+                   rel_cols = 1,
+                   path_cols = 3:12)
+
+path_sum = Path_Summary(path_db = path_db,
+                        factor = c("Trt.ID"),
+                        path_cols = 2:11,
+                        contrast_out = TRUE)
+#Dataframe containing summary statistics and hypothesis test across factor levels of the first factor (in this case "Trt.ID"):
+head(path_sum$summary_db, 5)
+
+#Dataframe containing P-values from pairwise comparison of levels of the first factor
+head(path_sum$contrast_db, 5)
 }
