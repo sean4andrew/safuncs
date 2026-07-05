@@ -4127,7 +4127,7 @@ Path_Table = function(path_sum,
 }
 
 #################################################### Function 22 - Path_Plots ##################################################
-#' @title Plot Pathogen Data
+#' @title Plot Pathological Data
 #'
 #' @description Creates a barplot which visualizes the summary statistics for pathological data generated using \code{Path_Summary()}. Creates a plot with each pathological sign in the x-axis or as single panels (by setting the argument \code{facet_by_path = TRUE}). Easily add details to plots such as standard error bars, and numbers/text representing the counts of prevalence or sample sizes for each bar; to do this, use the \code{plot_} set of arguments.
 #'

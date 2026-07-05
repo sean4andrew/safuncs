@@ -2,7 +2,7 @@
 % Please edit documentation in R/safuncs.R
 \name{Path_Plots}
 \alias{Path_Plots}
-\title{Plot Pathogen Data}
+\title{Plot Pathological Data}
 \usage{
 Path_Plots(
   path_sum,
